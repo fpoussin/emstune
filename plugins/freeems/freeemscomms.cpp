@@ -51,6 +51,8 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	m_packetDecoder = new PacketDecoder(this);
 	connect(m_packetDecoder,SIGNAL(locationIdInfo(MemoryLocationInfo)),this,SLOT(locationIdInfoRec(MemoryLocationInfo)));
 	connect(m_packetDecoder,SIGNAL(packetAcked(unsigned short,QByteArray,QByteArray)),this,SLOT(packetAckedRec(unsigned short,QByteArray,QByteArray)));
+	connect(m_packetDecoder,SIGNAL(partialPacketAcked(unsigned short,QByteArray,QByteArray)),this,SLOT(partialPacketAckedRec(unsigned short,QByteArray,QByteArray)));
+	connect(m_packetDecoder,SIGNAL(completePacketAcked(unsigned short,QByteArray,QByteArray)),this,SLOT(completePacketAckedRec(unsigned short,QByteArray,QByteArray)));
 	connect(m_packetDecoder,SIGNAL(packetNaked(unsigned short,QByteArray,QByteArray,unsigned short)),this,SLOT(packetNakedRec(unsigned short,QByteArray,QByteArray,unsigned short)));
 	connect(m_packetDecoder,SIGNAL(locationIdList(QList<unsigned short>)),this,SLOT(locationIdListRec(QList<unsigned short>)));
 	connect(m_packetDecoder,SIGNAL(ramBlockUpdatePacket(QByteArray,QByteArray)),this,SLOT(ramBlockUpdateRec(QByteArray,QByteArray)));
@@ -67,6 +69,8 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	connect(m_packetDecoder,SIGNAL(builtByName(QString)),this,SLOT(builtByName(QString)));
 	connect(m_packetDecoder,SIGNAL(supportEmail(QString)),this,SLOT(supportEmail(QString)));
 	connect(m_packetDecoder,SIGNAL(benchTestReply(unsigned short,unsigned char)),this,SIGNAL(benchTestReply(unsigned short,unsigned char)));
+	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),this,SIGNAL(datalogDescriptor(QString)));
+	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),dataPacketDecoder,SLOT(datalogDescriptor(QString)));
 
 	m_lastdatalogTimer = new QTimer(this);
 	connect(m_lastdatalogTimer,SIGNAL(timeout()),this,SLOT(datalogTimerTimeout()));
@@ -366,7 +370,16 @@ void FreeEmsComms::openLogs()
 		m_logOutFile->open(QIODevice::ReadWrite | QIODevice::Truncate);
 	}
 }
-
+int FreeEmsComms::getDatalogDescriptor()
+{
+	QMutexLocker locker(&m_reqListMutex);
+	RequestClass req;
+	req.type = GET_DATALOG_DESCRIPTOR;
+	req.sequencenumber = m_sequenceNumber;
+        m_sequenceNumber++;
+        m_reqList.append(req);
+        return m_sequenceNumber-1;
+}
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
 	QMutexLocker locker(&m_reqListMutex);
@@ -1229,6 +1242,26 @@ void FreeEmsComms::run()
 				m_threadReqList.removeAt(i);
 				i--;
 			}
+			else if (m_threadReqList[i].type == GET_DATALOG_DESCRIPTOR)
+			{
+				m_waitingInfoMutex.lock();
+				if (!m_waitingForResponse)
+				{
+					m_waitingForResponse = true;
+					m_timeoutMsecs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
+					emit debugVerbose("GET_DATALOG_DESCRIPTOR");
+					m_currentWaitingRequest = m_threadReqList[i];
+					m_payloadWaitingForResponse = GET_DATALOG_DESCRIPTOR;
+					if (!sendPacket(m_threadReqList[i],true))
+					{
+						QLOG_FATAL() << "Error writing packet. Quitting thread";
+						return;
+					}
+					m_threadReqList.removeAt(i);
+					i--;
+				}
+				m_waitingInfoMutex.unlock();
+			}
 			else if (m_threadReqList[i].type == INTERROGATE_START)
 			{
 				int seq = getFirmwareVersion();
@@ -1263,9 +1296,13 @@ void FreeEmsComms::run()
 				emit interrogateTaskStart("Ecu Info Built By Name",seq);
 				m_interrogatePacketList.append(seq);
 
-				seq = getSupportEmail();
-				emit interrogateTaskStart("Ecu Info Support Email",seq);
-				m_interrogatePacketList.append(seq);
+		seq = getSupportEmail();
+		emit interrogateTaskStart("Ecu Info Support Email",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getDatalogDescriptor();
+		emit interrogateTaskStart("Datalog Descriptor request",seq);
+		m_interrogatePacketList.append(seq);
 
 				seq = getLocationIdList(0x00,0x00);
 				emit interrogateTaskStart("Ecu Info Location ID List",seq);
@@ -1578,6 +1615,20 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 			QLOG_ERROR() << "ERROR! Invalid packet:" << "0x" + QString::number(payloadid,16).toUpper();
 		}
 	}
+}
+void FreeEmsComms::partialPacketAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload)
+{
+
+	//Reset the timeout timer, and wait for more packets
+	m_timeoutMsecs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
+	if (m_waitingForResponse)
+	{
+	}
+}
+
+void FreeEmsComms::completePacketAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload)
+{
+	packetAckedRec(payloadid,header,payload);
 }
 
 void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload)

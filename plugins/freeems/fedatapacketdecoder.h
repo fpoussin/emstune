@@ -33,9 +33,8 @@ class FEDataPacketDecoder : public DataPacketDecoder
 public:
 	FEDataPacketDecoder();
 	int fieldSize();
-    //DataField getField(int num);
-    QString getFieldName(int num);
-    QString getFieldDescription(int num);
+	QString getFieldName(int num);
+	QString getFieldDescription(int num);
 private:
 	void loadDataFieldsFromValues();
 	QList<DataField> m_dataFieldList;
@@ -43,9 +42,11 @@ private:
 signals:
 	void payloadDecoded(QVariantMap data);
 	void resetDetected(int missedPackets);
+	void dataFormatChanged();
 public slots:
 	void decodePayload(QByteArray payload);
 	void decodePayloadPacket(QByteArray,QByteArray);
+	void datalogDescriptor(QString data);
 };
 
 #endif // FEDATAPACKETDECODER_H

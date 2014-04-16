@@ -35,6 +35,39 @@ void FEDataPacketDecoder::decodePayloadPacket(QByteArray header,QByteArray paylo
 	Q_UNUSED(header)
 	decodePayload(payload);
 }
+void FEDataPacketDecoder::datalogDescriptor(QString data)
+{
+	QJson::Parser parser;
+	bool ok = false;
+	QVariant parsedjson = parser.parse(data.toLatin1(),&ok);
+	if (!parsedjson.isValid() || !ok)
+	{
+		qDebug() << "Unable to parse datalog descriptor json:" << parser.errorString();
+		return;
+	}
+	QVariantMap parsedjsonmap = parsedjson.toMap();
+	QVariantList descriptorlist = parsedjsonmap.value("descriptor").toList();
+	m_dataFieldList.clear();
+	for (int i=0;i<descriptorlist.size();i++)
+	{
+		QVariantMap itemmap = descriptorlist.at(i).toMap();
+		int start = itemmap.value("start").toInt();
+		int size = itemmap.value("size").toInt();
+		bool issigned = itemmap.value("is_signed").toBool();
+		QString name = itemmap.value("name").toString();
+		QString desc = itemmap.value("description").toString();
+		float mult = itemmap.value("multiplier").toString().toFloat();
+		float adder = itemmap.value("adder").toString().toFloat();
+		m_dataFieldList.append(DataField(name,desc,start,size / 8,1 / mult,adder));
+
+	}
+	qDebug() << "DATALOG IMPLEMENTATION READ AND CHANGED";
+	emit dataFormatChanged();
+
+	//m_dataFieldList.append(DataField("IAT","Intake Air Temperature",0,2,100,-273.15));
+	//m_dataFieldList.append(DataField("CHT","Coolant/Head Temperature",2,2,100,-273.15));
+	//m_dataFieldList.append(DataField("TPS","Throttle Position Sensor",4,2,640.0));
+}
 
 void FEDataPacketDecoder::decodePayload(QByteArray payload)
 {

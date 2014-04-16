@@ -33,6 +33,7 @@ enum RequestType
 	RETRIEVE_BLOCK_IN_RAM=0x0104,
 	RETRIEVE_BLOCK_IN_FLASH=0x0106,
 	BURN_BLOCK_FROM_RAM_TO_FLASH=0x0108,
+	GET_DATALOG_DESCRIPTOR=0x0300,
 	BENCHTEST=0x8888,
 	GET_LOCATION_ID_LIST=0xDA5E,
 	GET_DECODER_NAME=0xEEEE,
@@ -60,5 +61,8 @@ public:
 	bool haslength;
 	bool hasseq;
 	unsigned short sequencenum;
+	bool isPartial;
+	bool isComplete;
+	unsigned char partialSequence;
 };
 #endif // PACKET_H

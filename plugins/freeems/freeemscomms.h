@@ -71,6 +71,7 @@ public:
 	int getSupportEmail();
 	int getBuiltByName();
 	int getOperatingSystem();
+	int getDatalogDescriptor();
 	int echoPacket(QByteArray packet);
 	Q_INVOKABLE int startBenchTest(unsigned char eventspercycle,unsigned short numcycles,unsigned short ticksperevent,QVariantList pineventmask,QVariantList pinmode);
 	Q_INVOKABLE int stopBenchTest();
@@ -214,6 +215,7 @@ signals:
 	void benchTestReply(unsigned short countRemaining,unsigned char currentEvent);
 	void flashLocationDirty(unsigned short locationid);
 	void ramLocationDirty(unsigned short locationid);
+	void datalogDescriptor(QString data);
 public slots:
 	int updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data);
 	int updateBlockInFlash(unsigned short location,unsigned short offset, unsigned short size,QByteArray data);
@@ -229,6 +231,8 @@ private slots:
 	void flashBlockUpdateRec(QByteArray header,QByteArray payload);
 	void packetNakedRec(unsigned short payloadid,QByteArray header,QByteArray payload,unsigned short errornum);
 	void packetAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload);
+	void partialPacketAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload);
+	void completePacketAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload);
 	void locationIdInfoRec(MemoryLocationInfo info);
 	void locationIdListRec(QList<unsigned short> locationidlist);
 	void datalogTimerTimeout();

@@ -37,6 +37,7 @@ PacketDecoder::PacketDecoder(QObject *parent) : QObject(parent)
 	m_blockFlagToNameMap[BLOCK_IS_MAIN_TABLE] = "3D Table";
 	m_blockFlagToNameMap[BLOCK_IS_LOOKUP_DATA] = "Lookup Table";
 	m_blockFlagToNameMap[BLOCK_IS_CONFIGURATION] = "Configuration";
+	isPartialPacketWaiting = false;
 }
 
 
@@ -58,9 +59,11 @@ Packet PacketDecoder::parseBuffer(QByteArray buffer)
 	int iloc = 0;
 	bool seq = false;
 	bool len = false;
-	if (buffer[iloc] & 0x100)
+	bool ispartial = false;
+	bool iscomplete = false;
+	if (buffer[iloc] & 0x4)
 	{
-		//Has header
+		//Has seq
 		seq = true;
 		headersize += 1;
 	}
@@ -69,6 +72,19 @@ Packet PacketDecoder::parseBuffer(QByteArray buffer)
 		//Has length
 		len = true;
 		headersize += 2;
+	}
+	if (buffer[iloc] & 0x8)
+	{
+		//Is partial packet
+		ispartial = true;
+		headersize += 1;
+
+	}
+	if (buffer[iloc] & 0x16)
+	{
+		//Is final packet of a partial sequence
+		iscomplete = true;
+		headersize += 1;
 	}
 	header = buffer.mid(0,headersize);
 	iloc++;
@@ -94,19 +110,46 @@ Packet PacketDecoder::parseBuffer(QByteArray buffer)
 		length += (unsigned char)buffer[iloc+1];
 		retval.length = length;
 		iloc += 2;
-		if ((unsigned int)buffer.length() > (unsigned int)(length + iloc))
-		{
-			QLOG_ERROR() << "Packet length should be:" << length + iloc << "But it is" << buffer.length();
-			//emit decoderFailure(buffer);
-			return Packet(false);
-		}
-		payload.append(buffer.mid(iloc,length));
 	}
 	else
 	{
 		retval.haslength = false;
+	}
+	if (ispartial)
+	{
+		retval.isPartial = true;
+		retval.partialSequence = (unsigned char)buffer[iloc];
+		iloc += 1;
+	}
+	else
+	{
+		retval.isPartial = false;
+	}
+	if (iscomplete)
+	{
+		retval.isComplete = true;
+		retval.partialSequence = (unsigned char)buffer[iloc];
+		iloc += 1;
+	}
+	else
+	{
+		retval.isComplete = false;
+	}
+	if (retval.haslength)
+	{
+		if ((unsigned int)buffer.length() > (unsigned int)(retval.length + iloc))
+		{
+			QLOG_ERROR() << "Packet length should be:" << retval.length + iloc << "But it is" << buffer.length();
+			//emit decoderFailure(buffer);
+			return Packet(false);
+		}
+		payload.append(buffer.mid(iloc,retval.length));
+	}
+	else
+	{
 		payload.append(buffer.mid(iloc),(buffer.length()-iloc));
 	}
+
 	QString output;
 	for (int i=0;i<payload.size();i++)
 	{
@@ -431,6 +474,29 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 				emit ramBlockUpdatePacket(parsedPacket.header,parsedPacket.payload);
 			}
 		}
+		else if (payloadid == 0x0301)
+		{
+			qDebug() << "Datalog info packet:" << parsedPacket.header.toHex();
+			if (!isPartialPacketWaiting)
+			{
+				isPartialPacketWaiting = true;
+				m_partialPacketBuffer.clear();
+				m_currentPartialPacketSequence = parsedPacket.partialSequence-1;
+			}
+			if (m_currentPartialPacketSequence != parsedPacket.partialSequence-1)
+			{
+				//Current is not directly after!!!
+			}
+			m_partialPacketBuffer.append(parsedPacket.payload);
+			m_currentPartialPacketSequence = parsedPacket.partialSequence;
+			if (parsedPacket.isComplete)
+			{
+				//Final in sequence
+				emit datalogDescriptor(m_partialPacketBuffer);
+				isPartialPacketWaiting=false;
+			}
+
+		}
 		else if (payloadid == BENCHTEST+1)
 		{
 			if (!parsedPacket.isNAK)
@@ -466,7 +532,20 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 				emit packetNaked(payloadid,parsedPacket.header,parsedPacket.payload,errornum);
 				return;
 			}
-			emit packetAcked(payloadid,parsedPacket.header,parsedPacket.payload);
+			if (parsedPacket.isPartial)
+			{
+				qDebug() << "Partial packet";
+				emit partialPacketAcked(payloadid,parsedPacket.header,parsedPacket.payload);
+			}
+			else if (parsedPacket.isComplete)
+			{
+				qDebug() << "Completed packet";
+				emit completePacketAcked(payloadid,parsedPacket.header,parsedPacket.payload);
+			}
+			else
+			{
+				emit packetAcked(payloadid,parsedPacket.header,parsedPacket.payload);
+			}
 
 		}
 
