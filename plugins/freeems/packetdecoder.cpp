@@ -317,6 +317,7 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 					unsigned short size;
 					test += parsedPacket.payload[1];
 
+
 					for (int j=0;j<m_blockFlagList.size();j++)
 					{
 						if (test & m_blockFlagList[j])
@@ -390,7 +391,11 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 					{
 						info.isReadOnly = true;
 					}
-					if (flaglist.contains(BLOCK_IS_2D_TABLE))
+					if (flaglist.contains(BLOCK_SPARE_10))
+					{
+						info.type = DATA_TABLE_2D_32BIT;
+					}
+					else if (flaglist.contains(BLOCK_IS_2D_TABLE))
 					{
 						info.type = DATA_TABLE_2D;
 					}

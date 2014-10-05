@@ -21,8 +21,9 @@
 
 #include "fetable2ddata.h"
 #include <QDebug>
-FETable2DData::FETable2DData() : Table2DData()
+FETable2DData::FETable2DData(bool is32bit) : Table2DData()
 {
+	m_is32Bit = is32bit;
 	m_writesEnabled = true;
 	m_acccessMutex = new QMutex();
 }
@@ -97,6 +98,54 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 	m_axis.clear();
 	m_values.clear();
 
+
+	if (m_is32Bit)
+	{
+		qDebug() << "32bit 2d table!" << QString::number(locationid,16).toUpper();
+		int valuecount = 0;
+		for (int i=0;i<payload.size()/3;i+=2)
+		{
+			//Iterate through all the axisvalues
+			unsigned short x = (((unsigned char)payload[i]) << 8) + ((unsigned char)payload[i+1]);
+			unsigned int y = (((unsigned char)payload[(payload.size()/3)+ valuecount]) << 24) + (((unsigned char)payload[(payload.size()/3)+ valuecount+1]) << 16) + (((unsigned char)payload[(payload.size()/3)+ valuecount+2]) << 8) + ((unsigned char)payload[(payload.size()/3) + valuecount+3]);
+			valuecount+=4;
+			double xdouble = 0;
+			double ydouble = 0;
+			if (signedData)
+			{
+				xdouble = calcAxis((short)x,metadata.xAxisCalc);
+				ydouble = calcAxis((short)y,metadata.yAxisCalc);
+			}
+			else
+			{
+				xdouble = calcAxis(x,metadata.xAxisCalc);
+				ydouble = calcAxis(y,metadata.yAxisCalc);
+			}
+			if (xdouble > m_maxActualXAxis)
+			{
+				m_maxActualXAxis = xdouble;
+			}
+			if (xdouble < m_minActualXAxis)
+			{
+				m_minActualXAxis = xdouble;
+			}
+
+			if (ydouble > m_maxActualYAxis)
+			{
+				m_maxActualYAxis = ydouble;
+			}
+			if (ydouble < m_minActualYAxis)
+			{
+				m_minActualYAxis = ydouble;
+			}
+
+			m_axis.append(xdouble);
+			m_values.append(ydouble);
+		}
+	}
+	else
+	{
+	qDebug() << "16bit 2d table!" << QString::number(locationid,16).toUpper();
 	for (int i=0;i<payload.size()/2;i+=2)
 	{
 		unsigned short x = (((unsigned char)payload[i]) << 8) + ((unsigned char)payload[i+1]);
@@ -131,8 +180,9 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 			m_minActualYAxis = ydouble;
 		}
 
-		m_axis.append(xdouble);
-		m_values.append(ydouble);
+			m_axis.append(xdouble);
+			m_values.append(ydouble);
+		}
 	}
 	m_acccessMutex->unlock();
 	emit update();

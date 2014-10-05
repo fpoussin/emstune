@@ -315,7 +315,7 @@ Table3DData *FreeEmsComms::getNew3DTableData()
 
 Table2DData *FreeEmsComms::getNew2DTableData()
 {
-	return new FETable2DData();
+    return new FETable2DData(DATA_UNDEFINED);
 }
 
 FreeEmsComms::~FreeEmsComms()
@@ -1526,11 +1526,11 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 			emsData.setLocalFlashBlock(locid,emsData.getDeviceFlashBlock(locid));
 			if (m_2dTableMap.contains(locid))
 			{
-				m_2dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid),m_metaDataParser->get2DMetaData(locid),false);
+		m_2dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid),m_metaDataParser->get2DMetaData(locid),false);
 			}
 			if (m_3dTableMap.contains(locid))
 			{
-				m_3dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid),m_metaDataParser->get3DMetaData(locid));
+		m_3dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid),m_metaDataParser->get3DMetaData(locid));
 			}
 			if (m_rawDataMap.contains(locid))
 			{
@@ -1966,9 +1966,9 @@ void FreeEmsComms::locationIdInfoRec(MemoryLocationInfo info)
 	emit locationIdInfo(locationid,info);
 	emsData.passLocationInfo(locationid,info);
 	QLOG_DEBUG() << "Got memory location:" << info.locationid;
-	if (info.type == DATA_TABLE_2D)
+	if (info.type == DATA_TABLE_2D || info.type == DATA_TABLE_2D_32BIT)
 	{
-		Table2DData *data = new FETable2DData();
+		Table2DData *data = new FETable2DData(true);
 		connect(data,SIGNAL(saveSingleDataToRam(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(ramBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(data,SIGNAL(saveSingleDataToFlash(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(flashBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(data,SIGNAL(requestBlockFromRam(unsigned short,unsigned short,unsigned short)),this,SLOT(retrieveBlockFromRam(unsigned short,unsigned short,unsigned short)));
@@ -1998,6 +1998,7 @@ void FreeEmsComms::locationIdInfoRec(MemoryLocationInfo info)
 		m_rawDataMap[locationid] = data;
 	}
 }
+
 void FreeEmsComms::ramLocationMarkedDirty(unsigned short locationid)
 {
 	emit ramLocationDirty(locationid);
@@ -2016,9 +2017,9 @@ void FreeEmsComms::acceptLocalChanges()
 	}
 	emsData.clearDirtyRamLocations();
 }
-
 void FreeEmsComms::rejectLocalChanges()
 {
+
 	emsData.clearDirtyRamLocations();
 
 }

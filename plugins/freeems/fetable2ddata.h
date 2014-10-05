@@ -26,7 +26,6 @@
 #include <QList>
 #include <QByteArray>
 #include <QMutex>
-
 #include "table2ddata.h"
 #include "table2dmetadata.h"
 
@@ -34,7 +33,7 @@ class FETable2DData : public Table2DData
 {
 	Q_OBJECT
 public:
-	FETable2DData();
+	FETable2DData(bool is32bit);
 	void setData(unsigned short locationid,bool isflashonly, QByteArray payload,Table2DMetaData metadata,bool signedData);
 	QByteArray data();
 	double maxActualXAxis();
@@ -59,6 +58,7 @@ public:
 	double calcAxis(int val,QList<QPair<QString,double> > metadata);
 	int backConvertAxis(double val,QList<QPair<QString,double> > metadata);
 private:
+	bool m_is32Bit;
 	QMutex *m_acccessMutex;
 	unsigned short m_dataSize;
 	bool m_isSignedData;

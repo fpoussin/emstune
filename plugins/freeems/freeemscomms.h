@@ -101,6 +101,7 @@ public:
 	void writeAllRamToRam();
 	void acceptLocalChanges();
 	void rejectLocalChanges();
+
 protected:
 	void run();
 private:
