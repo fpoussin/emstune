@@ -1968,7 +1968,15 @@ void FreeEmsComms::locationIdInfoRec(MemoryLocationInfo info)
 	QLOG_DEBUG() << "Got memory location:" << info.locationid;
 	if (info.type == DATA_TABLE_2D || info.type == DATA_TABLE_2D_32BIT)
 	{
-		Table2DData *data = new FETable2DData(true);
+		Table2DData *data = 0;
+		if (info.type == DATA_TABLE_2D)
+		{
+			data = new FETable2DData(false);
+		}
+		else
+		{
+			data = new FETable2DData(true);
+		}
 		connect(data,SIGNAL(saveSingleDataToRam(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(ramBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(data,SIGNAL(saveSingleDataToFlash(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(flashBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(data,SIGNAL(requestBlockFromRam(unsigned short,unsigned short,unsigned short)),this,SLOT(retrieveBlockFromRam(unsigned short,unsigned short,unsigned short)));
