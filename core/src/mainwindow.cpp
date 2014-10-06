@@ -876,7 +876,7 @@ void MainWindow::createView(unsigned short locid,DataType type)
 		QApplication::postEvent(win, new QEvent(QEvent::Show));
 		QApplication::postEvent(win, new QEvent(QEvent::WindowActivate));
 	}
-	else if (type == DATA_TABLE_2D)
+    else if (type == DATA_TABLE_2D || DATA_TABLE_2D_32BIT)
 	{
 		Table2DData *data = emsComms->get2DTableData(locid);
 		TableView2D *view = new TableView2D();
