@@ -55,8 +55,8 @@ public:
 	void setWritesEnabled(bool enabled);
 	void writeWholeLocation(bool ram);
 	bool isRam() { return !m_isFlashOnly; }
-	double calcAxis(int val,QList<QPair<QString,double> > metadata);
-	int backConvertAxis(double val,QList<QPair<QString,double> > metadata);
+	double calcAxis(quint64 val,QList<QPair<QString,double> > metadata);
+	quint64 backConvertAxis(double val,QList<QPair<QString,double> > metadata);
 private:
 	bool m_is32Bit;
 	QMutex *m_acccessMutex;

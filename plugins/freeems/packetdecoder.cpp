@@ -391,6 +391,12 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 					{
 						info.isReadOnly = true;
 					}
+					QString flags = "flags for table: " + QString::number(info.ramaddress,16).toUpper() + " : ";
+					for (int i=0;i<flaglist.size();i++)
+					{
+						flags += QString::number(flaglist.at(i),16).toUpper() + ",";
+					}
+					qDebug() << flags;
 					if (flaglist.contains(BLOCK_SPARE_10))
 					{
 						info.type = DATA_TABLE_2D_32BIT;

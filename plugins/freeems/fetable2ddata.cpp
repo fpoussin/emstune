@@ -47,10 +47,21 @@ void FETable2DData::reCalcAxisData()
 	//QMutexLocker locker(m_acccessMutex);
 /*		m_axis.append(xdouble);
 		m_values.append(ydouble);*/
-	m_minActualXAxis = calcAxis(65535,m_metaData.xAxisCalc);
-	m_minActualYAxis = calcAxis(65535,m_metaData.yAxisCalc);
-	m_maxActualXAxis = calcAxis(-65535,m_metaData.xAxisCalc);
-	m_maxActualYAxis = calcAxis(-65535,m_metaData.yAxisCalc);
+	if (m_is32Bit)
+	{
+		m_minActualXAxis = calcAxis(UINT_MAX,m_metaData.xAxisCalc);
+		m_minActualYAxis = calcAxis(UINT_MAX,m_metaData.yAxisCalc);
+		m_maxActualXAxis = calcAxis(0,m_metaData.xAxisCalc);
+		m_maxActualYAxis = calcAxis(0,m_metaData.yAxisCalc);
+
+	}
+	else
+	{
+		m_minActualXAxis = calcAxis(65535,m_metaData.xAxisCalc);
+		m_minActualYAxis = calcAxis(65535,m_metaData.yAxisCalc);
+		m_maxActualXAxis = calcAxis(0,m_metaData.xAxisCalc);
+		m_maxActualYAxis = calcAxis(0,m_metaData.yAxisCalc);
+	}
 	for (int i=0;i<m_axis.size();i++)
 	{
 		if (m_axis[i] > m_maxActualXAxis)
@@ -332,7 +343,7 @@ QByteArray FETable2DData::data()
 	}
 	return data;
 }
-double FETable2DData::calcAxis(int val,QList<QPair<QString,double> > metadata)
+double FETable2DData::calcAxis(quint64 val,QList<QPair<QString,double> > metadata)
 {
     if (metadata.size() == 0)
     {
@@ -360,7 +371,7 @@ double FETable2DData::calcAxis(int val,QList<QPair<QString,double> > metadata)
     }
     return newval;
 }
-int FETable2DData::backConvertAxis(double val,QList<QPair<QString,double> > metadata)
+quint64 FETable2DData::backConvertAxis(double val,QList<QPair<QString,double> > metadata)
 {
     if (metadata.size() == 0)
     {
@@ -386,7 +397,14 @@ int FETable2DData::backConvertAxis(double val,QList<QPair<QString,double> > meta
             newval *= metadata[j].second;
         }
     }
-    return (unsigned short)newval;
+    if (m_is32Bit)
+    {
+	    return (quint32)newval;
+    }
+    else
+    {
+	return (quint16)newval;
+    }
 }
 void FETable2DData::updateFromFlash()
 {
