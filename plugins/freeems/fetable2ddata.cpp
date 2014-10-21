@@ -44,9 +44,6 @@ void FETable2DData::setWritesEnabled(bool enabled)
 }
 void FETable2DData::reCalcAxisData()
 {
-	//QMutexLocker locker(m_acccessMutex);
-/*		m_axis.append(xdouble);
-		m_values.append(ydouble);*/
 	if (m_is32Bit)
 	{
 		m_minActualXAxis = calcAxis(UINT_MAX,m_metaData.xAxisCalc);
@@ -156,40 +153,40 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 	}
 	else
 	{
-	qDebug() << "16bit 2d table!" << QString::number(locationid,16).toUpper();
-	for (int i=0;i<payload.size()/2;i+=2)
-	{
-		unsigned short x = (((unsigned char)payload[i]) << 8) + ((unsigned char)payload[i+1]);
-		unsigned short y = (((unsigned char)payload[(payload.size()/2)+ i]) << 8) + ((unsigned char)payload[(payload.size()/2) + i+1]);
-		double xdouble = 0;
-		double ydouble = 0;
-		if (signedData)
+		qDebug() << "16bit 2d table!" << QString::number(locationid,16).toUpper();
+		for (int i=0;i<payload.size()/2;i+=2)
 		{
-			xdouble = calcAxis((short)x,metadata.xAxisCalc);
-			ydouble = calcAxis((short)y,metadata.yAxisCalc);
-		}
-		else
-		{
-			xdouble = calcAxis(x,metadata.xAxisCalc);
-			ydouble = calcAxis(y,metadata.yAxisCalc);
-		}
-		if (xdouble > m_maxActualXAxis)
-		{
-			m_maxActualXAxis = xdouble;
-		}
-		if (xdouble < m_minActualXAxis)
-		{
-			m_minActualXAxis = xdouble;
-		}
+			unsigned short x = (((unsigned char)payload[i]) << 8) + ((unsigned char)payload[i+1]);
+			unsigned short y = (((unsigned char)payload[(payload.size()/2)+ i]) << 8) + ((unsigned char)payload[(payload.size()/2) + i+1]);
+			double xdouble = 0;
+			double ydouble = 0;
+			if (signedData)
+			{
+				xdouble = calcAxis((short)x,metadata.xAxisCalc);
+				ydouble = calcAxis((short)y,metadata.yAxisCalc);
+			}
+			else
+			{
+				xdouble = calcAxis(x,metadata.xAxisCalc);
+				ydouble = calcAxis(y,metadata.yAxisCalc);
+			}
+			if (xdouble > m_maxActualXAxis)
+			{
+				m_maxActualXAxis = xdouble;
+			}
+			if (xdouble < m_minActualXAxis)
+			{
+				m_minActualXAxis = xdouble;
+			}
 
-		if (ydouble > m_maxActualYAxis)
-		{
-			m_maxActualYAxis = ydouble;
-		}
-		if (ydouble < m_minActualYAxis)
-		{
-			m_minActualYAxis = ydouble;
-		}
+			if (ydouble > m_maxActualYAxis)
+			{
+				m_maxActualYAxis = ydouble;
+			}
+			if (ydouble < m_minActualYAxis)
+			{
+				m_minActualYAxis = ydouble;
+			}
 
 			m_axis.append(xdouble);
 			m_values.append(ydouble);
@@ -274,7 +271,7 @@ void FETable2DData::setCell(int row, int column,double newval)
 	//New value has been accepted. Let's write it.
 	//offset = column + (row * 32), size == 2
 	//QLOG_DEBUG() << "Update:" << row << column << newval;
-	short val = 0;
+	quint64 val = 0;
 	if (row == 0)
 	{
 		val = backConvertAxis(newval,m_metaData.xAxisCalc);
@@ -286,27 +283,37 @@ void FETable2DData::setCell(int row, int column,double newval)
 		val = backConvertAxis(newval,m_metaData.yAxisCalc);
 		m_values.replace(column,newval);
 	}
-	/*		if (signedData)
-		{
-			xdouble = calcAxis((short)x,metadata.xAxisCalc);
-			ydouble = calcAxis((short)y,metadata.yAxisCalc);
-		}
-		else
-		{
-			xdouble = calcAxis(x,metadata.xAxisCalc);
-			ydouble = calcAxis(y,metadata.yAxisCalc);
-		}
-*/
+
 	QByteArray data;
 	if (m_isSignedData)
 	{
-		data.append((char)((val >> 8) & 0xFF));
-		data.append((char)(val & 0xFF));
+		if (m_is32Bit)
+		{
+			data.append((char)(((qint32)val >> 24) & 0xFF));
+			data.append((char)(((qint32)val >> 16) & 0xFF));
+			data.append((char)(((qint32)val >> 8) & 0xFF));
+			data.append((char)(((qint32)val) & 0xFF));
+		}
+		else
+		{
+			data.append((char)(((short)val >> 8) & 0xFF));
+			data.append((char)((short)val & 0xFF));
+		}
 	}
 	else
 	{
-		data.append((char)((((unsigned short)val) >> 8) & 0xFF));
-		data.append((char)(((unsigned short)val) & 0xFF));
+		if (m_is32Bit)
+		{
+			data.append((char)(((quint32)val >> 24) & 0xFF));
+			data.append((char)(((quint32)val >> 16) & 0xFF));
+			data.append((char)(((quint32)val >> 8) & 0xFF));
+			data.append((char)(((quint32)val) & 0xFF));
+		}
+		else
+		{
+			data.append((char)((((unsigned short)val) >> 8) & 0xFF));
+			data.append((char)(((unsigned short)val) & 0xFF));
+		}
 	}
 	reCalcAxisData();
 	if (!m_isFlashOnly)
@@ -315,11 +322,25 @@ void FETable2DData::setCell(int row, int column,double newval)
 		{
 			if (m_metaData.valid)
 			{
-				emit saveSingleDataToRam(m_locationId,(column*2)+(row * (m_metaData.size / 2.0)),2,data);
+		if (m_is32Bit)
+		{
+		    emit saveSingleDataToRam(m_locationId,(column*4) + (row * m_metaData.size / 3.0),4,data);
+		}
+		else
+		{
+		    emit saveSingleDataToRam(m_locationId,(column*2)+(row * (m_metaData.size / 2.0)),2,data);
+		}
 			}
 			else
 			{
-				emit saveSingleDataToRam(m_locationId,(column*2)+(row * (m_dataSize / 2.0)),2,data);
+		if (m_is32Bit)
+		{
+		    emit saveSingleDataToRam(m_locationId,(column*4) + (row * m_dataSize / 3.0),4,data);
+		}
+		else
+		{
+		    emit saveSingleDataToRam(m_locationId,(column*2)+(row * (m_dataSize / 2.0)),2,data);
+		}
 			}
 		}
 	}
@@ -337,74 +358,85 @@ QByteArray FETable2DData::data()
 	}
 	for (int i=0;i<m_values.size();i++)
 	{
-		unsigned short val = backConvertAxis(m_values[i],m_metaData.yAxisCalc);
-		data.append((char)((val >> 8) & 0xFF));
-		data.append((char)(val & 0xFF));
+	if (m_is32Bit)
+	{
+	    quint64 val = backConvertAxis(m_values[i],m_metaData.yAxisCalc);
+	    data.append((char)((val >> 24) & 0xFF));
+	    data.append((char)((val >> 16) & 0xFF));
+	    data.append((char)((val >> 8) & 0xFF));
+	    data.append((char)(val & 0xFF));
+	}
+	else
+	{
+	    unsigned short val = backConvertAxis(m_values[i],m_metaData.yAxisCalc);
+	    data.append((char)((val >> 8) & 0xFF));
+	    data.append((char)(val & 0xFF));
+	}
 	}
 	return data;
 }
 double FETable2DData::calcAxis(quint64 val,QList<QPair<QString,double> > metadata)
 {
-    if (metadata.size() == 0)
-    {
-        return val;
-    }
-    double newval = val;
-    for (int j=0;j<metadata.size();j++)
-    {
-        if (metadata[j].first == "add")
-        {
-            newval += metadata[j].second;
-        }
-        else if (metadata[j].first == "sub")
-        {
-            newval -= metadata[j].second;
-        }
-        else if (metadata[j].first == "mult")
-        {
-            newval *= metadata[j].second;
-        }
-        else if (metadata[j].first == "div")
-        {
-            newval /= metadata[j].second;
-        }
-    }
-    return newval;
+	if (metadata.size() == 0)
+	{
+		return val;
+	}
+	double newval = val;
+	for (int j=0;j<metadata.size();j++)
+	{
+		if (metadata[j].first == "add")
+		{
+			newval += metadata[j].second;
+		}
+		else if (metadata[j].first == "sub")
+		{
+			newval -= metadata[j].second;
+		}
+		else if (metadata[j].first == "mult")
+		{
+			newval *= metadata[j].second;
+		}
+		else if (metadata[j].first == "div")
+		{
+			newval /= metadata[j].second;
+		}
+	}
+	return newval;
 }
 quint64 FETable2DData::backConvertAxis(double val,QList<QPair<QString,double> > metadata)
 {
-    if (metadata.size() == 0)
-    {
-        return val;
-    }
-    double newval = val;
-    for (int j=metadata.size()-1;j>=0;j--)
-    {
-        if (metadata[j].first == "add")
-        {
-            newval -= metadata[j].second;
-        }
-        else if (metadata[j].first == "sub")
-        {
-            newval += metadata[j].second;
-        }
-        else if (metadata[j].first == "mult")
-        {
-            newval /= metadata[j].second;
-        }
-        else if (metadata[j].first == "div")
-        {
-            newval *= metadata[j].second;
-        }
-    }
-    if (m_is32Bit)
-    {
-	    return (quint32)newval;
-    }
-    else
-    {
-	return (quint16)newval;
-    }
+	if (metadata.size() == 0)
+	{
+		return val;
+	}
+	double newval = val;
+	for (int j=metadata.size()-1;j>=0;j--)
+	{
+		if (metadata[j].first == "add")
+		{
+			newval -= metadata[j].second;
+		}
+		else if (metadata[j].first == "sub")
+		{
+			newval += metadata[j].second;
+		}
+		else if (metadata[j].first == "mult")
+		{
+			newval /= metadata[j].second;
+		}
+		else if (metadata[j].first == "div")
+		{
+			newval *= metadata[j].second;
+		}
+	}
+	if (m_is32Bit)
+	{
+		return (quint32)newval;
+	}
+	else
+	{
+		return (quint16)newval;
+	}
 }
 void FETable2DData::updateFromFlash()
 {
