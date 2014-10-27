@@ -92,16 +92,7 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 	m_isSignedData = signedData;
 	m_isFlashOnly = isflashonly;
 	m_metaData = metadata;
-	m_maxCalcedXAxis = calcAxis(65535,metadata.xAxisCalc);
-	m_maxCalcedYAxis = calcAxis(65535,metadata.yAxisCalc);
-	m_minCalcedXAxis = calcAxis(-65535,metadata.xAxisCalc);
-	m_minCalcedYAxis = calcAxis(-65535,metadata.yAxisCalc);
 
-	//Reverse the min and max, so we can figure them out based on real data
-	m_minActualXAxis = calcAxis(65535,metadata.xAxisCalc);
-	m_minActualYAxis = calcAxis(65535,metadata.yAxisCalc);
-	m_maxActualXAxis = calcAxis(-65535,metadata.xAxisCalc);
-	m_maxActualYAxis = calcAxis(-65535,metadata.yAxisCalc);
 	m_locationId = locationid;
 	m_axis.clear();
 	m_values.clear();
@@ -109,6 +100,16 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 
 	if (m_is32Bit)
 	{
+		m_maxCalcedXAxis = calcAxis(INT_MAX,metadata.xAxisCalc);
+		m_maxCalcedYAxis = calcAxis(INT_MAX,metadata.yAxisCalc);
+		m_minCalcedXAxis = calcAxis(0,metadata.xAxisCalc);
+		m_minCalcedYAxis = calcAxis(0,metadata.yAxisCalc);
+
+		//Reverse the min and max, so we can figure them out based on real data
+		m_minActualXAxis = calcAxis(INT_MAX,metadata.xAxisCalc);
+		m_minActualYAxis = calcAxis(INT_MAX,metadata.yAxisCalc);
+		m_maxActualXAxis = calcAxis(0,metadata.xAxisCalc);
+		m_maxActualYAxis = calcAxis(0,metadata.yAxisCalc);
 		qDebug() << "32bit 2d table!" << QString::number(locationid,16).toUpper();
 		int valuecount = 0;
 		for (int i=0;i<payload.size()/3;i+=2)
@@ -153,6 +154,16 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 	}
 	else
 	{
+		m_maxCalcedXAxis = calcAxis(65535,metadata.xAxisCalc);
+		m_maxCalcedYAxis = calcAxis(65535,metadata.yAxisCalc);
+		m_minCalcedXAxis = calcAxis(-65535,metadata.xAxisCalc);
+		m_minCalcedYAxis = calcAxis(-65535,metadata.yAxisCalc);
+
+		//Reverse the min and max, so we can figure them out based on real data
+		m_minActualXAxis = calcAxis(65535,metadata.xAxisCalc);
+		m_minActualYAxis = calcAxis(65535,metadata.yAxisCalc);
+		m_maxActualXAxis = calcAxis(-65535,metadata.xAxisCalc);
+		m_maxActualYAxis = calcAxis(-65535,metadata.yAxisCalc);
 		qDebug() << "16bit 2d table!" << QString::number(locationid,16).toUpper();
 		for (int i=0;i<payload.size()/2;i+=2)
 		{
