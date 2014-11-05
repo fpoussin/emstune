@@ -69,7 +69,7 @@ void MemoryLocation::setByteClean(unsigned short offset)
 	}
 }
 
-bool MemoryLocation::MemoryLocation::isDirty()
+bool MemoryLocation::isDirty()
 {
 	if (m_dirty.size() == 0)
 	{

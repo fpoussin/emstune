@@ -41,9 +41,11 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	qRegisterMetaType<ConfigBlock>("ConfigBlock");
 	qRegisterMetaType<QMap<QString,QString> >("QMap<QString,QString>");
 	rxThread = 0;
+    m_firstPacketValid = false;
 	//serialPort = new SerialPort(this);
 	//connect(serialPort,SIGNAL(dataWritten(QByteArray)),this,SLOT(dataLogWrite(QByteArray)));
 	m_isConnected = false;
+    m_serialPortMutex.lock();
 
 	dataPacketDecoder = new FEDataPacketDecoder();
 	connect(dataPacketDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SIGNAL(dataLogPayloadDecoded(QVariantMap)));
@@ -431,10 +433,14 @@ int FreeEmsComms::getDatalogDescriptor()
 }
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
-	serialPort = new SerialPort(this);
-	connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
-	serialPort->connectToPort(port);
+    m_serialPortMutex.lock();
+    if (!serialPort->connectToPort(port))
+    {
+        emit error("Error connecting");
+        return;
+    }
 	emit connected();
+    m_serialPortMutex.unlock();
 	return;
 	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
@@ -965,6 +971,11 @@ int FreeEmsComms::hardReset()
 }
 bool FreeEmsComms::sendPacket(RequestClass request)
 {
+    if (!m_firstPacketValid)
+    {
+        m_reqList.append(request);
+        return false;
+    }
 	QLOG_DEBUG() << "sendPacket:" << "0x" + QString::number(request.type,16).toUpper();
 	if (!request.hasReply)
 	{
@@ -1137,6 +1148,10 @@ void FreeEmsComms::setInterByteSendDelay(int milliseconds)
 
 void FreeEmsComms::run()
 {
+    serialPort = new SerialPort();
+    connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
+    m_serialPortMutex.unlock();
+    exec();
 	return;
 	m_terminateLoop = false;
 	bool serialconnected = false;
@@ -1679,7 +1694,6 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 		{
 			QLOG_TRACE() << "Recieved Negative Response" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper() << "For Payload:" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper()<< "Sequence Number:" << m_currentWaitingRequest.sequencenumber;
 			QLOG_TRACE() << "Currently waiting for:" << QString::number(m_currentWaitingRequest.type,16).toUpper();
-			QLOG_DEBUG() << payload.toHex();
 			//NAK to our packet
 			//unsigned short errornum = parsedPacket.payload[0] << 8;
 			//errornum += parsedPacket.payload[1];
@@ -1756,7 +1770,6 @@ void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QBy
 		{
 			QLOG_TRACE() << "Recieved Response" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper() << "For Payload:" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper()<< "Sequence Number:" << m_currentWaitingRequest.sequencenumber;
 			QLOG_TRACE() << "Currently waiting for:" << QString::number(m_currentWaitingRequest.type,16).toUpper();
-			QLOG_DEBUG() << payload.toHex();
 			//Packet is good.
 			emit commandSuccessful(m_currentWaitingRequest.sequencenumber);
 			emit packetAcked(m_currentWaitingRequest.type,header,payload);
@@ -1765,7 +1778,7 @@ void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QBy
 		else if (payloadid != 0x0191)
 		{
 			QLOG_ERROR() << "ERROR! Invalid packet:" << "0x" + QString::number(payloadid,16).toUpper()  << "Waiting for" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper();
-			QLOG_DEBUG() << payload.toHex();
+            QLOG_DEBUG() << header.toHex() << payload.toHex();
 		}
 	}
 	if (m_reqList.size() > 0)
@@ -2020,6 +2033,18 @@ void FreeEmsComms::parseEverything(QByteArray buffer)
 	}
 	else
 	{
+        if (!m_firstPacketValid)
+        {
+            m_firstPacketValid = true;
+            if (m_reqList.size() > 0)
+            {
+                qDebug() << "Sending next packet:" << m_reqList.size();
+                RequestClass req = m_reqList.at(0);
+                m_reqList.removeAt(0);
+                sendPacket(req);
+            }
+
+        }
 		m_packetDecoder->parsePacket(p);
 		//parsePacket(p);
 	}
@@ -2122,9 +2147,7 @@ void FreeEmsComms::acceptLocalChanges()
 }
 void FreeEmsComms::rejectLocalChanges()
 {
-
 	emsData.clearDirtyRamLocations();
-
 }
 void FreeEmsComms::dataLogPayloadReceivedRec(QByteArray header,QByteArray payload)
 {

@@ -47,6 +47,7 @@ class FreeEmsComms : public EmsComms
 	Q_INTERFACES(EmsComms)
 	Q_PLUGIN_METADATA(IID "EmsComms/1.0")
 public:
+    QMutex m_serialPortMutex;
 	FreeEmsComms(QObject *parent = 0);
 	~FreeEmsComms();
 	QString getPluginCompat() { return QString("FREEEMS"); }
@@ -131,6 +132,7 @@ private:
 		int sequencenumber;
 		void addArg(QVariant arg,int size=0) { args.append(arg); argsize.append(size);}
 	};
+    bool m_firstPacketValid;
 	bool m_isSilent;
 	quint64 m_lastDatalogTime;
 	QTimer *m_lastdatalogTimer;

@@ -42,16 +42,20 @@ void SerialPort::setBaud(int baudrate)
 {
 	m_baud = baudrate;
 }
-void SerialPort::connectToPort(QString portname)
+bool SerialPort::connectToPort(QString portname)
 {
 	m_serialPort = new QSerialPort();
 	connect(m_serialPort,SIGNAL(readyRead()),this,SLOT(portReadyRead()));
 	m_serialPort->setPortName(portname);
-	m_serialPort->open(QIODevice::ReadWrite);
+    if (!m_serialPort->open(QIODevice::ReadWrite))
+    {
+        return false;
+    }
 	m_serialPort->setBaudRate(115200);
 	m_serialPort->setParity(QSerialPort::OddParity);
 	m_serialPort->setStopBits(QSerialPort::OneStop);
 	m_serialPort->setDataBits(QSerialPort::Data8);
+    return true;
 }
 
 SerialPortStatus SerialPort::isSerialMonitor(QString portname)

@@ -60,7 +60,7 @@ public:
     int bufferSize() { return m_queuedMessages.size(); }
     void setInterByteSendDelay(int milliseconds);
     QString portName() { return m_portName; }
-    void connectToPort(QString portname);
+    bool connectToPort(QString portname);
     ProtocolDecoder *m_protocolDecoder;
 private:
     QSerialPort *m_serialPort;
