@@ -11,7 +11,6 @@ OBJECTS_DIR = obj
 MOC_DIR = obj
 UI_DIR = obj
 include (../../core/QsLog/QsLog.pri)
-include(../../serialport/apmserial.pri)
 QT -= gui
 INCLUDEPATH += $$PWD/../../lib/core
 DEPENDPATH += $$PWD/../../lib/core
@@ -19,7 +18,7 @@ DEPENDPATH += $$PWD/../../lib/core
 gittouch.commands = touch freeems.pro
 QMAKE_EXTRA_TARGETS += gittouch
 POST_TARGETDEPS += gittouch
-
+QT += serialport core
 
 win32-x-g++ { #Linux based crossplatform 32bit build
 	TARGET = ../../../core/plugins/freeemsplugin
@@ -48,7 +47,7 @@ win32-x-g++ { #Linux based crossplatform 32bit build
 	win32:QMAKE_LFLAGS += -shared
 	message("Building for win32-g++")
         INCLUDEPATH += C:/libs/qjson/include
-	LIBS += -LC:/libs/qjson/lib -lqjson.dll
+        #LIBS += -LC:/libs/qjson/lib -lqjson.dll
 	DEFINES += GIT_COMMIT=$$system(\"c:/program files (x86)/git/bin/git.exe\" describe --dirty=-DEV --always)
 	DEFINES += GIT_HASH=$$system(\"c:/program files (x86)/git/bin/git.exe\" log -n 1 --pretty=format:%H)
         QMAKE_LFLAGS += -static-libgcc -static-libstdc++
@@ -73,6 +72,11 @@ HEADERS += datapacketdecoder.h \
            table2ddata.h \
            table3ddata.h \
             ../../lib/core/configdata.h \
+           ../../lib/core/datapacketdecoder.h \
+           ../../lib/core/table2ddata.h \
+           ../../lib/core/table3ddata.h \
+           ../../lib/core/emscomms.h \
+           ../../lib/core/rawdata.h \
 	   tabledata.h \
            emscomms.h \
            memorymetadata.h \
@@ -91,7 +95,8 @@ HEADERS += datapacketdecoder.h \
     ferawdata.h \
     packetdecoder.h \
     packet.h \
-    feconfigdata.h
+    feconfigdata.h \
+    protocoldecoder.h
 
 SOURCES += fedatapacketdecoder.cpp \
            fetable2ddata.cpp \
@@ -105,4 +110,5 @@ SOURCES += fedatapacketdecoder.cpp \
     emsdata.cpp \
     ferawdata.cpp \
     packetdecoder.cpp \
-    feconfigdata.cpp
+    feconfigdata.cpp \
+    protocoldecoder.cpp

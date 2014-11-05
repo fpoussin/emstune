@@ -50,6 +50,7 @@ Packet PacketDecoder::parseBuffer(QByteArray buffer)
 		//emit decoderFailure(buffer);
 		return Packet(false);
 	}
+	buffer = buffer.mid(0,buffer.size()-1);
 
 
 	Packet retval;

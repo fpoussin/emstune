@@ -45,6 +45,7 @@ class FreeEmsComms : public EmsComms
 {
 	Q_OBJECT
 	Q_INTERFACES(EmsComms)
+	Q_PLUGIN_METADATA(IID "EmsComms/1.0")
 public:
 	FreeEmsComms(QObject *parent = 0);
 	~FreeEmsComms();

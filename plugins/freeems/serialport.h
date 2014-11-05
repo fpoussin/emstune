@@ -29,6 +29,8 @@
 #include <vector>
 #include "serialportstatus.h"
 #include "memorylocationinfo.h"
+#include "protocoldecoder.h"
+
 #ifdef Q_OS_WIN
 //#include <windows.h>
 #else
@@ -40,7 +42,7 @@
 //#include <termios.h>
 //#include <unistd.h>
 #endif
-#include "qserialport.h"
+#include <QtSerialPort>
 
 class SerialPort : public QObject
 {
@@ -58,6 +60,8 @@ public:
     int bufferSize() { return m_queuedMessages.size(); }
     void setInterByteSendDelay(int milliseconds);
     QString portName() { return m_portName; }
+    void connectToPort(QString portname);
+    ProtocolDecoder *m_protocolDecoder;
 private:
     QSerialPort *m_serialPort;
     QByteArray m_privBuffer;
@@ -75,8 +79,11 @@ private:
     QString m_portName;
     int m_baud;
     //HANDLE m_portHandle;
+private slots:
+    void portReadyRead();
 
 signals:
+    void packetReceived(QByteArray packet);
     void parseBuffer(QByteArray buffer);
     void dataWritten(QByteArray data);
 };

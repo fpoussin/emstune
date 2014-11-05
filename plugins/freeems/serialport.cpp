@@ -24,7 +24,6 @@
 #include <QMutexLocker>
 #include <cassert>
 #include "QsLog.h"
-
 SerialPort::SerialPort(QObject *parent) : QObject(parent)
 {
 	m_serialLockMutex = new QMutex();
@@ -32,7 +31,8 @@ SerialPort::SerialPort(QObject *parent) : QObject(parent)
 	m_inpacket = false;
 	m_inescape = false;
 	m_packetErrorCount=0;
-	m_serialPort = new QSerialPort();
+	m_protocolDecoder = new ProtocolDecoder();
+	connect(m_protocolDecoder,SIGNAL(newPacket(QByteArray)),this,SIGNAL(packetReceived(QByteArray)));
 }
 void SerialPort::setPort(QString portname)
 {
@@ -41,6 +41,17 @@ void SerialPort::setPort(QString portname)
 void SerialPort::setBaud(int baudrate)
 {
 	m_baud = baudrate;
+}
+void SerialPort::connectToPort(QString portname)
+{
+	m_serialPort = new QSerialPort();
+	connect(m_serialPort,SIGNAL(readyRead()),this,SLOT(portReadyRead()));
+	m_serialPort->setPortName(portname);
+	m_serialPort->open(QIODevice::ReadWrite);
+	m_serialPort->setBaudRate(115200);
+	m_serialPort->setParity(QSerialPort::OddParity);
+	m_serialPort->setStopBits(QSerialPort::OneStop);
+	m_serialPort->setDataBits(QSerialPort::Data8);
 }
 
 SerialPortStatus SerialPort::isSerialMonitor(QString portname)
@@ -118,6 +129,13 @@ int SerialPort::readBytes(QByteArray *array, int maxlen,int timeout)
 
 int SerialPort::writeBytes(QByteArray packet)
 {
+	if (!m_serialPort->write(packet))
+	{
+		QLOG_ERROR() << "Serial write error:" << m_serialPort->errorString();
+		return -1;
+	}
+	m_serialPort->flush();
+	return packet.size();
 	QMutexLocker locker(m_serialLockMutex);
 	if (m_interByteSendDelay > 0)
 	{
@@ -178,4 +196,8 @@ int SerialPort::openPort(QString portName,int baudrate,bool oddparity)
 		m_serialPort->setParity(QSerialPort::NoParity);
 	}
 	return 0;
+}
+void SerialPort::portReadyRead()
+{
+	m_protocolDecoder->parseBuffer(m_serialPort->readAll());
 }

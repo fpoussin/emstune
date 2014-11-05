@@ -22,9 +22,10 @@
 #include "fedatapacketdecoder.h"
 #include <QDebug>
 #include <QFile>
-#include <qjson/parser.h>
 #include "QsLog.h"
-
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 FEDataPacketDecoder::FEDataPacketDecoder() : DataPacketDecoder()
 {
     loadDataFieldsFromValues();
@@ -37,20 +38,18 @@ void FEDataPacketDecoder::decodePayloadPacket(QByteArray header,QByteArray paylo
 }
 void FEDataPacketDecoder::datalogDescriptor(QString data)
 {
-	QJson::Parser parser;
-	bool ok = false;
-	QVariant parsedjson = parser.parse(data.toLatin1(),&ok);
-	if (!parsedjson.isValid() || !ok)
+	QJsonDocument document = QJsonDocument::fromJson(data.toLatin1());
+	if (document.isEmpty())
 	{
-		qDebug() << "Unable to parse datalog descriptor json:" << parser.errorString();
+		//qDebug() << "Unable to parse datalog descriptor json:" << parser.errorString();
 		return;
 	}
-	QVariantMap parsedjsonmap = parsedjson.toMap();
-	QVariantList descriptorlist = parsedjsonmap.value("descriptor").toList();
+	QJsonObject toplevelobject = document.object();
+	QJsonArray descriptorlist = toplevelobject.value("descriptor").toArray();
 	m_dataFieldList.clear();
 	for (int i=0;i<descriptorlist.size();i++)
 	{
-		QVariantMap itemmap = descriptorlist.at(i).toMap();
+		QJsonObject itemmap = descriptorlist.at(i).toObject();
 		int start = itemmap.value("start").toInt();
 		int size = itemmap.value("size").toInt();
 		bool issigned = itemmap.value("is_signed").toBool();

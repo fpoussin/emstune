@@ -22,10 +22,12 @@
 #include "fememorymetadata.h"
 #include <QFile>
 #include <QByteArray>
-#include <qjson/parser.h>
 #include <QVariant>
 #include <QStringList>
 #include "QsLog.h"
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 
 FEMemoryMetaData::FEMemoryMetaData()
 {
@@ -33,68 +35,64 @@ FEMemoryMetaData::FEMemoryMetaData()
 
 bool FEMemoryMetaData::parseMetaData(QString json)
 {
-	QJson::Parser parser;
-	QVariant top = parser.parse(json.toStdString().c_str());
-	if (!top.isValid())
-	{
-		QString errormsg = QString("Error parsing JSON from config file on line number: ") + QString::number(parser.errorLine()) + " error text: " + parser.errorString();
+	QJsonDocument document = QJsonDocument::fromJson(json.toLatin1());
+	//QJson::Parser parser;
+	//QVariant top = parser.parse(json.toStdString().c_str());
+	//if (!top.isValid())
+	//{
+		//QString errormsg = QString("Error parsing JSON from config file on line number: ") + QString::number(parser.errorLine()) + " error text: " + parser.errorString();
 		//QLOG_FATAL() << "Error parsing JSON";
 		//QLOG_FATAL() << "Line number:" << parser.errorLine() << "error text:" << parser.errorString();
 		//QLOG_FATAL() << "Start Json";
 		//QLOG_FATAL() << "Json:" << json;
 		//QLOG_FATAL() << "End Json";
 		return false;
-	}
-	QVariantMap topmap = top.toMap();
-	QVariantMap errormap = topmap["errormap"].toMap();
-	QVariantMap::iterator i = errormap.begin();
-	while (i != errormap.end())
+	//}
+	QJsonObject topmap = document.object();
+	QJsonObject errormap = topmap.value("errormap").toObject();
+	for (QJsonObject::const_iterator i=errormap.constBegin();i!=errormap.constEnd();i++)
 	{
 		bool ok = false;
 		m_errorMap[i.value().toString().mid(2).toInt(&ok,16)] = i.key();
-		i++;
 	}
 
-	QVariantMap ramvars = topmap["ramvars"].toMap();
-	i = ramvars.begin();
-	while (i != ramvars.end())
+	QJsonObject ramvars = topmap.value("ramvars").toObject();
+	for (QJsonObject::const_iterator i=ramvars.constBegin();i!=ramvars.constEnd();i++)
 	{
 		bool ok = false;
 		unsigned short locid = i.key().mid(2).toInt(&ok,16);
 		m_readOnlyMetaDataMap[locid] = ReadOnlyRamBlock();
-		QVariantMap locidlist = i.value().toMap();
-		QString title = locidlist["title"].toString();
+		QJsonObject locidlist = i.value().toObject();
+		QString title = locidlist.value("title").toString();
 		m_readOnlyMetaDataMap[locid].title = title;
-		QVariantList locidmap = locidlist["vars"].toList();
+		QJsonArray locidmap = locidlist.value("vars").toArray();
 		int offset = 0;
 		for (int j=0;j<locidmap.size();j++)
 		{
-			QVariantMap newlocidmap = locidmap[j].toMap();
+			QJsonObject newlocidmap = locidmap.at(j).toObject();
 			ReadOnlyRamData rdata;
-			rdata.dataTitle = newlocidmap["name"].toString();
-			rdata.dataDescription = newlocidmap["title"].toString();
+			rdata.dataTitle = newlocidmap.value("name").toString();
+			rdata.dataDescription = newlocidmap.value("title").toString();
 			rdata.locationId = locid;
 			rdata.offset = offset;
-			rdata.size = newlocidmap["size"].toInt();
+			rdata.size = newlocidmap.value("size").toInt();
 			offset += rdata.size;
 			m_readOnlyMetaDataMap[locid].m_ramData.append(rdata);
 			m_readOnlyMetaData.append(rdata);
 		}
-		i++;
 	}
 
-	QVariantMap lookups = topmap["lookuptables"].toMap();
-	i = lookups.begin();
-	while (i != lookups.end())
+	QJsonObject lookups = topmap.value("lookuptables").toObject();
+	for (QJsonObject::const_iterator i=lookups.constBegin();i!=lookups.constEnd();i++)
 	{
-		QVariantMap lookupmap = i.value().toMap();
+		QJsonObject lookupmap = i.value().toObject();
 		QString keystr = i.key();
 		bool ok = false;
 		unsigned short keyint = keystr.mid(2).toInt(&ok,16);
 		LookupMetaData meta;
 		meta.locationid = keyint;
-		meta.title = lookupmap["title"].toString();
-		if (lookupmap["editable"].toString().toLower() == "true")
+		meta.title = lookupmap.value("title").toString();
+		if (lookupmap.value("editable").toString().toLower() == "true")
 		{
 			meta.editable = true;
 		}
@@ -106,30 +104,30 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 		i++;
 	}
 	//QLOG_DEBUG() << m_readOnlyMetaData.size() << "Ram entries found";
-	QVariantMap tables = topmap["tables"].toMap();
-	i = tables.begin();
-	while (i != tables.end())
+
+	QJsonObject tables = topmap.value("tables").toObject();
+	for (QJsonObject::const_iterator i=tables.constBegin();i!=tables.constEnd();i++)
 	{
-		QVariantMap tabledata = i.value().toMap();
-		if (tabledata["type"] == "3D")
+		QJsonObject tabledata = i.value().toObject();
+		if (tabledata.value("type").toString() == "3D")
 		{
 			Table3DMetaData meta;
-			QString id = tabledata["locationid"].toString();
-			QString xtitle = tabledata["xtitle"].toString();
-			QVariantList xcalc = tabledata["xcalc"].toList();
-			QString xdp = tabledata["xdp"].toString();
-			unsigned int size = tabledata["size"].toInt();
+			QString id = tabledata.value("locationid").toString();
+			QString xtitle = tabledata.value("xtitle").toString();
+			QJsonArray xcalc = tabledata.value("xcalc").toArray();
+			QString xdp = tabledata.value("xdp").toString();
+			unsigned int size = tabledata.value("size").toInt();
 
-			QString ytitle = tabledata["ytitle"].toString();
-			QVariantList ycalc = tabledata["ycalc"].toList();
-			QString ydp = tabledata["ydp"].toString();
+			QString ytitle = tabledata.value("ytitle").toString();
+			QJsonArray ycalc = tabledata.value("ycalc").toArray();
+			QString ydp = tabledata.value("ydp").toString();
 
-			QString ztitle = tabledata["ztitle"].toString();
-			QVariantList zcalc = tabledata["zcalc"].toList();
-			QString zdp = tabledata["zdp"].toString();
+			QString ztitle = tabledata.value("ztitle").toString();
+			QJsonArray zcalc = tabledata.value("zcalc").toArray();
+			QString zdp = tabledata.value("zdp").toString();
 
-			QString xhighlight = tabledata["xhighlight"].toString();
-			QString yhighlight = tabledata["yhighlight"].toString();
+			QString xhighlight = tabledata.value("xhighlight").toString();
+			QString yhighlight = tabledata.value("yhighlight").toString();
 
 			QList<QPair<QString,double> > xcalclist;
 			QList<QPair<QString,double> > ycalclist;
@@ -137,15 +135,15 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 			for (int j=0;j<xcalc.size();j++)
 			{
 				//QLOG_DEBUG() << "XCalc:" << xcalc[j].toMap()["type"].toString() << xcalc[j].toMap()["value"].toDouble();
-				xcalclist.append(QPair<QString,double>(xcalc[j].toMap()["type"].toString(),xcalc[j].toMap()["value"].toDouble()));
+				xcalclist.append(QPair<QString,double>(xcalc.at(j).toObject().value("type").toString(),xcalc.at(j).toObject().value("value").toDouble()));
 			}
 			for (int j=0;j<ycalc.size();j++)
 			{
-				ycalclist.append(QPair<QString,double>(ycalc[j].toMap()["type"].toString(),ycalc[j].toMap()["value"].toDouble()));
+				ycalclist.append(QPair<QString,double>(ycalc.at(j).toObject().value("type").toString(),ycalc.at(j).toObject().value("value").toDouble()));
 			}
 			for (int j=0;j<zcalc.size();j++)
 			{
-				zcalclist.append(QPair<QString,double>(zcalc[j].toMap()["type"].toString(),zcalc[j].toMap()["value"].toDouble()));
+				zcalclist.append(QPair<QString,double>(zcalc.at(j).toObject().value("type").toString(),zcalc.at(j).toObject().value("value").toDouble()));
 			}
 
 			bool ok = false;
@@ -164,29 +162,29 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 			meta.valid = true;
 			meta.xHighlight = xhighlight;
 			meta.yHighlight = yhighlight;
-            for (int i=0;i<m_table3DMetaData.size();i++)
-            {
-                if (m_table3DMetaData[i].locationId == meta.locationId)
-                {
-                    //Error, already exists;
-		    //QLOG_DEBUG() << "Error: Location ID 0x" + QString::number(meta.locationId,16).toUpper() + " is defined twice in the metadata file";
-                    return false;
-                }
-            }
+			for (int i=0;i<m_table3DMetaData.size();i++)
+			{
+				if (m_table3DMetaData[i].locationId == meta.locationId)
+				{
+					//Error, already exists;
+					//QLOG_DEBUG() << "Error: Location ID 0x" + QString::number(meta.locationId,16).toUpper() + " is defined twice in the metadata file";
+					return false;
+				}
+			}
 			m_table3DMetaData.append(meta);
 		}
-		else if (tabledata["type"] == "2D")
+		else if (tabledata.value("type").toString() == "2D")
 		{
 			Table2DMetaData meta;
-			QString id = tabledata["locationid"].toString();
-			QString xtitle = tabledata["xtitle"].toString();
-			QVariantList xcalc = tabledata["xcalc"].toList();
-			QString xdp = tabledata["xdp"].toString();
-			QString ytitle = tabledata["ytitle"].toString();
-			QVariantList ycalc = tabledata["ycalc"].toList();
-			QString ydp = tabledata["ydp"].toString();
-			unsigned int size = tabledata["size"].toInt();
-			QString xhighlight = tabledata["xhighlight"].toString();
+			QString id = tabledata.value("locationid").toString();
+			QString xtitle = tabledata.value("xtitle").toString();
+			QJsonArray xcalc = tabledata.value("xcalc").toArray();
+			QString xdp = tabledata.value("xdp").toString();
+			QString ytitle = tabledata.value("ytitle").toString();
+			QJsonArray ycalc = tabledata.value("ycalc").toArray();
+			QString ydp = tabledata.value("ydp").toString();
+			unsigned int size = tabledata.value("size").toInt();
+			QString xhighlight = tabledata.value("xhighlight").toString();
 
 			QList<QPair<QString,double> > xcalclist;
 			QList<QPair<QString,double> > ycalclist;
@@ -194,11 +192,11 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 			for (int j=0;j<xcalc.size();j++)
 			{
 				//QLOG_DEBUG() << "XCalc:" << xcalc[j].toMap()["type"].toString() << xcalc[j].toMap()["value"].toDouble();
-				xcalclist.append(QPair<QString,double>(xcalc[j].toMap()["type"].toString(),xcalc[j].toMap()["value"].toDouble()));
+				xcalclist.append(QPair<QString,double>(xcalc.at(j).toObject().value("type").toString(),xcalc.at(j).toObject().value("value").toDouble()));
 			}
 			for (int j=0;j<ycalc.size();j++)
 			{
-				ycalclist.append(QPair<QString,double>(ycalc[j].toMap()["type"].toString(),ycalc[j].toMap()["value"].toDouble()));
+				ycalclist.append(QPair<QString,double>(ycalc.at(j).toObject().value("type").toString(),ycalc.at(j).toObject().value("value").toDouble()));
 			}
 			bool ok = false;
 			meta.locationId = id.mid(2).toInt(&ok,16);

@@ -30,7 +30,9 @@
 #include "fetable3ddata.h"
 #include "feconfigdata.h"
 #include "QsLog.h"
-
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonArray>
 FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 {
 	qRegisterMetaType<QList<unsigned short> >("QList<unsigned short>");
@@ -138,70 +140,69 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	}
 	QByteArray dialogfiledata = dialogFile.readAll();
 	dialogFile.close();
-	QJson::Parser parser;
-	bool ok = false;
-	QVariant resultvariant = parser.parse(dialogfiledata,&ok);
 
-	QVariantMap topmap = resultvariant.toMap();
-	QVariantList dialogslist = topmap["dialogs"].toList();
+	QJsonDocument document = QJsonDocument::fromJson(dialogfiledata);
+	QJsonObject topmap = document.object();
+
+	QJsonArray dialogslist = topmap.value("dialogs").toArray();
 	MenuSetup menu;
 	for (int i=0;i<dialogslist.size();i++)
 	{
-		QVariantMap dialogitemmap = dialogslist[i].toMap();
+		QJsonObject dialogitemmap = dialogslist.at(i).toObject();
 
-		QVariantList fieldlist = dialogitemmap["fieldlist"].toList();
+		QJsonArray fieldlist = dialogitemmap.value("fieldlist").toArray();
 		DialogItem item;
-		item.variable = dialogitemmap["variable"].toString();
-		item.title = dialogitemmap["title"].toString();
+		item.variable = dialogitemmap.value("variable").toString();
+		item.title = dialogitemmap.value("title").toString();
 		for (int j=0;j<fieldlist.size();j++)
 		{
-			QVariantMap fieldmap = fieldlist[j].toMap();
+			QJsonObject fieldmap = fieldlist.at(j).toObject();
 			DialogField field;
-			field.title = fieldmap["title"].toString();
-			field.variable = fieldmap["variable"].toString();
-			field.condition = fieldmap["condition"].toString();
+			field.title = fieldmap.value("title").toString();
+			field.variable = fieldmap.value("variable").toString();
+			field.condition = fieldmap.value("condition").toString();
 			item.fieldList.append(field);
 		}
 		menu.dialoglist.append(item);
 	}
 
-	QVariantList menulist = topmap["menu"].toList();
+	QJsonArray menulist = topmap.value("menu").toArray();
 	for (int i=0;i<menulist.size();i++)
 	{
-		QVariantMap menuitemmap = menulist[i].toMap();
+		QJsonObject menuitemmap = menulist.at(i).toObject();
 		MenuItem menuitem;
-		menuitem.title = menuitemmap["title"].toString();
-		QVariantList submenuitemlist = menuitemmap["subitems"].toList();
+		menuitem.title = menuitemmap.value("title").toString();
+		QJsonArray submenuitemlist = menuitemmap.value("subitems").toArray();
 		for (int j=0;j<submenuitemlist.size();j++)
 		{
-			QVariantMap submenuitemmap = submenuitemlist[j].toMap();
+			QJsonObject submenuitemmap = submenuitemlist.at(j).toObject();
 			SubMenuItem submenuitem;
-			submenuitem.title = submenuitemmap["title"].toString();
-			submenuitem.variable = submenuitemmap["variable"].toString();
+			submenuitem.title = submenuitemmap.value("title").toString();
+			submenuitem.variable = submenuitemmap.value("variable").toString();
 			menuitem.subMenuList.append(submenuitem);
 		}
 		menu.menulist.append(menuitem);
 	}
 
-	QVariantList configlist = topmap["config"].toList();
+	QJsonArray configlist = topmap.value("config").toArray();
 	QMap<QString,QList<ConfigBlock> > configmap;
 	for (int i=0;i<configlist.size();i++)
 	{
-		QVariantMap configitemmap = configlist[i].toMap();
+		QJsonObject configitemmap = configlist.at(i).toObject();
 		FEConfigData *block = new FEConfigData();
 		//connect(data,SIGNAL(saveSingleDataToFlash(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(flashBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(block,SIGNAL(saveSingleDataToFlash(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(flashBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
-		block->setName(configitemmap["name"].toString());
-		block->setType(configitemmap["type"].toString());
-		block->setElementSize(configitemmap["sizeofelement"].toInt());
-		block->setSize(configitemmap["size"].toInt());
-		block->setOffset(configitemmap["offset"].toInt());
+		block->setName(configitemmap.value("name").toString());
+		block->setType(configitemmap.value("type").toString());
+		block->setElementSize(configitemmap.value("sizeofelement").toInt());
+		block->setSize(configitemmap.value("size").toInt());
+		block->setOffset(configitemmap.value("offset").toInt());
 		QList<QPair<QString,double> > parsedcalclist;
-		QVariantList calclist = configitemmap["calc"].toList();
+		QJsonArray calclist = configitemmap.value("calc").toArray();
 		for (int j=0;j<calclist.size();j++)
 		{
-			QVariantMap calcitemmap = calclist[j].toMap();
-			parsedcalclist.append(QPair<QString,double>(calcitemmap["type"].toString(),calcitemmap["value"].toDouble()));
+			QJsonObject calcitemmap = calclist.at(j).toObject();
+			parsedcalclist.append(QPair<QString,double>(calcitemmap.value("type").toString(),calcitemmap.value("value").toDouble()));
 		}
 		block->setCalc(parsedcalclist);
 
@@ -324,23 +325,70 @@ FreeEmsComms::~FreeEmsComms()
 
 void FreeEmsComms::disconnectSerial()
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = SERIAL_DISCONNECT;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 }
 void FreeEmsComms::startInterrogation()
 {
 	if (!m_interrogateInProgress)
 	{
-		QMutexLocker locker(&m_reqListMutex);
+		//QMutexLocker locker(&m_reqListMutex);
 		RequestClass req;
 		req.type = INTERROGATE_START;
-		m_reqList.append(req);
+		//m_reqList.append(req);
 		m_interrogatePacketList.clear();
 		m_interrogateInProgress = true;
 		m_interrogateIdListComplete = false;
 		m_interrogateIdInfoComplete = false;
+		int seq = getFirmwareVersion();
+		emit interrogateTaskStart("Ecu Info FW Version",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getInterfaceVersion();
+		emit interrogateTaskStart("Ecu Info Interface Version",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getCompilerVersion();
+		emit interrogateTaskStart("Ecu Info Compiler Version",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getDecoderName();
+		emit interrogateTaskStart("Ecu Info Decoder Name",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getFirmwareBuildDate();
+		emit interrogateTaskStart("Ecu Info Firmware Build Date",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getMaxPacketSize();
+		emit interrogateTaskStart("Ecu Info Max Packet Size",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getOperatingSystem();
+		emit interrogateTaskStart("Ecu Info Operating System",seq);
+		m_interrogatePacketList.append(seq);
+
+		//seq = getBuiltByName();
+		//emit interrogateTaskStart("Ecu Info Built By Name",seq);
+		//m_interrogatePacketList.append(seq);
+
+
+		//seq = getSupportEmail();
+		//emit interrogateTaskStart("Ecu Info Support Email",seq);
+		//m_interrogatePacketList.append(seq);
+
+		seq = getDatalogDescriptor();
+		emit interrogateTaskStart("Datalog Descriptor request",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getLocationIdList(0x00,0x00);
+		emit interrogateTaskStart("Ecu Info Location ID List",seq);
+		m_interrogatePacketList.append(seq);
+
+		m_interrogateTotalCount=6;
+
 		QLOG_DEBUG() << "Interrogate in progress is now true";
 	}
 	else
@@ -372,22 +420,28 @@ void FreeEmsComms::openLogs()
 }
 int FreeEmsComms::getDatalogDescriptor()
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_DATALOG_DESCRIPTOR;
 	req.sequencenumber = m_sequenceNumber;
         m_sequenceNumber++;
-        m_reqList.append(req);
+	sendPacket(req);
+       // m_reqList.append(req);
         return m_sequenceNumber-1;
 }
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
-	QMutexLocker locker(&m_reqListMutex);
+	serialPort = new SerialPort(this);
+	connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
+	serialPort->connectToPort(port);
+	emit connected();
+	return;
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = SERIAL_CONNECT;
 	req.addArg(port);
 	req.addArg(baud,sizeof(baud));
-	m_reqList.append(req);
+	//m_reqList.append(req);
 }
 
 void FreeEmsComms::loadLog(QString filename)
@@ -484,7 +538,7 @@ int FreeEmsComms::burnBlockFromRamToFlash(unsigned short location,unsigned short
 	req.hasReply = true;
 	req.sequencenumber = m_sequenceNumber;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 
 	if (size == 0)
 	{
@@ -526,7 +580,7 @@ int FreeEmsComms::enableDatalogStream()
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 
@@ -543,7 +597,7 @@ int FreeEmsComms::disableDatalogStream()
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 
@@ -560,7 +614,7 @@ int FreeEmsComms::updateBlockInRam(unsigned short location,unsigned short offset
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 
 	emsData.markLocalRamLocationDirty(location,offset,size);
 
@@ -592,7 +646,7 @@ int FreeEmsComms::updateBlockInFlash(unsigned short location,unsigned short offs
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	emsData.markLocalFlashLocationDirty(location,offset,size);
 
 	return m_sequenceNumber-1;
@@ -607,7 +661,8 @@ int FreeEmsComms::getDecoderName()
 	req.hasReply = true;
 	req.sequencenumber = m_sequenceNumber;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getFirmwareBuildDate()
@@ -619,7 +674,8 @@ int FreeEmsComms::getFirmwareBuildDate()
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getCompilerVersion()
@@ -631,7 +687,8 @@ int FreeEmsComms::getCompilerVersion()
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getOperatingSystem()
@@ -643,7 +700,8 @@ int FreeEmsComms::getOperatingSystem()
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getSupportEmail()
@@ -655,7 +713,8 @@ int FreeEmsComms::getSupportEmail()
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getBuiltByName()
@@ -667,7 +726,8 @@ int FreeEmsComms::getBuiltByName()
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::retrieveBlockFromFlash(unsigned short location, unsigned short offset, unsigned short size,bool mark)
@@ -682,7 +742,8 @@ int FreeEmsComms::retrieveBlockFromFlash(unsigned short location, unsigned short
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	//This gets us the range of effected values.
 	//emsData.getLocalRamBlockInfo(location)->size;
 	//emsData.getLocalRamBlockInfo(location)->ramAddress;
@@ -723,52 +784,56 @@ int FreeEmsComms::retrieveBlockFromRam(unsigned short location, unsigned short o
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	if (mark)
 	{
 		emsData.markLocalRamLocationDirty(location,offset,size);
 	}
+	sendPacket(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getInterfaceVersion()
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_INTERFACE_VERSION;
 	req.sequencenumber = m_sequenceNumber;
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getFirmwareVersion()
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_FIRMWARE_VERSION;
 	req.sequencenumber = m_sequenceNumber;
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getMaxPacketSize()
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_MAX_PACKET_SIZE;
 	req.sequencenumber = m_sequenceNumber;
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::echoPacket(QByteArray packet)
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = ECHO_PACKET;
 	req.sequencenumber = m_sequenceNumber;
@@ -777,12 +842,13 @@ int FreeEmsComms::echoPacket(QByteArray packet)
 	req.hasLength = true;
 	req.addArg(packet);
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::startBenchTest(unsigned char eventspercycle,unsigned short numcycles,unsigned short ticksperevent,QVariantList pineventmask,QVariantList pinmode)
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = BENCHTEST;
 	req.addArg(0x01,sizeof(char));
@@ -810,12 +876,12 @@ int FreeEmsComms::startBenchTest(unsigned char eventspercycle,unsigned short num
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::stopBenchTest()
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = BENCHTEST;
 	req.addArg(0x00,sizeof(char));
@@ -824,12 +890,12 @@ int FreeEmsComms::stopBenchTest()
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::bumpBenchTest(unsigned char cyclenum)
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = BENCHTEST;
 	req.addArg(0x02,sizeof(char));
@@ -839,13 +905,13 @@ int FreeEmsComms::bumpBenchTest(unsigned char cyclenum)
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::getLocationIdInfo(unsigned short locationid)
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_LOCATION_ID_INFO;
 	req.sequencenumber = m_sequenceNumber;
@@ -853,13 +919,14 @@ int FreeEmsComms::getLocationIdInfo(unsigned short locationid)
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::getLocationIdList(unsigned char listtype, unsigned short listmask)
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_LOCATION_ID_LIST;
 	req.sequencenumber = m_sequenceNumber;
@@ -869,39 +936,41 @@ int FreeEmsComms::getLocationIdList(unsigned char listtype, unsigned short listm
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	sendPacket(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::softReset()
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = SOFT_RESET;
 	req.sequencenumber = m_sequenceNumber;
 	req.sentRequest = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::hardReset()
 {
-	QMutexLocker locker(&m_reqListMutex);
+	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = HARD_RESET;
 	req.sequencenumber = m_sequenceNumber;
 	req.sentRequest = true;
 	m_sequenceNumber++;
-	m_reqList.append(req);
+	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 bool FreeEmsComms::sendPacket(RequestClass request)
 {
+	QLOG_DEBUG() << "sendPacket:" << "0x" + QString::number(request.type,16).toUpper();
 	if (!request.hasReply)
 	{
 		return sendPacket(request.type,request.args,request.argsize,request.hasLength);
 	}
-	QMutexLocker locker(&m_waitingInfoMutex);
+	//QMutexLocker locker(&m_waitingInfoMutex);
 	if (!m_waitingForResponse)
 	{
 		m_waitingForResponse = true;
@@ -921,6 +990,11 @@ bool FreeEmsComms::sendPacket(RequestClass request)
 			return false;
 		}
 		return true;
+	}
+	else
+	{
+		QLOG_DEBUG() << "sendPacket currently waiting..";
+		m_reqList.append(request);
 	}
 	return false;
 
@@ -966,7 +1040,7 @@ bool FreeEmsComms::sendPacket(unsigned short payloadid,QList<QVariant> arglist,Q
 		}
 		else if (arglist[i].type() == QVariant::String)
 		{
-			QByteArray arg = arglist[i].toString().toAscii();
+			QByteArray arg = arglist[i].toString().toLatin1();
 			payload.append(arg);
 		}
 	}
@@ -1063,10 +1137,11 @@ void FreeEmsComms::setInterByteSendDelay(int milliseconds)
 
 void FreeEmsComms::run()
 {
+	return;
 	m_terminateLoop = false;
 	bool serialconnected = false;
-	serialPort = new SerialPort();
-	connect(serialPort,SIGNAL(dataWritten(QByteArray)),this,SLOT(dataLogWrite(QByteArray)));
+	//serialPort = new SerialPort();
+	//connect(serialPort,SIGNAL(dataWritten(QByteArray)),this,SLOT(dataLogWrite(QByteArray)));
 	while (!m_terminateLoop)
 	{
 		m_reqListMutex.lock();
@@ -1449,12 +1524,12 @@ void FreeEmsComms::sendNextInterrogationPacket()
 			emit interrogationData(m_interrogationMetaDataMap);
 			QString json = "";
 			json += "{";
-			QJson::Serializer jsonSerializer;
+			/*QJson::Serializer jsonSerializer;
 			QVariantMap top;
 			for (QMap<QString,QString>::const_iterator i=m_interrogationMetaDataMap.constBegin();i!=m_interrogationMetaDataMap.constEnd();i++)
 			{
 				top[i.key()] = i.value();
-			}
+			}*/
 			/*top["firmwareversion"] = emsinfo.firmwareVersion;
 			top["interfaceversion"] = emsinfo.interfaceVersion;
 			top["compilerversion"] = emsinfo.compilerVersion;
@@ -1464,13 +1539,13 @@ void FreeEmsComms::sendNextInterrogationPacket()
 			top["emstudiohash"] = emsinfo.emstudioHash;
 			top["emstudiocommit"] = emsinfo.emstudioCommit;*/
 
-			if (m_logsEnabled)
+			/*if (m_logsEnabled)
 			{
 				QFile *settingsFile = new QFile(m_logsDirectory + "/" + m_logsFilename + ".meta.json");
 				settingsFile->open(QIODevice::ReadWrite);
 				settingsFile->write(jsonSerializer.serialize(top));
 				settingsFile->close();
-			}
+			}*/
 			//deviceDataUpdated(unsigned short)
 		}
 	}
@@ -1496,7 +1571,8 @@ bool FreeEmsComms::sendSimplePacket(unsigned short payloadid)
 
 void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QByteArray payload,unsigned short errornum)
 {
-	QMutexLocker locker(&m_waitingInfoMutex);
+	QLOG_DEBUG() << "Packet nak";
+	//QMutexLocker locker(&m_waitingInfoMutex);
 	if (m_waitingForResponse)
 	{
 		if (m_interrogateInProgress)
@@ -1603,6 +1679,7 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 		{
 			QLOG_TRACE() << "Recieved Negative Response" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper() << "For Payload:" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper()<< "Sequence Number:" << m_currentWaitingRequest.sequencenumber;
 			QLOG_TRACE() << "Currently waiting for:" << QString::number(m_currentWaitingRequest.type,16).toUpper();
+			QLOG_DEBUG() << payload.toHex();
 			//NAK to our packet
 			//unsigned short errornum = parsedPacket.payload[0] << 8;
 			//errornum += parsedPacket.payload[1];
@@ -1612,8 +1689,16 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 		}
 		else
 		{
-			QLOG_ERROR() << "ERROR! Invalid packet:" << "0x" + QString::number(payloadid,16).toUpper();
+			QLOG_ERROR() << "ERROR! Invalid packet:" << "0x" + QString::number(payloadid,16).toUpper() << "Waiting for" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper();
+			QLOG_DEBUG() << payload.toHex();
 		}
+	}
+	if (m_reqList.size() > 0)
+	{
+		QLOG_DEBUG() << "Sending next packet:" << m_reqList.size();
+		RequestClass req = m_reqList.at(0);
+		m_reqList.removeAt(0);
+		sendPacket(req);
 	}
 }
 void FreeEmsComms::partialPacketAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload)
@@ -1633,7 +1718,8 @@ void FreeEmsComms::completePacketAckedRec(unsigned short payloadid,QByteArray he
 
 void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload)
 {
-	QMutexLocker locker(&m_waitingInfoMutex);
+	QLOG_DEBUG() << "Packet ack";
+	//QMutexLocker locker(&m_waitingInfoMutex);
 	if (m_waitingForResponse)
 	{
 		if (m_interrogateInProgress)
@@ -1670,6 +1756,7 @@ void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QBy
 		{
 			QLOG_TRACE() << "Recieved Response" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper() << "For Payload:" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper()<< "Sequence Number:" << m_currentWaitingRequest.sequencenumber;
 			QLOG_TRACE() << "Currently waiting for:" << QString::number(m_currentWaitingRequest.type,16).toUpper();
+			QLOG_DEBUG() << payload.toHex();
 			//Packet is good.
 			emit commandSuccessful(m_currentWaitingRequest.sequencenumber);
 			emit packetAcked(m_currentWaitingRequest.type,header,payload);
@@ -1677,8 +1764,16 @@ void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QBy
 		}
 		else if (payloadid != 0x0191)
 		{
-			QLOG_ERROR() << "ERROR! Invalid packet:" << "0x" + QString::number(payloadid,16).toUpper();
+			QLOG_ERROR() << "ERROR! Invalid packet:" << "0x" + QString::number(payloadid,16).toUpper()  << "Waiting for" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper();
+			QLOG_DEBUG() << payload.toHex();
 		}
+	}
+	if (m_reqList.size() > 0)
+	{
+		qDebug() << "Sending next packet:" << m_reqList.size();
+		RequestClass req = m_reqList.at(0);
+		m_reqList.removeAt(0);
+		sendPacket(req);
 	}
 
 }
@@ -2042,4 +2137,4 @@ void FreeEmsComms::dataLogPayloadReceivedRec(QByteArray header,QByteArray payloa
 	}
 }
 
-Q_EXPORT_PLUGIN2(FreeEmsPlugin, FreeEmsComms)
+//Q_EXPORT_PLUGIN2(FreeEmsPlugin, FreeEmsComms)
