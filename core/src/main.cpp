@@ -20,7 +20,7 @@
  ************************************************************************************/
 
 #include <cassert>
-#include <QtGui/QApplication>
+#include <QApplication>
 #include "mainwindow.h"
 #include <QString>
 #include "QsLog.h"

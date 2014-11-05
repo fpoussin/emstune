@@ -11,6 +11,6 @@ test.depends   += lib     \
                   plugins
 
 #Ensure the pro file gets touched at the end of the build, so the next build reruns qmake
-gittouch.commands = touch emstudio.pro core/core.pro plugins/freeems/freeems.pro
+#gittouch.commands = touch emstudio.pro core/core.pro plugins/freeems/freeems.pro
 QMAKE_EXTRA_TARGETS += gittouch
 POST_TARGETDEPS += gittouch

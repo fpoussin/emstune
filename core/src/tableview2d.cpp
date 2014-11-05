@@ -526,7 +526,7 @@ void TableView2D::exportJson(QString filename)
 	topmap["X"] = x;
 	topmap["Y"] = y;
 
-	QJson::Serializer serializer;
+/*	QJson::Serializer serializer;
 	QByteArray serialized = serializer.serialize(topmap);
 
 	//TODO: Open a message box and allow the user to select where they want to save the file.
@@ -537,7 +537,7 @@ void TableView2D::exportJson(QString filename)
 		return;
 	}
 	file.write(serialized);
-	file.close();
+	file.close();*/
 }
 
 void TableView2D::exportClicked()
@@ -574,7 +574,7 @@ void TableView2D::importClicked()
 	}
 	QByteArray toparsebytes = file.readAll();
 	file.close();
-	QJson::Parser parser;
+/*	QJson::Parser parser;
 	bool ok = false;
 	QVariant topvar = parser.parse(toparsebytes,&ok);
 	if (!ok)
@@ -612,7 +612,7 @@ void TableView2D::importClicked()
 		setSilentValue(0,i,xlist[i].toString());
 		setSilentValue(1,i,ylist[i].toString());
 	}
-	writeTable(true);
+	writeTable(true);*/
 }
 
 void TableView2D::tableCurrentCellChanged(int currentrow,int currentcolumn,int prevrow,int prevcolumn)

@@ -782,7 +782,7 @@ void TableView3D::exportJson(QString filename)
 	topmap["Y"] = y;
 	topmap["Z"] = z;
 
-	QJson::Serializer serializer;
+/*	QJson::Serializer serializer;
 	QByteArray serialized = serializer.serialize(topmap);
 
 	//TODO: Open a message box and allow the user to select where they want to save the file.
@@ -793,7 +793,7 @@ void TableView3D::exportJson(QString filename)
 		return;
 	}
 	file.write(serialized);
-	file.close();
+	file.close();*/
 }
 void TableView3D::importClicked()
 {
@@ -816,7 +816,7 @@ void TableView3D::importClicked()
 	}
 	QByteArray toparsebytes = file.readAll();
 	file.close();
-	QJson::Parser parser;
+/*	QJson::Parser parser;
 	bool ok = false;
 	QVariant topvar = parser.parse(toparsebytes,&ok);
 	if (!ok)
@@ -836,15 +836,6 @@ void TableView3D::importClicked()
 	QString type = topmap["type"].toString();
 	QString title = topmap["title"].toString();
 	QString description = topmap["description"].toString();
-
-	/*m_metaData.tableTitle = title;
-	m_metaData.tableTitle = description;
-	m_metaData.xAxisTitle = x["unit"].toString();
-	m_metaData.xAxisTitle = x["label"].toString();
-	m_metaData.yAxisTitle = y["unit"].toString();
-	m_metaData.yAxisTitle = y["label"].toString();
-	m_metaData.zAxisTitle = z["unit"].toString();
-	m_metaData.zAxisTitle = z["label"].toString();*/
 
 	if (xlist.size() != ui.tableWidget->columnCount()-1)
 	{
@@ -890,7 +881,7 @@ void TableView3D::importClicked()
 			setSilentValue(j,i,zrow[i-1].toString());
 		}
 	}
-	writeTable(true);
+	writeTable(true);*/
 }
 
 void TableView3D::exportClicked()

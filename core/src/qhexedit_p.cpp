@@ -18,7 +18,7 @@
 ****************************************************************************/
 
 #include <QtGui>
-
+#include<QApplication>
 #include "qhexedit_p.h"
 #include "commands.h"
 #ifdef Q_OS_WIN
@@ -461,7 +461,7 @@ void QHexEditPrivate::keyPressEvent(QKeyEvent *event)
 if (!_readOnly)
 {
     /* Hex input */
-        int key = int(event->text()[0].toAscii());
+	int key = int(event->text()[0].toLatin1());
         if ((key>='0' && key<='9') || (key>='a' && key <= 'f'))
         {
             if (getSelectionBegin() != getSelectionEnd())
@@ -506,7 +506,7 @@ if (!_readOnly)
                     result.append("\n");
             }
             remove(getSelectionBegin(), getSelectionEnd() - getSelectionBegin());
-            QClipboard *clipboard = QApplication::clipboard();
+	    QClipboard *clipboard = QApplication::clipboard();
             clipboard->setText(result);
             setCursorPos(getSelectionBegin());
             resetSelection(getSelectionBegin());

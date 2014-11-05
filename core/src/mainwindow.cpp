@@ -26,11 +26,15 @@
 #include <QMdiSubWindow>
 #include <QSettings>
 #include <tableview2d.h>
-#include <qjson/parser.h>
+
 #include "logloader.h"
 #include "QsLog.h"
 #include "wizardview.h"
 #include "tableviewnew3d.h"
+
+#include <QJsonDocument>
+#include <QJsonArray>
+#include <QJsonObject>
 #define define2string_p(x) #x
 #define define2string(x) define2string_p(x)
 
@@ -124,49 +128,38 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 		QByteArray decoderfilebytes = decoderfile.readAll();
 		decoderfile.close();
 
-		QJson::Parser decoderparser;
-		QVariant decodertop = decoderparser.parse(decoderfilebytes);
-		if (!decodertop.isValid())
+
+		QJsonDocument document = QJsonDocument::fromJson(decoderfilebytes);
+		QJsonObject decodertopmap = document.object();
+		QJsonObject decoderlocationmap = decodertopmap.value("locations").toObject();
+		QString str = decoderlocationmap.value("locationid").toString();
+		bool ok = false;
+		unsigned short locid = str.toInt(&ok,16);
+		QJsonArray decodervalueslist = decoderlocationmap.value("values").toArray();
+		QList<ConfigBlock> blocklist;
+		for (int i=0;i<decodervalueslist.size();i++)
 		{
-			QString errormsg = QString("Error parsing JSON from config file on line number: ") + QString::number(decoderparser.errorLine()) + " error text: " + decoderparser.errorString();
-			QMessageBox::information(0,"Error",errormsg);
-			QLOG_ERROR() << "Error parsing json";
-			QLOG_ERROR() << "Line number:" << decoderparser.errorLine() << "error text:" << decoderparser.errorString();
-			//return;
-		}
-		else
-		{
-			QVariantMap decodertopmap = decodertop.toMap();
-			QVariantMap decoderlocationmap = decodertopmap["locations"].toMap();
-			QString str = decoderlocationmap["locationid"].toString();
-			bool ok = false;
-			unsigned short locid = str.toInt(&ok,16);
-			QVariantList decodervalueslist = decoderlocationmap["values"].toList();
-			QList<ConfigBlock> blocklist;
-			for (int i=0;i<decodervalueslist.size();i++)
+			QJsonObject tmpmap = decodervalueslist.at(i).toObject();
+			ConfigBlock block;
+			block.setLocationId(locid);
+			block.setName(tmpmap.value("name").toString());
+			block.setType(tmpmap.value("type").toString());
+			block.setElementSize(tmpmap.value("sizeofelement").toInt());
+			block.setSize(tmpmap.value("size").toInt());
+			block.setOffset(tmpmap.value("offset").toInt());
+			block.setSizeOverride(tmpmap.value("sizeoverride").toString());
+			block.setSizeOverrideMult(tmpmap.value("sizeoverridemult").toDouble());
+			QList<QPair<QString, double> > calclist;
+			QJsonArray calcliststr = tmpmap.value("calc").toArray();
+			for (int j=0;j<calcliststr.size();j++)
 			{
-				QVariantMap tmpmap = decodervalueslist[i].toMap();
-				ConfigBlock block;
-				block.setLocationId(locid);
-				block.setName(tmpmap["name"].toString());
-				block.setType(tmpmap["type"].toString());
-				block.setElementSize(tmpmap["sizeofelement"].toInt());
-				block.setSize(tmpmap["size"].toInt());
-				block.setOffset(tmpmap["offset"].toInt());
-				block.setSizeOverride(tmpmap["sizeoverride"].toString());
-				block.setSizeOverrideMult(tmpmap["sizeoverridemult"].toDouble());
-				QList<QPair<QString, double> > calclist;
-				QVariantList calcliststr = tmpmap["calc"].toList();
-				for (int j=0;j<calcliststr.size();j++)
-				{
-					QLOG_TRACE() << "XCalc:" << calcliststr[j].toMap()["type"].toString() << calcliststr[j].toMap()["value"].toDouble();
-					calclist.append(QPair<QString,double>(calcliststr[j].toMap()["type"].toString(),calcliststr[j].toMap()["value"].toDouble()));
-				}
-				block.setCalc(calclist);
-				blocklist.append(block);
+				//QLOG_TRACE() << "XCalc:" << calcliststr.at(j).toObject().value("type").toString() << calcliststr.at(j)[j].toMap()["value"].toDouble();
+				calclist.append(QPair<QString,double>(calcliststr.at(j).toObject().value("type").toString(),calcliststr.at(j).toObject().value("value").toDouble()));
 			}
-			m_configBlockMap[locid] = blocklist;
+			block.setCalc(calclist);
+			blocklist.append(block);
 		}
+		m_configBlockMap[locid] = blocklist;
 	}
 
 	//return;
@@ -472,13 +465,13 @@ void MainWindow::menu_file_saveOfflineDataClicked()
 	top["2D"] = datatable2d;
 	top["3D"] = datatable3d;
 	top["RAW"] = dataraw;
-	QJson::Serializer serializer2;
+/*	QJson::Serializer serializer2;
 	QByteArray out2 = serializer2.serialize(top);
 	QFile outfile2(filename);
 	outfile2.open(QIODevice::ReadWrite | QIODevice::Truncate);
 	outfile2.write(out2);
 	outfile2.flush();
-	outfile2.close();
+	outfile2.close();*/
 }
 
 void MainWindow::menu_file_loadOfflineDataClicked()
@@ -496,7 +489,7 @@ void MainWindow::menu_file_loadOfflineDataClicked()
 	QByteArray out = outfile.readAll();
 	outfile.close();
 
-	QJson::Parser parser;
+/*	QJson::Parser parser;
 	bool ok = false;
 	QVariant outputvar = parser.parse(out,&ok);
 	if (!ok)
@@ -505,11 +498,6 @@ void MainWindow::menu_file_loadOfflineDataClicked()
 		return;
 	}
 
-	/*
-	top["2D"] = datatable2d;
-	top["3D"] = datatable3d;
-	top["RAW"] = dataraw;
-	*/
 	QVariantMap top = outputvar.toMap();
 	QVariantMap datatable2d = top["2D"].toMap();
 	QVariantMap datatable3d = top["3D"].toMap();
@@ -608,7 +596,7 @@ void MainWindow::menu_file_loadOfflineDataClicked()
 			bytearray.append(bytes[j].toUInt());
 		}
 		data->setData(locid,true,bytearray);
-	}
+	}*/
 }
 void MainWindow::emsCommsSilence(qint64 lasttime)
 {
@@ -1390,19 +1378,19 @@ void MainWindow::emsCommsConnected()
 	}
 	m_wizardList.clear();
 	//m_defaultsDir
-	QDir defaultsdir(m_defaultsDir);
-	loadWizards(defaultsdir.absolutePath() + "/wizards");
-	loadWizards("wizards");
-	loadWizards(m_localHomeDir + "/wizards");
-	for (int i=0;i<emsComms->getConfigList().size();i++)
-	{
-		parameterView->addConfig(emsComms->getConfigList()[i],emsComms->getConfigData(emsComms->getConfigList()[i]));
+	//QDir defaultsdir(m_defaultsDir);
+	//loadWizards(defaultsdir.absolutePath() + "/wizards");
+	//loadWizards("wizards");
+	//loadWizards(m_localHomeDir + "/wizards");
+	//for (int i=0;i<emsComms->getConfigList().size();i++)
+	//{
+	//	parameterView->addConfig(emsComms->getConfigList()[i],emsComms->getConfigData(emsComms->getConfigList()[i]));
 		/*for (int j=0;j<m_wizardList.size();j++)
 		{
 			m_wizardList[j]->addConfig(emsComms->getConfigList()[i],emsComms->getConfigData(emsComms->getConfigList()[i]));
 		}*/
-	}
-	if (m_gaugeActionMap.contains(emsComms->getPluginCompat()))
+	//}
+	/*if (m_gaugeActionMap.contains(emsComms->getPluginCompat()))
 	{
 		for (int i=0;i<ui.menuDashboards->actions().size();i++)
 		{
@@ -1419,7 +1407,7 @@ void MainWindow::emsCommsConnected()
 		{
 			ui.menuDashboards->actions()[i]->setVisible(false);
 		}
-	}
+	}*/
 	//New log and settings file here.
 	if (m_memoryInfoMap.size() == 0)
 	{
@@ -1834,7 +1822,7 @@ void MainWindow::checkMessageCounters(int sequencenumber)
 			//Write everything to the settings.
 			QString json = "";
 			json += "{";
-			QJson::Serializer jsonSerializer;
+/*			QJson::Serializer jsonSerializer;
 			QVariantMap top;
 			top["firmwareversion"] = emsinfo.firmwareVersion;
 			top["interfaceversion"] = emsinfo.interfaceVersion;
@@ -1851,7 +1839,7 @@ void MainWindow::checkMessageCounters(int sequencenumber)
 				settingsFile->open(QIODevice::ReadWrite);
 				settingsFile->write(jsonSerializer.serialize(top));
 				settingsFile->close();
-			}
+			}*/
 		}
 		else
 		{

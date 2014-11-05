@@ -21,7 +21,7 @@
 
 #include "rawdataview.h"
 #include "QsLog.h"
-
+#include <QMessageBox>
 RawDataView::RawDataView(bool isram, bool isflash,QWidget *parent)
 {
 	Q_UNUSED(parent)

@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui declarative opengl
+QT       += core gui declarative opengl printsupport widgets
 #CONFIG += debug
 TARGET = emstudio
 TEMPLATE = app
@@ -12,16 +12,16 @@ INCLUDEPATH += src
 OBJECTS_DIR = obj
 MOC_DIR = obj
 UI_DIR = obj
-CONFIG += console rtti exceptions
+CONFIG += console
 
 INCLUDEPATH += $$PWD/../lib/core
 DEPENDPATH += $$PWD/../lib/core
 
 
 #Ensure the pro file gets touched at the end of the build, so the next build reruns qmake
-gittouch.commands = touch core.pro
-QMAKE_EXTRA_TARGETS += gittouch
-POST_TARGETDEPS += gittouch
+#gittouch.commands = touch core.pro
+#QMAKE_EXTRA_TARGETS += gittouch
+#POST_TARGETDEPS += gittouch
 
 
 include(QsLog/QsLog.pri)
@@ -48,7 +48,7 @@ DEFINES += GIT_DATE=\""$$system(date)"\"
 } else:win32 { #Windows based mingw build
 	message("Building for win32")
         INCLUDEPATH += C:/libs/qjson/include
-	LIBS += -LC:/libs/qjson/lib -lqjson.dll
+        #LIBS += -LC:/libs/qjson/lib -lqjson.dll
 	DEFINES += GIT_COMMIT=$$system(\"c:/program files (x86)/git/bin/git.exe\" describe --dirty=-DEV --always)
 	DEFINES += GIT_HASH=$$system(\"c:/program files (x86)/git/bin/git.exe\" log -n 1 --pretty=format:%H)
         QMAKE_LFLAGS += -static-libgcc -static-libstdc++
@@ -151,8 +151,8 @@ HEADERS  += src/mainwindow.h \
     src/tablemap3d.h \
     src/tablewidget.h \
     src/configview.h \
-    table2ddata.h \
-    table3ddata.h \
+    ../lib/core/table2ddata.h \
+    ../lib/core/table3ddata.h \
     memorymetadata.h \
     src/tablewidgetdelegate.h \
     emscomms.h \

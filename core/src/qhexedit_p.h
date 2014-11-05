@@ -24,6 +24,10 @@
 
 
 #include <QtGui>
+#include <QWidget>
+#include <QScrollArea>
+#include <QUndoStack>
+#include <QHBoxLayout>
 #include "xbytearray.h"
 
 class QHexEditPrivate : public QWidget
