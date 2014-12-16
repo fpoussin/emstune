@@ -47,7 +47,7 @@ class FreeEmsComms : public EmsComms
 	Q_INTERFACES(EmsComms)
 	Q_PLUGIN_METADATA(IID "EmsComms/1.0")
 public:
-    QMutex m_serialPortMutex;
+	QMutex m_serialPortMutex;
 	FreeEmsComms(QObject *parent = 0);
 	~FreeEmsComms();
 	QString getPluginCompat() { return QString("FREEEMS"); }
@@ -62,7 +62,8 @@ public:
 	void setPort(QString portname);
 	void setBaud(int baudrate);
 	void setLogFileName(QString filename);
-	bool sendPacket(unsigned short payloadid,QList<QVariant> arglist=QList<QVariant>(),QList<int> argsizelist=QList<int>(),bool haslength=false);
+    bool sendPacket(unsigned short payloadid);
+    bool sendPacket(unsigned short payloadid,QList<QVariant> arglist,QList<int> argsizelist=QList<int>(),bool haslength=false);
 	int getLocationIdInfo(unsigned short locationid);
 	int getInterfaceVersion();
 	int getFirmwareVersion();
@@ -108,7 +109,7 @@ protected:
 	void run();
 private:
 
-
+	int m_state;
 
 
 	class RequestClass

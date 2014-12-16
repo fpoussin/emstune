@@ -24,8 +24,6 @@
 #include <QDir>
 #include <QCoreApplication>
 #include <QXmlStreamReader>
-#include <qjson/parser.h>
-#include <qjson/serializer.h>
 #include "fetable2ddata.h"
 #include "fetable3ddata.h"
 #include "feconfigdata.h"
@@ -41,11 +39,12 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	qRegisterMetaType<ConfigBlock>("ConfigBlock");
 	qRegisterMetaType<QMap<QString,QString> >("QMap<QString,QString>");
 	rxThread = 0;
-    m_firstPacketValid = false;
+	m_state = 0; //0 is not connected.
+	m_firstPacketValid = false;
 	//serialPort = new SerialPort(this);
 	//connect(serialPort,SIGNAL(dataWritten(QByteArray)),this,SLOT(dataLogWrite(QByteArray)));
 	m_isConnected = false;
-    m_serialPortMutex.lock();
+	m_serialPortMutex.lock();
 
 	dataPacketDecoder = new FEDataPacketDecoder();
 	connect(dataPacketDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SIGNAL(dataLogPayloadDecoded(QVariantMap)));
@@ -433,14 +432,19 @@ int FreeEmsComms::getDatalogDescriptor()
 }
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
-    m_serialPortMutex.lock();
+    //m_serialPortMutex.lock();
+    serialPort = new SerialPort(this);
+    connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
     if (!serialPort->connectToPort(port))
     {
         emit error("Error connecting");
         return;
     }
-	emit connected();
-    m_serialPortMutex.unlock();
+	//emit connected();
+    //Before we finish emitting the fact that we are connected, let's verify this is a freeems system we are talking to.
+    m_state = 1; //1 is connected, waiting for firmware_version packet
+    sendPacket(GET_FIRMWARE_VERSION);
+    //m_serialPortMutex.unlock();
 	return;
 	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
@@ -969,9 +973,17 @@ int FreeEmsComms::hardReset()
 	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
+bool FreeEmsComms::sendPacket(unsigned short payloadid)
+{
+    //Send simple packet
+    RequestClass req;
+    req.type = (RequestType)payloadid;
+    return sendPacket(req);
+}
+
 bool FreeEmsComms::sendPacket(RequestClass request)
 {
-    if (!m_firstPacketValid)
+    if (m_state != 1 && m_state != 2)
     {
         m_reqList.append(request);
         return false;
@@ -1150,7 +1162,7 @@ void FreeEmsComms::run()
 {
     serialPort = new SerialPort();
     connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
-    m_serialPortMutex.unlock();
+    //m_serialPortMutex.unlock();
     exec();
 	return;
 	m_terminateLoop = false;
@@ -1386,13 +1398,13 @@ void FreeEmsComms::run()
 				emit interrogateTaskStart("Ecu Info Built By Name",seq);
 				m_interrogatePacketList.append(seq);
 
-		seq = getSupportEmail();
-		emit interrogateTaskStart("Ecu Info Support Email",seq);
-		m_interrogatePacketList.append(seq);
+				seq = getSupportEmail();
+				emit interrogateTaskStart("Ecu Info Support Email",seq);
+				m_interrogatePacketList.append(seq);
 
-		seq = getDatalogDescriptor();
-		emit interrogateTaskStart("Datalog Descriptor request",seq);
-		m_interrogatePacketList.append(seq);
+				seq = getDatalogDescriptor();
+				emit interrogateTaskStart("Datalog Descriptor request",seq);
+				m_interrogatePacketList.append(seq);
 
 				seq = getLocationIdList(0x00,0x00);
 				emit interrogateTaskStart("Ecu Info Location ID List",seq);
@@ -2033,19 +2045,21 @@ void FreeEmsComms::parseEverything(QByteArray buffer)
 	}
 	else
 	{
-        if (!m_firstPacketValid)
-        {
-            m_firstPacketValid = true;
-            if (m_reqList.size() > 0)
-            {
-                qDebug() << "Sending next packet:" << m_reqList.size();
-                RequestClass req = m_reqList.at(0);
-                m_reqList.removeAt(0);
-                sendPacket(req);
-            }
-
-        }
-		m_packetDecoder->parsePacket(p);
+		if (m_state == 1)
+		{
+			//Waiting on first FW version reply packet
+			if (p.payloadid == 0x0003)
+			{
+				//Good to go!
+				m_state = 2; //2 is running, kick off the next packet send.
+				emit connected();
+				qDebug() << "Connected....";
+			}
+		}
+		else if (m_state == 2)
+		{
+			m_packetDecoder->parsePacket(p);
+		}
 		//parsePacket(p);
 	}
 }
