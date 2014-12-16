@@ -729,7 +729,7 @@ void MainWindow::setPlugin(QString plugin)
 	emsComms->setLogsEnabled(m_saveLogs);
 	emsComms->setInterByteSendDelay(m_comInterByte);
 	emsComms->setlogsDebugEnabled(m_debugLogs);
-	emsComms->start();
+    //emsComms->start();
 }
 
 void MainWindow::locationIdList(QList<unsigned short> idlist)

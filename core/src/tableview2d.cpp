@@ -21,8 +21,6 @@
 
 #include "tableview2d.h"
 #include <QMessageBox>
-#include <qjson/serializer.h>
-#include <qjson/parser.h>
 #include <QFileDialog>
 #include <tablewidgetdelegate.h>
 #include <QPair>

@@ -23,8 +23,6 @@
 #include <QMessageBox>
 #include <QFile>
 #include <QFileDialog>
-#include <qjson/serializer.h>
-#include <qjson/parser.h>
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <QAction>

@@ -32,7 +32,6 @@
 #include "emscomms.h"
 #include "configblock.h"
 #include <QTimer>
-#include <qjson/serializer.h>
 #include "datapacketdecoder.h"
 #include "comsettings.h"
 #include "emsinfoview.h"
