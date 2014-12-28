@@ -87,7 +87,7 @@ public:
 	MainWindow(QWidget *parent = 0);
 	~MainWindow();
 	void setDevice(QString dev);
-	void setPlugin(QString plugin);
+
 	void connectToEms();
 private:
 	void loadWizards(QString dir);
@@ -260,6 +260,8 @@ private slots:
 	void dirtyRamAcceptLocalChanges();
 	void dirtyRamRejectLocalChanges();
 	void emsCommsSilenceTimerTick();
+public slots:
+	void setPlugin(QString plugin);
 
 };
 

@@ -24,7 +24,7 @@
 #include "mainwindow.h"
 #include <QString>
 #include "QsLog.h"
-
+#include "pluginmanager.h"
 QList<QPair<QString,QString> > getArgs(int argc, char **argv)
 {
 	bool nextisarg = false;
@@ -151,11 +151,14 @@ int main(int argc, char *argv[])
 	{
         //A specific plugin is specified, override the plugin manager's choice.
 	}
-	w->setPlugin(plugin);
-	if (autoconnect)
-	{
-		w->connectToEms();
-	}
+	//w->setPlugin(plugin);
+	//if (autoconnect)
+	//{
+	//	w->connectToEms();
+	//}
 	w->show();
+	PluginManager *manager = new PluginManager();
+	manager->show();
+	w->connect(manager,SIGNAL(fileSelected(QString)),w,SLOT(setPlugin(QString)));
 	return a.exec();
 }

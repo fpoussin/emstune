@@ -658,6 +658,12 @@ void MainWindow::setPlugin(QString plugin)
 	pluginLoader=0;
 	pluginLoader = new QPluginLoader(this);
 	pluginLoader->setFileName(m_pluginFileName);
+	qDebug() << pluginLoader->metaData();
+	for (QJsonObject::const_iterator i = pluginLoader->metaData().constBegin();i!=pluginLoader->metaData().constEnd();i++)
+	{
+		qDebug() << i.key() << i.value();
+	}
+
 	QLOG_INFO() << "Attempting to load plugin:" << m_pluginFileName;
 	if (!pluginLoader->load())
 	{

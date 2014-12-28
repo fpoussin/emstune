@@ -119,7 +119,8 @@ SOURCES += src/main.cpp\
     src/comboparam.cpp \
     src/ramdiffwindow.cpp \
     src/qcustomplot.cpp \
-    src/tableviewnew3d.cpp
+    src/tableviewnew3d.cpp \
+    src/pluginmanager.cpp
 
 
 HEADERS  += src/mainwindow.h \
@@ -171,7 +172,8 @@ HEADERS  += src/mainwindow.h \
     src/ramdiffwindow.h \
     src/qcustomplot.h \
     src/tableviewnew3d.h \
-    src/qcustomplot.h
+    src/qcustomplot.h \
+    src/pluginmanager.h
 
 FORMS    += src/mainwindow.ui \
     src/comsettings.ui \
@@ -194,7 +196,8 @@ FORMS    += src/mainwindow.ui \
     src/scalarparam.ui \
     src/comboparam.ui \
     src/parameterwidget.ui \
-    src/ramdiffwindow.ui
+    src/ramdiffwindow.ui \
+    src/pluginmanager.ui
 SUBDIRS += plugins
 OTHER_FILES += \
     README.md \
