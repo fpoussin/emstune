@@ -228,6 +228,7 @@ public slots:
 	int retrieveBlockFromFlash(unsigned short location, unsigned short offset, unsigned short size,bool mark=true);
 	int burnBlockFromRamToFlash(unsigned short location,unsigned short offset, unsigned short size);
 private slots:
+	void triggerNextSend();
 	void dataLogPayloadReceivedRec(QByteArray header,QByteArray payload);
 	void ramBlockUpdateRec(QByteArray header,QByteArray payload);
 	void rxThreadPortGone();

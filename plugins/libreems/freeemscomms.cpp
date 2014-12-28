@@ -239,6 +239,7 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 
     //m_metaDataParser->passConfigData(configmap);
 	m_metaDataParser->setMenuMetaData(menu);
+	start();
 
 
 }
@@ -425,6 +426,7 @@ int FreeEmsComms::getDatalogDescriptor()
 	RequestClass req;
 	req.type = GET_DATALOG_DESCRIPTOR;
 	req.sequencenumber = m_sequenceNumber;
+	req.hasReply = true;
         m_sequenceNumber++;
 	sendPacket(req);
        // m_reqList.append(req);
@@ -445,6 +447,9 @@ void FreeEmsComms::connectSerial(QString port,int baud)
     m_state = 1; //1 is connected, waiting for firmware_version packet
     sendPacket(GET_FIRMWARE_VERSION);
     //m_serialPortMutex.unlock();
+    //QTimer *timer = new QTimer();
+    //connect(timer,SIGNAL(timeout()),this,SLOT(triggerNextSend()));
+    //timer->start(1000);
 	return;
 	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
@@ -977,17 +982,18 @@ bool FreeEmsComms::sendPacket(unsigned short payloadid)
 {
     //Send simple packet
     RequestClass req;
+    req.hasReply = true;
     req.type = (RequestType)payloadid;
     return sendPacket(req);
 }
 
 bool FreeEmsComms::sendPacket(RequestClass request)
 {
-    if (m_state != 1 && m_state != 2)
-    {
-        m_reqList.append(request);
-        return false;
-    }
+	if (m_state != 1 && m_state != 2)
+	{
+		m_reqList.append(request);
+		return false;
+	}
 	QLOG_DEBUG() << "sendPacket:" << "0x" + QString::number(request.type,16).toUpper();
 	if (!request.hasReply)
 	{
@@ -1016,7 +1022,7 @@ bool FreeEmsComms::sendPacket(RequestClass request)
 	}
 	else
 	{
-		QLOG_DEBUG() << "sendPacket currently waiting..";
+		QLOG_DEBUG() << "sendPacket packet queued:" << "0x" + QString::number(request.type,16).toUpper();
 		m_reqList.append(request);
 	}
 	return false;
@@ -1087,6 +1093,7 @@ bool FreeEmsComms::sendPacket(unsigned short payloadid,QList<QVariant> arglist,Q
 		return false;
 	}
 	QLOG_TRACE() << "Sent packet" << "0x" + QString::number(payloadid,16).toUpper() <<  header.size() << payload.size();
+	QLOG_DEBUG() << header.toHex() << payload.toHex();
 	emit packetSent(payloadid,header,payload);
 	return true;
 }
@@ -1160,6 +1167,8 @@ void FreeEmsComms::setInterByteSendDelay(int milliseconds)
 
 void FreeEmsComms::run()
 {
+	exec();
+	return;
     serialPort = new SerialPort();
     connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
     //m_serialPortMutex.unlock();
@@ -1598,7 +1607,7 @@ bool FreeEmsComms::sendSimplePacket(unsigned short payloadid)
 
 void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QByteArray payload,unsigned short errornum)
 {
-	QLOG_DEBUG() << "Packet nak";
+	QLOG_DEBUG() << "Packet nak" << "0x" + QString::number(payloadid,16).toUpper();
 	//QMutexLocker locker(&m_waitingInfoMutex);
 	if (m_waitingForResponse)
 	{
@@ -1712,6 +1721,7 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 			emit commandFailed(m_currentWaitingRequest.sequencenumber,errornum);
 			emit packetNaked(m_currentWaitingRequest.type,header,payload,errornum);
 			m_waitingForResponse = false;
+			QTimer::singleShot(0,this,SLOT(triggerNextSend()));
 		}
 		else
 		{
@@ -1719,14 +1729,26 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 			QLOG_DEBUG() << payload.toHex();
 		}
 	}
+	return;
 	if (m_reqList.size() > 0)
 	{
-		QLOG_DEBUG() << "Sending next packet:" << m_reqList.size();
+		QLOG_DEBUG() << "Sending next packet:" << "0x" + QString::number(m_reqList.at(0).type,16) << "Packets left:" << m_reqList.size();
 		RequestClass req = m_reqList.at(0);
 		m_reqList.removeAt(0);
 		sendPacket(req);
 	}
 }
+void FreeEmsComms::triggerNextSend()
+{
+	if (m_reqList.size() > 0)
+	{
+		QLOG_DEBUG() << "Sending next packet:" << "0x" + QString::number(m_reqList.at(0).type,16) << "Packets left:" << m_reqList.size();
+		RequestClass req = m_reqList.at(0);
+		m_reqList.removeAt(0);
+		sendPacket(req);
+	}
+}
+
 void FreeEmsComms::partialPacketAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload)
 {
 
@@ -1744,7 +1766,7 @@ void FreeEmsComms::completePacketAckedRec(unsigned short payloadid,QByteArray he
 
 void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QByteArray payload)
 {
-	QLOG_DEBUG() << "Packet ack";
+	QLOG_DEBUG() << "Packet ack" << "0x" + QString::number(payloadid,16).toUpper();
 	//QMutexLocker locker(&m_waitingInfoMutex);
 	if (m_waitingForResponse)
 	{
@@ -1780,22 +1802,35 @@ void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QBy
 		}
 		if (payloadid == m_payloadWaitingForResponse+1)
 		{
+			if (payloadid == 0x1)
+			{
+				int stoper = 1;
+			}
 			QLOG_TRACE() << "Recieved Response" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper() << "For Payload:" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper()<< "Sequence Number:" << m_currentWaitingRequest.sequencenumber;
 			QLOG_TRACE() << "Currently waiting for:" << QString::number(m_currentWaitingRequest.type,16).toUpper();
+			QLOG_DEBUG() << header.toHex() << payload.toHex();
 			//Packet is good.
 			emit commandSuccessful(m_currentWaitingRequest.sequencenumber);
 			emit packetAcked(m_currentWaitingRequest.type,header,payload);
 			m_waitingForResponse = false;
+			QTimer::singleShot(0,this,SLOT(triggerNextSend()));
 		}
 		else if (payloadid != 0x0191)
 		{
 			QLOG_ERROR() << "ERROR! Invalid packet:" << "0x" + QString::number(payloadid,16).toUpper()  << "Waiting for" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper();
-            QLOG_DEBUG() << header.toHex() << payload.toHex();
+			QLOG_DEBUG() << header.toHex() << payload.toHex();
+			//m_reqList.prepend(m_currentWaitingRequest);
+			m_waitingForResponse = false;
+			QLOG_DEBUG() << "Resending packet:" << "0x" + QString::number(m_currentWaitingRequest.type,16) << "Packets left:" << m_reqList.size();
+			sendPacket(m_currentWaitingRequest);
+			return;
 		}
+
 	}
+	return;
 	if (m_reqList.size() > 0)
 	{
-		qDebug() << "Sending next packet:" << m_reqList.size();
+		QLOG_DEBUG() << "Sending next packet:" << "0x" + QString::number(m_reqList.at(0).type,16) << "Packets left:" << m_reqList.size();
 		RequestClass req = m_reqList.at(0);
 		m_reqList.removeAt(0);
 		sendPacket(req);
@@ -2038,7 +2073,15 @@ void FreeEmsComms::dataLogRead(QByteArray buffer)
 
 void FreeEmsComms::parseEverything(QByteArray buffer)
 {
+	if (!buffer.startsWith(QByteArray().append(0x01).append(0x01).append(0x91)))
+	{
+		QLOG_DEBUG() << "parseEverything:" << buffer.toHex();
+	}
 	Packet p = m_packetDecoder->parseBuffer(buffer);
+	if (p.payloadid != 0x191)
+	{
+		QLOG_DEBUG() << "Incoming packet" << p.isValid << "0x" + QString::number(p.payloadid,16).toUpper();
+	}
 	if (!p.isValid)
 	{
 		emit decoderFailure(buffer);
@@ -2052,8 +2095,9 @@ void FreeEmsComms::parseEverything(QByteArray buffer)
 			{
 				//Good to go!
 				m_state = 2; //2 is running, kick off the next packet send.
+				m_waitingForResponse = false; //Clear this out, since we're not parsing the packet direct.
 				emit connected();
-				qDebug() << "Connected....";
+				QLOG_DEBUG() << "Connected...." << m_reqList.size() << "Items in queue";
 			}
 		}
 		else if (m_state == 2)

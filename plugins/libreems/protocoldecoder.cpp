@@ -1,5 +1,6 @@
 #include "protocoldecoder.h"
 #include <QDebug>
+#include "QsLog.h"
 ProtocolDecoder::ProtocolDecoder(QObject *parent) :
 	QObject(parent)
 {
@@ -15,7 +16,7 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 			if (m_isInPacket)
 			{
 				//Bad start
-				qDebug() << "Bad Start";
+				QLOG_DEBUG() << "Bad Start";
 			}
 			m_isInPacket = true;
 			m_isInEscape = false;
@@ -26,13 +27,14 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 			if (!m_isInPacket)
 			{
 				//Bad stop
-				qDebug() << "Bad Stop";
+				QLOG_DEBUG() << "Bad Stop";
 				continue;
 			}
 			m_isInPacket = false;
-			m_currMsg; //Current packet.
-			QByteArray toemit(m_currMsg);
+			//m_currMsg; //Current packet.
+			QByteArray toemit = m_currMsg;
 			toemit.detach();
+			//QLOG_DEBUG() << "MSG:" << toemit.toHex();
 			emit newPacket(toemit);
 			m_currMsg.clear();
 		}
@@ -55,7 +57,7 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 				else
 				{
 					//Bad escape character
-					qDebug() << "Bad Escape char";
+					QLOG_DEBUG() << "Bad Escape char";
 				}
 				m_isInEscape = false;
 			}
@@ -70,7 +72,7 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 		}
 		else
 		{
-			//qDebug() << "Out of packet bytes" << QString::number(buffer.at(i),16);
+			QLOG_DEBUG() << "Out of packet bytes" << QString::number(buffer.at(i),16);
 			//Out of packet bytes.
 		}
 	}

@@ -180,6 +180,7 @@ Packet PacketDecoder::parseBuffer(QByteArray buffer)
 	}
 	else
 	{
+		QLOG_ERROR() << "Packet header under minimum header size" << retval.header.size();
 		return Packet(false);
 	}
 }
