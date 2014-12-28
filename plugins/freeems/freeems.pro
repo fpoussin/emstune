@@ -15,9 +15,9 @@ QT -= gui
 INCLUDEPATH += $$PWD/../../lib/core
 DEPENDPATH += $$PWD/../../lib/core
 
-gittouch.commands = touch freeems.pro
-QMAKE_EXTRA_TARGETS += gittouch
-POST_TARGETDEPS += gittouch
+#gittouch.commands = touch freeems.pro
+#QMAKE_EXTRA_TARGETS += gittouch
+#ePOST_TARGETDEPS += gittouch
 QT += serialport core
 
 win32-x-g++ { #Linux based crossplatform 32bit build

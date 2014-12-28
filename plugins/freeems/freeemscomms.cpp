@@ -1354,7 +1354,7 @@ void FreeEmsComms::run()
 					emit debugVerbose("GET_DATALOG_DESCRIPTOR");
 					m_currentWaitingRequest = m_threadReqList[i];
 					m_payloadWaitingForResponse = GET_DATALOG_DESCRIPTOR;
-					if (!sendPacket(m_threadReqList[i],true))
+					if (!sendPacket(m_threadReqList[i]))
 					{
 						QLOG_FATAL() << "Error writing packet. Quitting thread";
 						return;
