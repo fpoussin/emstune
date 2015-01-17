@@ -686,7 +686,7 @@ void MainWindow::setPlugin(QString plugin)
 	searchpaths.append("."); //Local
 	searchpaths.append("../../.."); //OSX local
 	m_memoryMetaData = emsComms->getMetaParser();
-	m_memoryMetaData->loadMetaDataFromFile(searchpaths); //Changed to trigger a load from a file found internally.
+	//m_memoryMetaData->loadMetaDataFromFile(searchpaths); //Changed to trigger a load from a file found internally.
 	//emsData->setMetaData(m_memoryMetaData);
 	parameterView->passConfigBlockList(m_memoryMetaData->configMetaData());
 	parameterView->passMenuList(m_memoryMetaData->menuMetaData());
@@ -1385,9 +1385,9 @@ void MainWindow::emsCommsConnected()
 	m_wizardList.clear();
 	//m_defaultsDir
 	//QDir defaultsdir(m_defaultsDir);
-	//loadWizards(defaultsdir.absolutePath() + "/wizards");
-	//loadWizards("wizards");
-	//loadWizards(m_localHomeDir + "/wizards");
+//	loadWizards(defaultsdir.absolutePath() + "/wizards");
+	loadWizards("wizards");
+	loadWizards(m_localHomeDir + "/wizards");
 	//for (int i=0;i<emsComms->getConfigList().size();i++)
 	//{
 	//	parameterView->addConfig(emsComms->getConfigList()[i],emsComms->getConfigData(emsComms->getConfigList()[i]));

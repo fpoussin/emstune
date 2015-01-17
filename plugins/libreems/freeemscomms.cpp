@@ -50,7 +50,7 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	connect(dataPacketDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SIGNAL(dataLogPayloadDecoded(QVariantMap)));
 	connect(dataPacketDecoder,SIGNAL(resetDetected(int)),this,SIGNAL(resetDetected(int)));
 	m_metaDataParser = new FEMemoryMetaData();
-	//m_metaDataParser->loadMetaDataFromFile("freeems.config.json");
+	m_metaDataParser->loadMetaDataFromFile("freeems.config.json");
 	m_packetDecoder = new PacketDecoder(this);
 	connect(m_packetDecoder,SIGNAL(locationIdInfo(MemoryLocationInfo)),this,SLOT(locationIdInfoRec(MemoryLocationInfo)));
 	connect(m_packetDecoder,SIGNAL(packetAcked(unsigned short,QByteArray,QByteArray)),this,SLOT(packetAckedRec(unsigned short,QByteArray,QByteArray)));
@@ -125,13 +125,13 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	m_interrogateIdInfoComplete = false;
 	m_interrogateTotalCount=0;
 	emsData.setMetaData(m_metaDataParser);
-	connect(&emsData,SIGNAL(updateRequired(unsigned short)),this,SIGNAL(deviceDataUpdated(unsigned short)));
-	connect(&emsData,SIGNAL(ramBlockUpdateRequest(unsigned short,unsigned short,unsigned short,QByteArray)),this,SLOT(updateBlockInRam(unsigned short,unsigned short,unsigned short,QByteArray)));
-	connect(&emsData,SIGNAL(flashBlockUpdateRequest(unsigned short,unsigned short,unsigned short,QByteArray)),this,SLOT(updateBlockInFlash(unsigned short,unsigned short,unsigned short,QByteArray)));
-	connect(&emsData,SIGNAL(updateRequired(unsigned short)),this,SLOT(locationIdUpdate(unsigned short)));
-	connect(&emsData,SIGNAL(configRecieved(ConfigBlock,QVariant)),this,SIGNAL(configRecieved(ConfigBlock,QVariant)));
-	connect(&emsData,SIGNAL(localRamLocationDirty(unsigned short)),this,SLOT(ramLocationMarkedDirty(unsigned short)));
-	connect(&emsData,SIGNAL(localFlashLocationDirty(unsigned short)),this,SLOT(flashLocationMarkedDirty(unsigned short)));
+	connect(&emsData,SIGNAL(updateRequired(unsigned short)),this,SIGNAL(deviceDataUpdated(unsigned short)),Qt::DirectConnection);
+	connect(&emsData,SIGNAL(ramBlockUpdateRequest(unsigned short,unsigned short,unsigned short,QByteArray)),this,SLOT(updateBlockInRam(unsigned short,unsigned short,unsigned short,QByteArray)),Qt::DirectConnection);
+	connect(&emsData,SIGNAL(flashBlockUpdateRequest(unsigned short,unsigned short,unsigned short,QByteArray)),this,SLOT(updateBlockInFlash(unsigned short,unsigned short,unsigned short,QByteArray)),Qt::DirectConnection);
+	connect(&emsData,SIGNAL(updateRequired(unsigned short)),this,SLOT(locationIdUpdate(unsigned short)),Qt::DirectConnection);
+	connect(&emsData,SIGNAL(configRecieved(ConfigBlock,QVariant)),this,SIGNAL(configRecieved(ConfigBlock,QVariant)),Qt::DirectConnection);
+	connect(&emsData,SIGNAL(localRamLocationDirty(unsigned short)),this,SLOT(ramLocationMarkedDirty(unsigned short)),Qt::DirectConnection);
+	connect(&emsData,SIGNAL(localFlashLocationDirty(unsigned short)),this,SLOT(flashLocationMarkedDirty(unsigned short)),Qt::DirectConnection);
 
 
 	QFile dialogFile("menuconfig.json");
@@ -318,7 +318,7 @@ Table3DData *FreeEmsComms::getNew3DTableData()
 
 Table2DData *FreeEmsComms::getNew2DTableData()
 {
-    return new FETable2DData(DATA_UNDEFINED);
+	return new FETable2DData(DATA_UNDEFINED);
 }
 
 FreeEmsComms::~FreeEmsComms()
@@ -327,19 +327,15 @@ FreeEmsComms::~FreeEmsComms()
 
 void FreeEmsComms::disconnectSerial()
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = SERIAL_DISCONNECT;
-	//m_reqList.append(req);
 }
 void FreeEmsComms::startInterrogation()
 {
 	if (!m_interrogateInProgress)
 	{
-		//QMutexLocker locker(&m_reqListMutex);
 		RequestClass req;
 		req.type = INTERROGATE_START;
-		//m_reqList.append(req);
 		m_interrogatePacketList.clear();
 		m_interrogateInProgress = true;
 		m_interrogateIdListComplete = false;
@@ -422,41 +418,28 @@ void FreeEmsComms::openLogs()
 }
 int FreeEmsComms::getDatalogDescriptor()
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_DATALOG_DESCRIPTOR;
 	req.sequencenumber = m_sequenceNumber;
 	req.hasReply = true;
         m_sequenceNumber++;
 	sendPacket(req);
-       // m_reqList.append(req);
         return m_sequenceNumber-1;
 }
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
-    //m_serialPortMutex.lock();
-    serialPort = new SerialPort(this);
-    connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
-    if (!serialPort->connectToPort(port))
-    {
-        emit error("Error connecting");
-        return;
-    }
+	serialPort = new SerialPort(this);
+	connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
+	if (!serialPort->connectToPort(port))
+	{
+		emit error("Error connecting");
+		return;
+	}
 	//emit connected();
-    //Before we finish emitting the fact that we are connected, let's verify this is a freeems system we are talking to.
-    m_state = 1; //1 is connected, waiting for firmware_version packet
-    sendPacket(GET_FIRMWARE_VERSION);
-    //m_serialPortMutex.unlock();
-    //QTimer *timer = new QTimer();
-    //connect(timer,SIGNAL(timeout()),this,SLOT(triggerNextSend()));
-    //timer->start(1000);
+	//Before we finish emitting the fact that we are connected, let's verify this is a freeems system we are talking to.
+	m_state = 1; //1 is connected, waiting for firmware_version packet
+	sendPacket(GET_FIRMWARE_VERSION);
 	return;
-	//QMutexLocker locker(&m_reqListMutex);
-	RequestClass req;
-	req.type = SERIAL_CONNECT;
-	req.addArg(port);
-	req.addArg(baud,sizeof(baud));
-	//m_reqList.append(req);
 }
 
 void FreeEmsComms::loadLog(QString filename)
@@ -543,7 +526,6 @@ void FreeEmsComms::setBaud(int baudrate)
 }
 int FreeEmsComms::burnBlockFromRamToFlash(unsigned short location,unsigned short offset, unsigned short size)
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = BURN_BLOCK_FROM_RAM_TO_FLASH;
 	req.addArg(location,sizeof(location));
@@ -553,7 +535,6 @@ int FreeEmsComms::burnBlockFromRamToFlash(unsigned short location,unsigned short
 	req.hasReply = true;
 	req.sequencenumber = m_sequenceNumber;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
 
 	if (size == 0)
 	{
@@ -579,11 +560,11 @@ int FreeEmsComms::burnBlockFromRamToFlash(unsigned short location,unsigned short
 			emit memoryClean();
 		}
 	}*/
+	sendPacket(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::enableDatalogStream()
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = UPDATE_BLOCK_IN_RAM;
 	req.addArg(0x9000,2);
@@ -595,13 +576,12 @@ int FreeEmsComms::enableDatalogStream()
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
+	sendPacket(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::disableDatalogStream()
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = UPDATE_BLOCK_IN_RAM;
 	req.addArg(0x9000,2);
@@ -612,13 +592,12 @@ int FreeEmsComms::disableDatalogStream()
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
+	sendPacket(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = UPDATE_BLOCK_IN_RAM;
 	req.addArg(location,sizeof(location));
@@ -629,7 +608,7 @@ int FreeEmsComms::updateBlockInRam(unsigned short location,unsigned short offset
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
+	sendPacket(req);
 
 	emsData.markLocalRamLocationDirty(location,offset,size);
 
@@ -649,7 +628,6 @@ int FreeEmsComms::updateBlockInRam(unsigned short location,unsigned short offset
 }
 int FreeEmsComms::updateBlockInFlash(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = UPDATE_BLOCK_IN_FLASH;
 	req.addArg(location,sizeof(location));
@@ -661,15 +639,13 @@ int FreeEmsComms::updateBlockInFlash(unsigned short location,unsigned short offs
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
 	emsData.markLocalFlashLocationDirty(location,offset,size);
-
+	sendPacket(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::getDecoderName()
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_DECODER_NAME;
 	req.sentRequest = true;
@@ -677,12 +653,10 @@ int FreeEmsComms::getDecoderName()
 	req.sequencenumber = m_sequenceNumber;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getFirmwareBuildDate()
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_FIRMWARE_BUILD_DATE;
 	req.sequencenumber = m_sequenceNumber;
@@ -690,12 +664,10 @@ int FreeEmsComms::getFirmwareBuildDate()
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getCompilerVersion()
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_COMPILER_VERSION;
 	req.sequencenumber = m_sequenceNumber;
@@ -703,12 +675,10 @@ int FreeEmsComms::getCompilerVersion()
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getOperatingSystem()
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_OPERATING_SYSTEM;
 	req.sequencenumber = m_sequenceNumber;
@@ -716,12 +686,10 @@ int FreeEmsComms::getOperatingSystem()
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getSupportEmail()
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_SUPPORT_EMAIL;
 	req.sequencenumber = m_sequenceNumber;
@@ -729,12 +697,10 @@ int FreeEmsComms::getSupportEmail()
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getBuiltByName()
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_BUILT_BY_NAME;
 	req.sequencenumber = m_sequenceNumber;
@@ -742,12 +708,10 @@ int FreeEmsComms::getBuiltByName()
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::retrieveBlockFromFlash(unsigned short location, unsigned short offset, unsigned short size,bool mark)
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = RETRIEVE_BLOCK_IN_FLASH;
 	req.addArg(location,sizeof(location));
@@ -758,7 +722,6 @@ int FreeEmsComms::retrieveBlockFromFlash(unsigned short location, unsigned short
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	//This gets us the range of effected values.
 	//emsData.getLocalRamBlockInfo(location)->size;
 	//emsData.getLocalRamBlockInfo(location)->ramAddress;
@@ -789,7 +752,6 @@ int FreeEmsComms::retrieveBlockFromFlash(unsigned short location, unsigned short
 }
 int FreeEmsComms::retrieveBlockFromRam(unsigned short location, unsigned short offset, unsigned short size,bool mark)
 {
-	QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = RETRIEVE_BLOCK_IN_RAM;
 	req.addArg(location,sizeof(location));
@@ -799,7 +761,6 @@ int FreeEmsComms::retrieveBlockFromRam(unsigned short location, unsigned short o
 	req.sentRequest = true;
 	req.hasReply = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
 	if (mark)
 	{
 		emsData.markLocalRamLocationDirty(location,offset,size);
@@ -809,7 +770,6 @@ int FreeEmsComms::retrieveBlockFromRam(unsigned short location, unsigned short o
 }
 int FreeEmsComms::getInterfaceVersion()
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_INTERFACE_VERSION;
 	req.sequencenumber = m_sequenceNumber;
@@ -817,12 +777,10 @@ int FreeEmsComms::getInterfaceVersion()
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getFirmwareVersion()
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_FIRMWARE_VERSION;
 	req.sequencenumber = m_sequenceNumber;
@@ -830,12 +788,10 @@ int FreeEmsComms::getFirmwareVersion()
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::getMaxPacketSize()
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_MAX_PACKET_SIZE;
 	req.sequencenumber = m_sequenceNumber;
@@ -843,12 +799,10 @@ int FreeEmsComms::getMaxPacketSize()
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::echoPacket(QByteArray packet)
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = ECHO_PACKET;
 	req.sequencenumber = m_sequenceNumber;
@@ -858,12 +812,10 @@ int FreeEmsComms::echoPacket(QByteArray packet)
 	req.addArg(packet);
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::startBenchTest(unsigned char eventspercycle,unsigned short numcycles,unsigned short ticksperevent,QVariantList pineventmask,QVariantList pinmode)
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = BENCHTEST;
 	req.addArg(0x01,sizeof(char));
@@ -891,12 +843,10 @@ int FreeEmsComms::startBenchTest(unsigned char eventspercycle,unsigned short num
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::stopBenchTest()
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = BENCHTEST;
 	req.addArg(0x00,sizeof(char));
@@ -905,12 +855,10 @@ int FreeEmsComms::stopBenchTest()
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::bumpBenchTest(unsigned char cyclenum)
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = BENCHTEST;
 	req.addArg(0x02,sizeof(char));
@@ -920,13 +868,11 @@ int FreeEmsComms::bumpBenchTest(unsigned char cyclenum)
 	req.hasReply = true;
 	req.hasLength = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::getLocationIdInfo(unsigned short locationid)
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_LOCATION_ID_INFO;
 	req.sequencenumber = m_sequenceNumber;
@@ -935,13 +881,11 @@ int FreeEmsComms::getLocationIdInfo(unsigned short locationid)
 	req.hasReply = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::getLocationIdList(unsigned char listtype, unsigned short listmask)
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = GET_LOCATION_ID_LIST;
 	req.sequencenumber = m_sequenceNumber;
@@ -952,30 +896,25 @@ int FreeEmsComms::getLocationIdList(unsigned char listtype, unsigned short listm
 	req.hasLength = true;
 	m_sequenceNumber++;
 	sendPacket(req);
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 
 int FreeEmsComms::softReset()
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = SOFT_RESET;
 	req.sequencenumber = m_sequenceNumber;
 	req.sentRequest = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::hardReset()
 {
-	//QMutexLocker locker(&m_reqListMutex);
 	RequestClass req;
 	req.type = HARD_RESET;
 	req.sequencenumber = m_sequenceNumber;
 	req.sentRequest = true;
 	m_sequenceNumber++;
-	//m_reqList.append(req);
 	return m_sequenceNumber-1;
 }
 bool FreeEmsComms::sendPacket(unsigned short payloadid)
@@ -999,7 +938,6 @@ bool FreeEmsComms::sendPacket(RequestClass request)
 	{
 		return sendPacket(request.type,request.args,request.argsize,request.hasLength);
 	}
-	//QMutexLocker locker(&m_waitingInfoMutex);
 	if (!m_waitingForResponse)
 	{
 		m_waitingForResponse = true;
@@ -1168,314 +1106,6 @@ void FreeEmsComms::setInterByteSendDelay(int milliseconds)
 void FreeEmsComms::run()
 {
 	exec();
-	return;
-    serialPort = new SerialPort();
-    connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
-    //m_serialPortMutex.unlock();
-    exec();
-	return;
-	m_terminateLoop = false;
-	bool serialconnected = false;
-	//serialPort = new SerialPort();
-	//connect(serialPort,SIGNAL(dataWritten(QByteArray)),this,SLOT(dataLogWrite(QByteArray)));
-	while (!m_terminateLoop)
-	{
-		m_reqListMutex.lock();
-		m_threadReqList.append(m_reqList);
-		m_reqList.clear();
-		m_reqListMutex.unlock();
-		for (int i=0;i<m_threadReqList.size();i++)
-		{
-			if (m_threadReqList[i].sentRequest)
-			{
-				//Request to be directly sent to the ECU
-				if (!sendPacket(m_threadReqList[i]))
-				{
-					//return;
-				}
-				else
-				{
-					m_threadReqList.removeAt(i);
-					i--;
-				}
-			}
-			else if (m_threadReqList[i].type == SERIAL_CONNECT)
-			{
-				SerialPortStatus errortype = serialPort->isSerialMonitor(m_threadReqList[i].args[0].toString());
-				if (errortype != NONE)
-				{
-					QLOG_ERROR() << "Unable to verify ECU";
-					QString errorstr = "UNKNOWN ERROR";
-					if (errortype == UNABLE_TO_CONNECT)
-					{
-						errorstr = "Unable to open serial port " + m_threadReqList[i].args[0].toString() + " Please ensure no other application has the port open and that the port exists!";
-					}
-					else if (errortype == UNABLE_TO_LOCK)
-					{
-						errorstr = "Unable to open serial port " + m_threadReqList[i].args[0].toString() + " because another compatible application has locked it. Please close all serial port related applications and try again.";
-					}
-					else if (errortype == UNABLE_TO_WRITE)
-					{
-						errorstr = "Unable to open serial port " + m_threadReqList[i].args[0].toString() + " Please ensure no other application has the port open and that the port exists!";
-					}
-					else if (errortype == UNABLE_TO_READ)
-					{
-						errorstr = "Unable to read from serial port " + m_threadReqList[i].args[0].toString() + ". This is likely an error with your serial port driver. Please disconnect and reconnect the device and try again";
-					}
-					else if (errortype == SM_MODE)
-					{
-						//TODO Fix this when we have the ability to reset SM mode
-						errorstr = "Unable to connect to ECU. SerialMonitor mode detected! Please remove SM jumper, reset the ECU and click retry!";
-					}
-					emit error(errortype,errorstr);
-					serialconnected = false;
-					emit disconnected();
-					//On a disconnect, we are going to be deleting this thread, so go ahead and quit out;
-					//return;
-					m_threadReqList.removeAt(i);
-					i--;
-					continue;
-				}
-				emit debugVerbose("SERIAL_CONNECT");
-				int errornum = 0;
-				if ((errornum = serialPort->openPort(m_threadReqList[i].args[0].toString(),m_threadReqList[i].args[1].toInt())))
-				{
-					if (errornum == -1)
-					{
-						emit error(UNABLE_TO_CONNECT,"Unable to open serial port " + m_threadReqList[i].args[0].toString() + " Please ensure no other application has the port open and that the port exists!");
-						QLOG_ERROR() << "Unable to connect to COM port";
-					}
-					else if (errornum == -2)
-					{
-						emit error(UNABLE_TO_LOCK,"Unable to open serial port " + m_threadReqList[i].args[0].toString() + " due to another freeems application locking the port. Please close all other freeems related applications and try again.");
-						QLOG_ERROR() << "Unable to connect to COM port due to process lock";
-					}
-					m_threadReqList.removeAt(i);
-					i--;
-					emit disconnected();
-					continue;
-				}
-				QLOG_INFO() << "Serial connected!";
-				rxThread = new SerialRXThread();
-				connect(rxThread,SIGNAL(incomingPacket(QByteArray)),this,SLOT(parseEverything(QByteArray)),Qt::DirectConnection);
-				connect(rxThread,SIGNAL(dataRead(QByteArray)),this,SLOT(dataLogRead(QByteArray)),Qt::DirectConnection);
-				connect(rxThread,SIGNAL(portGone()),this,SLOT(rxThreadPortGone()),Qt::DirectConnection);
-
-				//Before we finish emitting the fact that we are connected, let's verify this is a freeems system we are talking to.
-				if (!sendPacket(GET_FIRMWARE_VERSION))
-				{
-					QLOG_FATAL() << "Error writing packet. Quitting thread";
-					return;
-				}
-				int dataattempts = 0;
-				int nodataattempts=0;
-				bool good = false;
-				bool nodata = true;
-				while (dataattempts < 50 && !good && nodataattempts < 4)
-				{
-					QByteArray result = rxThread->readSinglePacket(serialPort);
-					if (result.size() > 0)
-					{
-						dataattempts++;
-						nodata = false;
-
-						Packet p = m_packetDecoder->parseBuffer(result);
-						if (!p.isValid)
-						{
-							emit decoderFailure(result);
-						}
-						if (p.isValid && p.payloadid == GET_FIRMWARE_VERSION+1)
-						{
-							//We're good!
-							good = true;
-						}
-					}
-					else
-					{
-						nodataattempts++;
-					}
-				}
-				if (!good)
-				{
-					QString errorstr = "";
-					SerialPortStatus errortype = NONE;
-					if (nodata)
-					{
-						errorstr = "Unable to communicate with ECU, Serial port is unresponsive. Please verify your FreeEMS Board is plugged in, powered up, and all serial settings are properly set.";
-						errortype = (SerialPortStatus)NO_DAT;
-					}
-					else
-					{
-						errorstr = "Unable to communicate with FreeEMS, corrupt data received. Please verify serial settings, in particular double check the baud rate.";
-						errortype = (SerialPortStatus)INVALID_DATA;
-					}
-					emit error(errortype,errorstr);
-					serialconnected = false;
-					serialPort->closePort();
-					emit disconnected();
-					//On a disconnect, we are going to be deleting this thread, so go ahead and quit out;
-					QLOG_FATAL() << "Error communicating with ECU!!!";
-					//return;
-					m_threadReqList.removeAt(i);
-					i--;
-					continue;
-				}
-
-				serialconnected = true;
-				emit debug("Connected to serial port");
-				m_isConnected = true;
-				openLogs();
-				emit connected();
-				m_threadReqList.removeAt(i);
-				i--;
-				rxThread->start(serialPort);
-
-			}
-			else if (!serialconnected)
-			{
-				continue;
-			}
-			else if (m_threadReqList[i].type == SERIAL_DISCONNECT)
-			{
-				emit debugVerbose("SERIAL_DISCONNECT");
-				rxThread->stop();
-				rxThread->wait(500);
-				//rxThread->terminate();
-				delete rxThread;
-				rxThread = 0;
-
-				serialPort->closePort();
-				//delete serialPort;
-				//serialPort = new SerialPort();
-				//connect(serialPort,SIGNAL(dataWritten(QByteArray)),this,SLOT(dataLogWrite(QByteArray)));
-				serialconnected = false;
-				emit disconnected();
-				m_threadReqList.removeAt(i);
-				i--;
-			}
-			else if (m_threadReqList[i].type == GET_DATALOG_DESCRIPTOR)
-			{
-				m_waitingInfoMutex.lock();
-				if (!m_waitingForResponse)
-				{
-					m_waitingForResponse = true;
-					m_timeoutMsecs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
-					emit debugVerbose("GET_DATALOG_DESCRIPTOR");
-					m_currentWaitingRequest = m_threadReqList[i];
-					m_payloadWaitingForResponse = GET_DATALOG_DESCRIPTOR;
-					if (!sendPacket(m_threadReqList[i]))
-					{
-						QLOG_FATAL() << "Error writing packet. Quitting thread";
-						return;
-					}
-					m_threadReqList.removeAt(i);
-					i--;
-				}
-				m_waitingInfoMutex.unlock();
-			}
-			else if (m_threadReqList[i].type == INTERROGATE_START)
-			{
-				int seq = getFirmwareVersion();
-				emit interrogateTaskStart("Ecu Info FW Version",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getInterfaceVersion();
-				emit interrogateTaskStart("Ecu Info Interface Version",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getCompilerVersion();
-				emit interrogateTaskStart("Ecu Info Compiler Version",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getDecoderName();
-				emit interrogateTaskStart("Ecu Info Decoder Name",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getFirmwareBuildDate();
-				emit interrogateTaskStart("Ecu Info Firmware Build Date",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getMaxPacketSize();
-				emit interrogateTaskStart("Ecu Info Max Packet Size",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getOperatingSystem();
-				emit interrogateTaskStart("Ecu Info Operating System",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getBuiltByName();
-				emit interrogateTaskStart("Ecu Info Built By Name",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getSupportEmail();
-				emit interrogateTaskStart("Ecu Info Support Email",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getDatalogDescriptor();
-				emit interrogateTaskStart("Datalog Descriptor request",seq);
-				m_interrogatePacketList.append(seq);
-
-				seq = getLocationIdList(0x00,0x00);
-				emit interrogateTaskStart("Ecu Info Location ID List",seq);
-				m_interrogatePacketList.append(seq);
-
-				m_interrogateTotalCount=8;
-				m_threadReqList.removeAt(i);
-				i--;
-				continue;
-			}
-			else if (false)
-			{
-                serialPort->writeBytes(QByteArray());
-				break;
-			}
-		}
-		if (m_threadReqList.size() == 0)
-		{
-			msleep(10);
-		}
-
-		m_waitingInfoMutex.lock();
-		if (((QDateTime::currentDateTime().currentMSecsSinceEpoch() - m_timeoutMsecs) > 500) && m_waitingForResponse)
-		{
-			//5 seconds
-			QLOG_WARN() << "TIMEOUT waiting for response to payload:" << "0x" + QString::number(m_payloadWaitingForResponse,16).toUpper() << "Sequence:" << m_currentWaitingRequest.sequencenumber;
-			if (m_currentWaitingRequest.retryCount >= 2)
-			{
-				QLOG_ERROR() << "No retries left!";
-				emit commandTimedOut(m_currentWaitingRequest.sequencenumber);
-				if (m_interrogateInProgress)
-				{
-					if (m_interrogatePacketList.contains(m_currentWaitingRequest.sequencenumber))
-					{
-						//Interrogate command failed!!
-						emit interrogateTaskFail(m_currentWaitingRequest.sequencenumber);
-						m_interrogatePacketList.removeOne(m_currentWaitingRequest.sequencenumber);
-						emit interrogationProgress(m_interrogateTotalCount - m_interrogatePacketList.size(),m_interrogateTotalCount);
-						sendNextInterrogationPacket();
-					}
-				}
-				m_waitingForResponse = false;
-			}
-			else
-			{
-				QLOG_WARN() << "Retrying";
-				m_waitingForResponse = false;
-				m_currentWaitingRequest.retryCount++;
-				m_threadReqList.insert(0,m_currentWaitingRequest);
-			}
-			//TODO: Requeue the command for retry.
-		}
-		m_waitingInfoMutex.unlock();
-	}
-	QLOG_DEBUG() << "Exiting FreeEMSComms Thread!!!!";
-	if (rxThread)
-	{
-		rxThread->stop();
-		rxThread->wait(500);
-		delete rxThread;
-		rxThread = 0;
-	}
 }
 void FreeEmsComms::rxThreadPortGone()
 {

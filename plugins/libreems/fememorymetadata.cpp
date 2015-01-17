@@ -36,18 +36,6 @@ FEMemoryMetaData::FEMemoryMetaData()
 bool FEMemoryMetaData::parseMetaData(QString json)
 {
 	QJsonDocument document = QJsonDocument::fromJson(json.toLatin1());
-	//QJson::Parser parser;
-	//QVariant top = parser.parse(json.toStdString().c_str());
-	//if (!top.isValid())
-	//{
-		//QString errormsg = QString("Error parsing JSON from config file on line number: ") + QString::number(parser.errorLine()) + " error text: " + parser.errorString();
-		//QLOG_FATAL() << "Error parsing JSON";
-		//QLOG_FATAL() << "Line number:" << parser.errorLine() << "error text:" << parser.errorString();
-		//QLOG_FATAL() << "Start Json";
-		//QLOG_FATAL() << "Json:" << json;
-		//QLOG_FATAL() << "End Json";
-		return false;
-	//}
 	QJsonObject topmap = document.object();
 	QJsonObject errormap = topmap.value("errormap").toObject();
 	for (QJsonObject::const_iterator i=errormap.constBegin();i!=errormap.constEnd();i++)
@@ -115,16 +103,16 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 			QString id = tabledata.value("locationid").toString();
 			QString xtitle = tabledata.value("xtitle").toString();
 			QJsonArray xcalc = tabledata.value("xcalc").toArray();
-			QString xdp = tabledata.value("xdp").toString();
+			int xdp = tabledata.value("xdp").toInt();
 			unsigned int size = tabledata.value("size").toInt();
 
 			QString ytitle = tabledata.value("ytitle").toString();
 			QJsonArray ycalc = tabledata.value("ycalc").toArray();
-			QString ydp = tabledata.value("ydp").toString();
+			int ydp = tabledata.value("ydp").toInt();
 
 			QString ztitle = tabledata.value("ztitle").toString();
 			QJsonArray zcalc = tabledata.value("zcalc").toArray();
-			QString zdp = tabledata.value("zdp").toString();
+			int zdp = tabledata.value("zdp").toInt();
 
 			QString xhighlight = tabledata.value("xhighlight").toString();
 			QString yhighlight = tabledata.value("yhighlight").toString();
@@ -151,13 +139,13 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 			meta.tableTitle = i.key();
 			meta.xAxisCalc = xcalclist;
 			meta.xAxisTitle = xtitle;
-			meta.xDp = xdp.toInt();
+			meta.xDp = xdp;
 			meta.yAxisCalc = ycalclist;
 			meta.yAxisTitle = ytitle;
-			meta.yDp = ydp.toInt();
+			meta.yDp = ydp;
 			meta.zAxisCalc = zcalclist;
 			meta.zAxisTitle = ztitle;
-			meta.zDp = zdp.toInt();
+			meta.zDp = zdp;
 			meta.size = size;
 			meta.valid = true;
 			meta.xHighlight = xhighlight;
@@ -179,10 +167,10 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 			QString id = tabledata.value("locationid").toString();
 			QString xtitle = tabledata.value("xtitle").toString();
 			QJsonArray xcalc = tabledata.value("xcalc").toArray();
-			QString xdp = tabledata.value("xdp").toString();
+			int xdp = tabledata.value("xdp").toInt();
 			QString ytitle = tabledata.value("ytitle").toString();
 			QJsonArray ycalc = tabledata.value("ycalc").toArray();
-			QString ydp = tabledata.value("ydp").toString();
+			int ydp = tabledata.value("ydp").toInt();
 			unsigned int size = tabledata.value("size").toInt();
 			QString xhighlight = tabledata.value("xhighlight").toString();
 
@@ -203,10 +191,10 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 			meta.tableTitle = i.key();
 			meta.xAxisCalc = xcalclist;
 			meta.xAxisTitle = xtitle;
-			meta.xDp = xdp.toInt();
+			meta.xDp = xdp;
 			meta.yAxisCalc = ycalclist;
 			meta.yAxisTitle = ytitle;
-			meta.yDp = ydp.toInt();
+			meta.yDp = ydp;
 			meta.size = size;
 			meta.valid = true;
 			meta.xHighlight = xhighlight;
@@ -226,23 +214,9 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 	return true;
 }
 
-bool FEMemoryMetaData::loadMetaDataFromFile(QStringList searchpaths)
+bool FEMemoryMetaData::loadMetaDataFromFile(QString path)
 {
-	QString filestr = "";
-	for (int i=0;i<searchpaths.size();i++)
-	{
-		if (QFile::exists(searchpaths[i] + "/freeems.config.json"))
-		{
-			filestr = searchpaths[i] + "/freeems.config.json";
-			i = searchpaths.size();
-		}
-	}
-	if (filestr == "")
-	{
-		return false;
-	}
-	//QLOG_DEBUG() << "Loading config file from:" << filestr;
-	QFile file(filestr);
+	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		return false;

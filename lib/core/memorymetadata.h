@@ -61,7 +61,7 @@
 class MemoryMetaData
 {
 public:
-	virtual bool loadMetaDataFromFile(QStringList searchpaths)=0;
+	virtual bool loadMetaDataFromFile(QString path)=0;
 	virtual bool parseMetaData(QString json)=0;
 	virtual const QMap<unsigned short,QString> errorMap()=0;
 
