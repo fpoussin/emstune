@@ -4,19 +4,21 @@ Written by Michael Carpenter (malcom2073@gmail.com), and licensed under GPLv2.
 
 ### Overview:
 
-I suppose I should have some real documentation here on how to use the different features of EMStudio....
+EMSTune is the tuning application for the EMStudio suite.
+
+It is compatible with LibreEMS out of the box, with plugins for Megasquirt and DynamicEFI/GMECU.
 
 ### Binaries:
 
-I maintain Windows and Linux binaries of both the master and dev branches on my website: http://mikesshop.net/EMStudio/
+Binaries are not currently maintained. A build server is in progress and will hopefully be up and running again soon.
 
 ### Compiling:
 
 #### Linux:
 
-A few packages are needed to compile EMStune. In Ubuntu:
+A few packages are needed to compile EMSTune. In Ubuntu 14.04 or later:
 $ sudo apt-get update
-$ sudo apt-get install build-essential libqt4-dev libqt4-opengl-dev libqt4-opengl-dev qt4-qmake libqwt-dev libqt4-declarative libqjson-dev freeglut3-dev
+$ sudo apt-get install git qt5-qmake qt5-default qtscript5-dev libqt5webkit5-dev libqt5serialport5-dev libqt5svg5-dev flite1-dev libssl-dev libudev-dev
 
 Once this has completed (or the equivalant packages on your own distro), you can then clone the repository and build it. 
 
@@ -25,13 +27,11 @@ It has been mentioned before to run qmake -project, NEVER EVER EVER DO THIS!. Th
 To checkout and build:
 
 $ git clone https://github.com/malcom2073/emstune.git
-$ cd emstudio
-$ git clone https://github.com/malcom2073/emstune-freeems.git plugins/freeems
-$ ./checkout.sh origin/BRANCHTOBUILD (typically dev or master, sometimes unstable)
+$ cd emstune
 $ qmake -r
 $ make
 $ cd core
-$ ./emstudio
+$ ./emstune
 
 
 #### Windows:
