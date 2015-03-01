@@ -17,22 +17,23 @@ Binaries are not currently maintained. A build server is in progress and will ho
 #### Linux:
 
 A few packages are needed to compile EMSTune. In Ubuntu 14.04 or later:
+```
 $ sudo apt-get update
 $ sudo apt-get install git qt5-qmake qt5-default qtscript5-dev libqt5webkit5-dev libqt5serialport5-dev libqt5svg5-dev flite1-dev libssl-dev libudev-dev
-
+```
 Once this has completed (or the equivalant packages on your own distro), you can then clone the repository and build it. 
 
 It has been mentioned before to run qmake -project, NEVER EVER EVER DO THIS!. This will break things.
 
 To checkout and build:
-
+```
 $ git clone https://github.com/malcom2073/emstune.git
 $ cd emstune
 $ qmake -r
 $ make
 $ cd core
 $ ./emstune
-
+```
 
 #### Windows:
 
