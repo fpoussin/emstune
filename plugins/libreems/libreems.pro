@@ -60,7 +60,7 @@ win32-x-g++ { #Linux based crossplatform 32bit build
         DEFINES += GIT_DATE=\""$$system(date)"\"
 } else:unix {
         TARGET = ../../core/plugins/libreemsplugin
-	target.path = /usr/share/emstudio/plugins
+	target.path = /usr/share/EMStudio/plugins
 	INSTALLS += target
         DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)

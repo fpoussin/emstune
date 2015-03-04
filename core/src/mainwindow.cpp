@@ -1385,9 +1385,12 @@ void MainWindow::emsCommsConnected()
 	m_wizardList.clear();
 	//m_defaultsDir
 	//QDir defaultsdir(m_defaultsDir);
-//	loadWizards(defaultsdir.absolutePath() + "/wizards");
+
+	//Load wizards from system, local, and home
+	loadWizards(m_defaultsDir + "/wizards");
 	loadWizards("wizards");
 	loadWizards(m_localHomeDir + "/wizards");
+
 	//for (int i=0;i<emsComms->getConfigList().size();i++)
 	//{
 	//	parameterView->addConfig(emsComms->getConfigList()[i],emsComms->getConfigData(emsComms->getConfigList()[i]));

@@ -17,22 +17,30 @@ PluginManager::PluginManager(QWidget *parent) : QWidget(parent)
 
 	QLOG_INFO() << "Attempting to load plugin:" << m_pluginFileName;
 */
-	QDir dir("plugins");
-	foreach (QString file,dir.entryList())
-	{
-		QString absolutepath = dir.absoluteFilePath(file);
-		QPluginLoader loader(absolutepath);
-		QJsonObject meta = loader.metaData();
-		if (meta.contains("IID"))
-		{
-			QRadioButton *button = new QRadioButton(this);
-			connect(button,SIGNAL(clicked()),this,SLOT(radioButtonClicked()));
-			button->setText(meta.value("IID").toString());
-			QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui.groupBox->layout());
-			layout->insertWidget(1,button);
-			m_buttonToFilenameMap.insert(button,absolutepath);
-		}
 
+
+	QStringList dirlist;
+	dirlist.append("plugins");
+	dirlist.append("/usr/share/EMStudio/plugins");
+	foreach (QString dirstring,dirlist)
+	{
+		QDir dir(dirstring);
+		foreach (QString file,dir.entryList())
+		{
+			QString absolutepath = dir.absoluteFilePath(file);
+			QPluginLoader loader(absolutepath);
+			QJsonObject meta = loader.metaData();
+			if (meta.contains("IID"))
+			{
+				QRadioButton *button = new QRadioButton(this);
+				connect(button,SIGNAL(clicked()),this,SLOT(radioButtonClicked()));
+				button->setText(meta.value("IID").toString());
+				QVBoxLayout *layout = qobject_cast<QVBoxLayout*>(ui.groupBox->layout());
+				layout->insertWidget(1,button);
+				m_buttonToFilenameMap.insert(button,absolutepath);
+			}
+
+		}
 	}
 	connect(ui.savePushButton,SIGNAL(clicked()),this,SLOT(selectClicked()));
 	connect(ui.cancelPushButton,SIGNAL(clicked()),this,SLOT(cancelClicked()));
