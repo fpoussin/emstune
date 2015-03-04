@@ -168,6 +168,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	m_waitingForRamWriteConfirmation = false;
 	m_waitingForFlashWriteConfirmation = false;
 	ui.setupUi(this);
+    this->menuBar()->setNativeMenuBar(false);
 	connect(ui.actionSave_Offline_Data,SIGNAL(triggered()),this,SLOT(menu_file_saveOfflineDataClicked()));
 	connect(ui.actionEMS_Status,SIGNAL(triggered()),this,SLOT(menu_windows_EmsStatusClicked()));
 	connect(ui.actionLoad_Offline_Data,SIGNAL(triggered()),this,SLOT(menu_file_loadOfflineDataClicked()));
