@@ -52,6 +52,7 @@ GaugeWidget::GaugeWidget(QWidget *parent) : QDeclarativeView(parent)
 
 QString GaugeWidget::setFile(QString file)
 {
+	QLOG_DEBUG() << "GaugeWidget loading " << file;
 	setSource(QUrl::fromLocalFile(file));
 	if (rootObject())
 	{

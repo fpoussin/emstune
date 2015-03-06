@@ -69,15 +69,17 @@ win32-x-g++ { #Linux based crossplatform 32bit build
 	DEFINES += INSTALL_PREFIX=$$PREFIX
 	#QMAKE_CXXFLAGS += -Werror
 	target.path = $$PREFIX/bin
-	dashboard.path = $$PREFIX/share/EMStudio/dashboards
+	dashboard.path = $$PREFIX/share/emstudio/dashboards
 	dashboard.files += src/gauges.qml
-	wizards.path = $$PREFIX/share/EMStudio/wizards
+	warninglabel.path = $$PREFIX/share/emstudio/dashboards/WarningLabel
+	warninglabel.files += src/WarningLabel/WarningLabel.qml
+	wizards.path = $$PREFIX/share/emstudio/wizards
 	wizards.files += wizards/BenchTest.qml
 	wizards.files += wizards/DecoderOffset.qml
 	wizards.files += wizards/wizard.qml
-	config.path = $$PREFIX/share/EMStudio/definitions
+	config.path = $$PREFIX/share/emstudio/definitions
 	config.files += freeems.config.json
-	INSTALLS += target config dashboard wizards
+	INSTALLS += target config dashboard wizards warninglabel
         LIBS += -lqjson -lGL -lGLU -lglut
         DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
