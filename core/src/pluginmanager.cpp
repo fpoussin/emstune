@@ -3,6 +3,10 @@
 #include <QFile>
 #include <QPluginLoader>
 #include <QRadioButton>
+
+#define define2string_p(x) #x
+#define define2string(x) define2string_p(x)
+
 PluginManager::PluginManager(QWidget *parent) : QWidget(parent)
 {
 	ui.setupUi(this);
@@ -17,14 +21,12 @@ PluginManager::PluginManager(QWidget *parent) : QWidget(parent)
 
 	QLOG_INFO() << "Attempting to load plugin:" << m_pluginFileName;
 */
-
-
 	QStringList dirlist;
-	dirlist.append("plugins");
-	dirlist.append("/usr/share/EMStudio/plugins");
-	foreach (QString dirstring,dirlist)
+	dirlist.append("plugins"); //Default local
+	dirlist.append(QString(define2string(INSTALL_PREFIX)) + "/share/emstudio/plugins"); //make installed on linux
+	foreach (QString dirstr,dirlist)
 	{
-		QDir dir(dirstring);
+		QDir dir(dirstr);
 		foreach (QString file,dir.entryList())
 		{
 			QString absolutepath = dir.absoluteFilePath(file);

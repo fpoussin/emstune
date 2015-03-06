@@ -92,7 +92,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	{
 		QDir(appDataDir).mkpath(".EMStudio");
 	}
-	m_defaultsDir = "/usr/share/EMStudio";
+
+	m_defaultsDir = QString(define2string(INSTALL_PREFIX)) + "share/EMStudio";
 	m_settingsDir = appDataDir + "/" + ".EMStudio";
 	m_localHomeDir = appDataDir + "/" + "EMStudio";
 	//m_settingsFile = appDataDir + "/" + ".EMStudio/EMStudio-config.ini";

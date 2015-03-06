@@ -23,7 +23,6 @@ DEPENDPATH += $$PWD/../lib/core
 #QMAKE_EXTRA_TARGETS += gittouch
 #POST_TARGETDEPS += gittouch
 
-
 include(QsLog/QsLog.pri)
 win32-x-g++ { #Linux based crossplatform 32bit build
         message("Building for win32-x-g++")
@@ -43,7 +42,7 @@ win32-x-g++ { #Linux based crossplatform 32bit build
         LIBS += -L/home/michael/QtWin64/lib
         DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
-DEFINES += GIT_DATE=\""$$system(date)"\"
+	DEFINES += GIT_DATE=\""$$system(date)"\"
         QMAKE_LFLAGS += -static-libgcc -static-libstdc++
 } else:win32 { #Windows based mingw build
 	message("Building for win32")
@@ -60,15 +59,23 @@ DEFINES += GIT_DATE=\""$$system(date)"\"
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
         DEFINES += GIT_DATE=\""$$system(date)"\"
 } else:unix {
+	message("Building for *nix");
+	isEmpty($$PREFIX) {
+		PREFIX = /usr/local
+		message("EMSTune using default install prefix " $$PREFIX);
+	} else {
+		message("EMSTune using custom install prefix " $$PREFIX);
+	}
+	DEFINES += INSTALL_PREFIX=$$PREFIX
 	#QMAKE_CXXFLAGS += -Werror
-	target.path = /usr/bin
-	dashboard.path = /usr/share/EMStudio/dashboards
+	target.path = $$PREFIX/bin
+	dashboard.path = $$PREFIX/share/EMStudio/dashboards
 	dashboard.files += src/gauges.qml
-	wizards.path = /usr/share/EMStudio/wizards
+	wizards.path = $$PREFIX/share/EMStudio/wizards
 	wizards.files += wizards/BenchTest.qml
 	wizards.files += wizards/DecoderOffset.qml
 	wizards.files += wizards/wizard.qml
-	config.path = /usr/share/EMStudio/definitions
+	config.path = $$PREFIX/share/EMStudio/definitions
 	config.files += freeems.config.json
 	INSTALLS += target config dashboard wizards
         LIBS += -lqjson -lGL -lGLU -lglut
