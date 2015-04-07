@@ -34,6 +34,14 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 			//m_currMsg; //Current packet.
 			QByteArray toemit = m_currMsg;
 			toemit.detach();
+			if (!toemit.startsWith(QByteArray().append(0x01).append(0x01).append(0x91)))
+			{
+				QLOG_DEBUG() << "protocol decoder incoming packet";
+			}
+			else
+			{
+				//QLOG_DEBUG() << "protocol decoder DATALOG PACKET";
+			}
 			//QLOG_DEBUG() << "MSG:" << toemit.toHex();
 			emit newPacket(toemit);
 			m_currMsg.clear();

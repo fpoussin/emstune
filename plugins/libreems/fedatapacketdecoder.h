@@ -39,6 +39,9 @@ private:
 	void loadDataFieldsFromValues();
 	QList<DataField> m_dataFieldList;
 	short m_currentEcuClock;
+	QVariantMap m_valueMap;
+	qint64 m_lastupdate;
+	DataField clockDataField;
 signals:
 	void payloadDecoded(QVariantMap data);
 	void resetDetected(int missedPackets);

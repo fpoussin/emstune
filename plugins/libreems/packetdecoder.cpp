@@ -2,7 +2,7 @@
 #include "QsLog.h"
 #include <QMutexLocker>
 #include "memorylocationinfo.h"
-
+#include <QDateTime>
 #define NAK 0x02
 
 PacketDecoder::PacketDecoder(QObject *parent) : QObject(parent)
@@ -40,6 +40,11 @@ PacketDecoder::PacketDecoder(QObject *parent) : QObject(parent)
 	isPartialPacketWaiting = false;
 }
 
+void PacketDecoder::parseBufferToPacket(QByteArray buffer)
+{
+	Packet p = parseBuffer(buffer);
+	parsePacket(p);
+}
 
 Packet PacketDecoder::parseBuffer(QByteArray buffer)
 {
@@ -151,7 +156,7 @@ Packet PacketDecoder::parseBuffer(QByteArray buffer)
 		payload.append(buffer.mid(iloc),(buffer.length()-iloc));
 	}
 
-	QString output;
+	/*QString output;
 	for (int i=0;i<payload.size();i++)
 	{
 		int num = (unsigned char)payload[i];
@@ -162,7 +167,7 @@ Packet PacketDecoder::parseBuffer(QByteArray buffer)
 	{
 		int num = (unsigned char)header[i];
 		output.append(" ").append((num < 0xF) ? "0" : "").append(QString::number(num,16));
-	}
+	}*/
 	//Last byte of currPacket should be out checksum.
 	retval.header = header;
 	retval.payload = payload;

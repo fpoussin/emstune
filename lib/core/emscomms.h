@@ -70,11 +70,11 @@ namespace QsLogging
 	class Logger;
 }
 
-class EmsComms : public QThread
+class EmsComms : public QObject
 {
 	Q_OBJECT
 public:
-	EmsComms(QObject *parent) : QThread(parent) {}
+	EmsComms(QObject *parent) : QObject(parent) {}
 	virtual QString getPluginCompat()=0;
 	virtual void passLogger(QsLogging::Logger *log)=0;
 	virtual void stop()=0;

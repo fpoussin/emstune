@@ -26,9 +26,11 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
+#include <QDateTime>
 FEDataPacketDecoder::FEDataPacketDecoder() : DataPacketDecoder()
 {
     loadDataFieldsFromValues();
+    m_lastupdate = 0;
 }
 
 void FEDataPacketDecoder::decodePayloadPacket(QByteArray header,QByteArray payload)
@@ -70,41 +72,11 @@ void FEDataPacketDecoder::datalogDescriptor(QString data)
 
 void FEDataPacketDecoder::decodePayload(QByteArray payload)
 {
-	QVariantMap m_valueMap;
-	for (int i=0;i<m_dataFieldList.size();i++)
+	//Check tempclock
+	double val = 0;
+	if (clockDataField.getValue(&payload,&val))
 	{
-		if (m_dataFieldList[i].isFlag())
-		{
-			bool value = false;
-			if (m_dataFieldList[i].flagValue(&payload,&value))
-			{
-				m_valueMap[m_dataFieldList[i].name()] = value;
-			}
-			else
-			{
-				//Invalid datalog packet.
-				int stopper = 1;
-				return;
-			}
-		}
-		else
-		{
-			double value = 0;
-			if (m_dataFieldList[i].getValue(&payload,&value))
-			{
-				m_valueMap[m_dataFieldList[i].name()] = value;
-			}
-			else
-			{
-				//Invalid datalog packet.
-				int stopper = 1;
-				return;
-			}
-		}
-	}
-	if (m_valueMap.contains("tempClock"))
-	{
-		int newval = m_valueMap["tempClock"].toInt();
+		int newval = (int)val;
 		if (m_currentEcuClock == -1)
 		{
 			m_currentEcuClock = newval;
@@ -146,6 +118,44 @@ void FEDataPacketDecoder::decodePayload(QByteArray payload)
 				}
 			}
 			m_currentEcuClock = newval;
+		}
+	}
+
+	if (QDateTime::currentMSecsSinceEpoch() - m_lastupdate <= 80)
+	{
+		return;
+	}
+	m_lastupdate = QDateTime::currentMSecsSinceEpoch();
+//	QVariantMap m_valueMap;
+	for (int i=0;i<m_dataFieldList.size();i++)
+	{
+		if (m_dataFieldList[i].isFlag())
+		{
+			bool value = false;
+			if (m_dataFieldList[i].flagValue(&payload,&value))
+			{
+				m_valueMap[m_dataFieldList[i].name()] = value;
+			}
+			else
+			{
+				//Invalid datalog packet.
+				int stopper = 1;
+				return;
+			}
+		}
+		else
+		{
+			double value = 0;
+			if (m_dataFieldList[i].getValue(&payload,&value))
+			{
+				m_valueMap[m_dataFieldList[i].name()] = value;
+			}
+			else
+			{
+				//Invalid datalog packet.
+				int stopper = 1;
+				return;
+			}
 		}
 	}
 	emit payloadDecoded(m_valueMap);
@@ -218,6 +228,7 @@ void FEDataPacketDecoder::loadDataFieldsFromValues()
 
 	// KeyUserDebug
 	m_dataFieldList.append(DataField("tempClock","Once per datalog message",58,1,1.0));
+	clockDataField = DataField("tempClock","Once per datalog message",58,1,1.0);
 	m_dataFieldList.append(DataField("spareChar","Unused at this time",59,1,1.0));
 
 	// TODO bits:

@@ -40,18 +40,33 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	qRegisterMetaType<QMap<QString,QString> >("QMap<QString,QString>");
 	rxThread = 0;
 	m_state = 0; //0 is not connected.
+	m_lastMessageSentTime = 0;
 	m_firstPacketValid = false;
 	//serialPort = new SerialPort(this);
 	//connect(serialPort,SIGNAL(dataWritten(QByteArray)),this,SLOT(dataLogWrite(QByteArray)));
 	m_isConnected = false;
 	m_serialPortMutex.lock();
 
+	m_packetProcessingThread = new QThread(this);
+	m_packetProcessingThread->start();
+
 	dataPacketDecoder = new FEDataPacketDecoder();
 	connect(dataPacketDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SIGNAL(dataLogPayloadDecoded(QVariantMap)));
 	connect(dataPacketDecoder,SIGNAL(resetDetected(int)),this,SIGNAL(resetDetected(int)));
 	m_metaDataParser = new FEMemoryMetaData();
 	m_metaDataParser->loadMetaDataFromFile("freeems.config.json");
-	m_packetDecoder = new PacketDecoder(this);
+
+
+	m_packetDecoder = new PacketDecoder();
+	m_packetDecoder->moveToThread(m_packetProcessingThread);
+
+
+	m_protocolDecoder = new ProtocolDecoder();
+	m_protocolDecoder->moveToThread(m_packetProcessingThread);
+	connect(m_protocolDecoder,SIGNAL(newPacket(QByteArray)),m_packetDecoder,SLOT(parseBufferToPacket(QByteArray)));
+
+
+
 	connect(m_packetDecoder,SIGNAL(locationIdInfo(MemoryLocationInfo)),this,SLOT(locationIdInfoRec(MemoryLocationInfo)));
 	connect(m_packetDecoder,SIGNAL(packetAcked(unsigned short,QByteArray,QByteArray)),this,SLOT(packetAckedRec(unsigned short,QByteArray,QByteArray)));
 	connect(m_packetDecoder,SIGNAL(partialPacketAcked(unsigned short,QByteArray,QByteArray)),this,SLOT(partialPacketAckedRec(unsigned short,QByteArray,QByteArray)));
@@ -239,7 +254,10 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 
     //m_metaDataParser->passConfigData(configmap);
 	m_metaDataParser->setMenuMetaData(menu);
-	start();
+	//start();
+	m_sentMessageTimeoutTimer = new QTimer(this);
+	connect(m_sentMessageTimeoutTimer,SIGNAL(timeout()),this,SLOT(timeoutTimerTick()));
+	m_sentMessageTimeoutTimer->start(250);
 
 
 }
@@ -283,6 +301,15 @@ void FreeEmsComms::interfaceVersion(QString version)
 
 void FreeEmsComms::firmwareVersion(QString version)
 {
+	if (m_state == 1)
+	{
+		//Waiting on first FW version reply packet
+		//Good to go!
+		m_state = 2; //2 is running, kick off the next packet send.
+		m_waitingForResponse = false; //Clear this out, since we're not parsing the packet direct.
+		emit connected();
+		QLOG_DEBUG() << "Connected...." << m_reqList.size() << "Items in queue";
+	}
 	m_interrogationMetaDataMap["Firmware Version"] = version;
 }
 void FreeEmsComms::builtByName(QString name)
@@ -429,7 +456,8 @@ int FreeEmsComms::getDatalogDescriptor()
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
 	serialPort = new SerialPort(this);
-	connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
+	//connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
+	connect(serialPort,SIGNAL(bytesReady(QByteArray)),m_protocolDecoder,SLOT(parseBuffer(QByteArray)),Qt::QueuedConnection);
 	if (!serialPort->connectToPort(port))
 	{
 		emit error("Error connecting");
@@ -1026,12 +1054,13 @@ bool FreeEmsComms::sendPacket(unsigned short payloadid,QList<QVariant> arglist,Q
 		header.append((char)((payloadid) & 0xFF));
 	}
 	QLOG_TRACE() << "About to send packet";
+	m_lastMessageSentTime = QDateTime::currentMSecsSinceEpoch();
 	if (serialPort->writeBytes(generatePacket(header,payload)) < 0)
 	{
 		return false;
 	}
 	QLOG_TRACE() << "Sent packet" << "0x" + QString::number(payloadid,16).toUpper() <<  header.size() << payload.size();
-	QLOG_DEBUG() << header.toHex() << payload.toHex();
+	//QLOG_DEBUG() << header.toHex() << payload.toHex();
 	emit packetSent(payloadid,header,payload);
 	return true;
 }
@@ -1105,7 +1134,8 @@ void FreeEmsComms::setInterByteSendDelay(int milliseconds)
 
 void FreeEmsComms::run()
 {
-	exec();
+	//this->moveToThread(QThread::currentThread());
+	//exec();
 }
 void FreeEmsComms::rxThreadPortGone()
 {
@@ -1384,6 +1414,7 @@ void FreeEmsComms::partialPacketAckedRec(unsigned short payloadid,QByteArray hea
 
 	//Reset the timeout timer, and wait for more packets
 	m_timeoutMsecs = QDateTime::currentDateTime().currentMSecsSinceEpoch();
+	m_lastMessageSentTime = QDateTime::currentMSecsSinceEpoch();
 	if (m_waitingForResponse)
 	{
 	}
@@ -1438,7 +1469,7 @@ void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QBy
 			}
 			QLOG_TRACE() << "Recieved Response" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper() << "For Payload:" << "0x" + QString::number(m_payloadWaitingForResponse+1,16).toUpper()<< "Sequence Number:" << m_currentWaitingRequest.sequencenumber;
 			QLOG_TRACE() << "Currently waiting for:" << QString::number(m_currentWaitingRequest.type,16).toUpper();
-			QLOG_DEBUG() << header.toHex() << payload.toHex();
+			//QLOG_DEBUG() << header.toHex() << payload.toHex();
 			//Packet is good.
 			emit commandSuccessful(m_currentWaitingRequest.sequencenumber);
 			emit packetAcked(m_currentWaitingRequest.type,header,payload);
@@ -1705,8 +1736,10 @@ void FreeEmsComms::parseEverything(QByteArray buffer)
 {
 	if (!buffer.startsWith(QByteArray().append(0x01).append(0x01).append(0x91)))
 	{
-		QLOG_DEBUG() << "parseEverything:" << buffer.toHex();
+		QLOG_DEBUG() << "Incoming packet";
+		//QLOG_DEBUG() << "parseEverything:" << buffer.toHex();
 	}
+
 	Packet p = m_packetDecoder->parseBuffer(buffer);
 	if (p.payloadid != 0x191)
 	{
@@ -1714,6 +1747,7 @@ void FreeEmsComms::parseEverything(QByteArray buffer)
 	}
 	if (!p.isValid)
 	{
+		QLOG_DEBUG() << "Decoder failure:" << buffer.toHex();
 		emit decoderFailure(buffer);
 	}
 	else
@@ -1845,6 +1879,20 @@ void FreeEmsComms::dataLogPayloadReceivedRec(QByteArray header,QByteArray payloa
 	{
 		m_lastDatalogUpdateEnabled = true;
 		emit emsSilenceBroken();
+	}
+}
+void FreeEmsComms::timeoutTimerTick()
+{
+	if (m_waitingForResponse)
+	{
+		if (QDateTime::currentMSecsSinceEpoch() - m_lastMessageSentTime > 1000)
+		{
+			//It's been 1 second since the last sent message with no response, resend!
+			//Greater than 1 second, resend!
+			m_waitingForResponse = false;
+			QLOG_DEBUG() << "Resending packet:" << "0x" + QString::number(m_currentWaitingRequest.type,16) << "Packets left:" << m_reqList.size();
+			sendPacket(m_currentWaitingRequest);
+		}
 	}
 }
 

@@ -353,6 +353,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	windowsettings.endGroup();
 
 	this->setAttribute(Qt::WA_DeleteOnClose,true);
+	this->setAccessibleDescription("MainWindow");
 
 
 }
@@ -651,8 +652,8 @@ void MainWindow::setPlugin(QString plugin)
 	if (emsComms)
 	{
 	emsComms->stop();
-	emsComms->terminate();
-	emsComms->wait(250); //Join it, fixes a race condition where the thread deletes before it's finished.
+	//emsComms->terminate();
+	//emsComms->wait(250); //Join it, fixes a race condition where the thread deletes before it's finished.
 	emsComms->deleteLater();
 	}
 	pluginLoader->unload();
@@ -1389,9 +1390,10 @@ void MainWindow::emsCommsConnected()
 	//QDir defaultsdir(m_defaultsDir);
 
 	//Load wizards from system, local, and home
-	loadWizards(m_defaultsDir + "/wizards");
-	loadWizards("wizards");
-	loadWizards(m_localHomeDir + "/wizards");
+	//TODO: Delay loading these
+	//loadWizards(m_defaultsDir + "/wizards");
+	//loadWizards("wizards");
+	//loadWizards(m_localHomeDir + "/wizards");
 
 	//for (int i=0;i<emsComms->getConfigList().size();i++)
 	//{
@@ -2211,7 +2213,7 @@ MainWindow::~MainWindow()
 	m_wizardList.clear();
 
 	emsComms->stop();
-	emsComms->wait(1000);
+	//emsComms->wait(1000);
 	delete emsComms;
 }
 void MainWindow::emsMemoryDirty()

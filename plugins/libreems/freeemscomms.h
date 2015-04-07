@@ -136,7 +136,9 @@ private:
     bool m_firstPacketValid;
 	bool m_isSilent;
 	quint64 m_lastDatalogTime;
+	qint64 m_lastMessageSentTime;
 	QTimer *m_lastdatalogTimer;
+	QTimer *m_sentMessageTimeoutTimer;
 	bool m_lastDatalogUpdateEnabled;
 	bool m_isConnected;
 	FEDataPacketDecoder *dataPacketDecoder;
@@ -180,6 +182,8 @@ private:
 	QMap<unsigned short,QList<FEConfigData*> > m_locIdToConfigListMap;
 	QMap<QString,FEConfigData*> m_configMap;
 	PacketDecoder *m_packetDecoder;
+	ProtocolDecoder *m_protocolDecoder;
+	QThread *m_packetProcessingThread;
 	QMap<QString,QString> m_interrogationMetaDataMap;
 	void sendNextInterrogationPacket();
 	QList<unsigned int> m_dirtyRamAddresses;
@@ -257,6 +261,7 @@ private slots:
 	void firmwareVersion(QString version);
 	void builtByName(QString name);
 	void supportEmail(QString email);
+	void timeoutTimerTick();
 
 
 };

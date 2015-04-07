@@ -14,6 +14,7 @@ public:
 	Packet parseBuffer(QByteArray buffer);
 public slots:
 	void parsePacket(Packet parsedPacket);
+	void parseBufferToPacket(QByteArray buffer);
 private:
 	QList<LocationIdFlags> m_blockFlagList;
 	QMap<LocationIdFlags,QString> m_blockFlagToNameMap;

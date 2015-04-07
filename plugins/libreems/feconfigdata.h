@@ -32,7 +32,7 @@ public:
     unsigned short size() { return m_size; }
     unsigned short elementSize() { return m_elementSize; }
     QList<QPair<QString,double> > calc() { return m_calc; }
-    int elements() { return m_size / m_elementSize; }
+    int elements() { if (m_elementSize == 0) { return 0 ; } else return m_size / m_elementSize; }
     QVariant value();
     void setData(QByteArray data);
     void setValue(QVariant value);

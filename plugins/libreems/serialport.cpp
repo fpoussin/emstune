@@ -24,6 +24,7 @@
 #include <QMutexLocker>
 #include <cassert>
 #include "QsLog.h"
+
 SerialPort::SerialPort(QObject *parent) : QObject(parent)
 {
 	m_serialLockMutex = new QMutex();
@@ -31,8 +32,8 @@ SerialPort::SerialPort(QObject *parent) : QObject(parent)
 	m_inpacket = false;
 	m_inescape = false;
 	m_packetErrorCount=0;
-	m_protocolDecoder = new ProtocolDecoder();
-	connect(m_protocolDecoder,SIGNAL(newPacket(QByteArray)),this,SIGNAL(packetReceived(QByteArray)));
+
+//	connect(m_protocolDecoder,SIGNAL(newPacket(QByteArray)),this,SIGNAL(packetReceived(QByteArray)));
 }
 void SerialPort::setPort(QString portname)
 {
@@ -46,16 +47,18 @@ bool SerialPort::connectToPort(QString portname)
 {
 	m_serialPort = new QSerialPort();
 	connect(m_serialPort,SIGNAL(readyRead()),this,SLOT(portReadyRead()));
+	m_serialPort->setReadBufferSize(10);
 	m_serialPort->setPortName(portname);
-    if (!m_serialPort->open(QIODevice::ReadWrite))
-    {
-        return false;
-    }
+	if (!m_serialPort->open(QIODevice::ReadWrite))
+	{
+		return false;
+	}
 	m_serialPort->setBaudRate(115200);
 	m_serialPort->setParity(QSerialPort::OddParity);
 	m_serialPort->setStopBits(QSerialPort::OneStop);
 	m_serialPort->setDataBits(QSerialPort::Data8);
-    return true;
+	m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+	return true;
 }
 
 SerialPortStatus SerialPort::isSerialMonitor(QString portname)
@@ -133,12 +136,15 @@ int SerialPort::readBytes(QByteArray *array, int maxlen,int timeout)
 
 int SerialPort::writeBytes(QByteArray packet)
 {
+	QLOG_TRACE() << "Writing bytes:" << packet.size();
 	if (!m_serialPort->write(packet))
 	{
 		QLOG_ERROR() << "Serial write error:" << m_serialPort->errorString();
 		return -1;
 	}
-	m_serialPort->flush();
+	m_serialPort->waitForBytesWritten(1);
+	QLOG_TRACE() << "Wrote bytes";
+	//m_serialPort->flush();
 	return packet.size();
 	QMutexLocker locker(m_serialLockMutex);
 	if (m_interByteSendDelay > 0)
@@ -203,5 +209,7 @@ int SerialPort::openPort(QString portName,int baudrate,bool oddparity)
 }
 void SerialPort::portReadyRead()
 {
-	m_protocolDecoder->parseBuffer(m_serialPort->readAll());
+	//m_protocolDecoder->parseBuffer(m_serialPort->readAll());
+
+	emit bytesReady(m_serialPort->readAll());
 }

@@ -86,6 +86,7 @@ signals:
     void packetReceived(QByteArray packet);
     void parseBuffer(QByteArray buffer);
     void dataWritten(QByteArray data);
+    void bytesReady(QByteArray buffer);
 };
 
 #endif // SERIALPORT_H
