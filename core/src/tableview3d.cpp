@@ -49,7 +49,7 @@ TableView3D::TableView3D(QWidget *parent)
 	ui.tableWidget->addHotkey(Qt::Key_Minus,Qt::NoModifier);
 	ui.tableWidget->addHotkey(Qt::Key_Underscore,Qt::ShiftModifier);
 	ui.tableWidget->addHotkey(Qt::Key_Equal,Qt::NoModifier);
-	connect(ui.tableWidget,SIGNAL(itemChangeRequest(int,int,QString)),this,SLOT(itemChangeRequest(int,int,QString)));
+	connect(ui.tableWidget,SIGNAL(itemChangeRequest(int,int,int,int,QString)),this,SLOT(itemChangeRequest(int,int,int,int,QString)));
 	//ui.tableWidget->setItemDelegate(new TableWidgetDelegate());
 
 	setContextMenuPolicy(Qt::DefaultContextMenu);
@@ -1139,6 +1139,30 @@ void TableView3D::saveClicked()
 TableView3D::~TableView3D()
 {
 }
+void TableView3D::itemChangeRequest(int minrow,int maxrow, int mincolumn, int maxcolumn,QString text)
+{
+	bool ok = false;
+	double newval = text.toDouble(&ok);
+	if (!ok)
+	{
+		QLOG_ERROR() << "Attempted to enter a number into table that wasn't a number!";
+		QMessageBox::information(0,"Error",text + " is not a number.'");
+		return;
+	}
+	QList<QPair<QPair<int,int>,double> > vallist;
+	for (int x=minrow;x<=maxrow;x++)
+	{
+		for (int y=mincolumn;y<=maxcolumn;y++)
+		{
+			QPair<QPair<int,int>,double> val;
+			val.first = QPair<int,int>(x,y);
+			val.second = newval;
+			vallist.append(val);
+		}
+	}
+	setRange(vallist);
+}
+
 void TableView3D::itemChangeRequest(int row,int column,QString text)
 {
 

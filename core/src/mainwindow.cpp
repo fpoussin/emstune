@@ -1943,6 +1943,7 @@ void MainWindow::ecuResetDetected(int missedpackets)
 
 void MainWindow::dataLogDecoded(QVariantMap data)
 {
+
 	//m_valueMap = data;
 	if (dataTables)
 	{

@@ -16,7 +16,7 @@ public:
 	void rebuildTable();
 	int rowCount() { return m_rowCount; }
 	int columnCount() { return m_columnCount; }
-	QList<QPoint> selectedItems() { QList<QPoint> l; l.append(currentCell); return l; }
+	QList<QPoint> selectedItems();
 	QString item(int row,int column);
 	void setXAxis(int index,QString number);
 	void setYAxis(int index,QString number);
@@ -30,7 +30,7 @@ private:
 	double m_maxXValue;
 	double m_maxYValue;
 	double m_maxZValue;
-	void drawCell(QPainter *painter,int cellx,int celly,QString text,bool highlight);
+	void drawCell(QPainter *painter,int cellx,int celly,QString text,bool highlight, bool current);
 	QTimer *m_updateTimer;
 	double m_traceX;
 	double m_traceY;
@@ -53,6 +53,11 @@ private:
 	void keyPressEvent(QKeyEvent *evt);
 	QPoint currentCell;
 	QPoint startSelectCell;
+	QList<QPoint> m_selectedCells;
+	int m_minSelectedRow;
+	int m_maxSelectedRow;
+	int m_minSelectedColumn;
+	int m_maxSelectedColumn;
 	bool multiSelect;
 	int m_rowCount;
 	int m_columnCount;
@@ -63,7 +68,8 @@ private:
 signals:
 	void keyPressed(int key);
 	void hotKeyPressed(int key,Qt::KeyboardModifier modifier);
-	void itemChangeRequest(int row,int column,QString text);
+	//void itemChangeRequest(int row,int column,QString text);
+	void itemChangeRequest(int minrow,int maxrow,int mincolumn,int maxcolumn,QString text);
 	void currentSelectionChanged(QList<QPair<int,int> > selectionList);
 public slots:
 	

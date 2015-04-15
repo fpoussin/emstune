@@ -16,6 +16,10 @@ TableViewNew3D::TableViewNew3D(QWidget *parent) : QWidget(parent)
 	m_updateTimer->start(100);
 	m_inEdit = false;
 	qRegisterMetaType<QList<QPair<int,int> > >("QList<QPair<int,int> >");
+	m_minSelectedRow = 0;
+	m_maxSelectedRow = 0;
+	m_minSelectedColumn = 0;
+	m_maxSelectedColumn = 0;
 
 }
 void TableViewNew3D::setTracingValue(double x,double y)
@@ -170,11 +174,18 @@ void TableViewNew3D::setMaxValues(double maxx,double maxy,double maxz)
 	m_maxZValue = maxz;
 }
 
-void TableViewNew3D::drawCell(QPainter *painter,int cellx,int celly,QString text,bool highlight)
+void TableViewNew3D::drawCell(QPainter *painter,int cellx,int celly,QString text,bool highlight, bool current)
 {
 	QPen oldpen = painter->pen();
 	QPen pen = oldpen;
-	if (highlight)
+	if (current)
+	{
+		pen.setColor(QColor::fromRgb(255,255,255));
+		pen.setWidth(2);
+		painter->setPen(pen);
+		painter->drawRect((cellx*m_itemWidth)+2,(celly*m_itemHeight)+2,m_itemWidth-2,m_itemHeight-2);
+	}
+	else if (highlight)
 	{
 		pen.setColor(QColor::fromRgb(0,0,255));
 		pen.setWidth(2);
@@ -191,7 +202,7 @@ void TableViewNew3D::drawCell(QPainter *painter,int cellx,int celly,QString text
 	pen.setColor(QColor::fromRgb(0,0,0));
 
 	//For now, disable coloring for axis
-	if (highlight || cellx == 0 || celly == m_rowCount)
+	if (current || cellx == 0 || celly == m_rowCount || highlight)
 	{
 		painter->fillRect((m_itemWidth*cellx)+4,(m_itemHeight*celly)+4,m_itemWidth-5,m_itemHeight-5,QColor::fromRgb(255,255,255));
 	}
@@ -262,16 +273,16 @@ void TableViewNew3D::paintEvent (QPaintEvent *evt)
 		{
 			if (m_inEdit)
 			{
-				drawCell(&painter,0,y,m_editText,true);
+				drawCell(&painter,0,y,m_editText,false,true);
 			}
 			else
 			{
-				drawCell(&painter,0,y,yaxis.at(y),true);
+				drawCell(&painter,0,y,yaxis.at(y),false,true);
 			}
 		}
 		else
 		{
-			drawCell(&painter,0,y,yaxis.at(y),false);
+			drawCell(&painter,0,y,yaxis.at(y),false,false);
 		}
 		painter.setPen(QColor::fromRgb(0,0,0));
 		if (m_traceEnabled)
@@ -335,16 +346,16 @@ void TableViewNew3D::paintEvent (QPaintEvent *evt)
 		{
 			if (m_inEdit)
 			{
-				drawCell(&painter,x+1,m_rowCount,m_editText,true);
+				drawCell(&painter,x+1,m_rowCount,m_editText,false,true);
 			}
 			else
 			{
-				drawCell(&painter,x+1,m_rowCount,xaxis.at(x),true);
+				drawCell(&painter,x+1,m_rowCount,xaxis.at(x),false,true);
 			}
 		}
 		else
 		{
-			drawCell(&painter,x+1,m_rowCount,xaxis.at(x),false);
+			drawCell(&painter,x+1,m_rowCount,xaxis.at(x),false,false);
 		}
 		painter.setPen(QColor::fromRgb(0,0,0));
 
@@ -410,21 +421,31 @@ void TableViewNew3D::paintEvent (QPaintEvent *evt)
 	{
 		for (int x=0;x<m_columnCount;x++)
 		{
-			if (currentCell.y() == y && currentCell.x() == x)
+			if (m_minSelectedRow <= y && m_maxSelectedRow >= y && m_minSelectedColumn <= x && m_maxSelectedColumn >= x)
 			{
 				if (m_inEdit)
 				{
-					drawCell(&painter,x+1,y,m_editText,true);
+					drawCell(&painter,x+1,y,m_editText,true,true);
 				}
 				else
 				{
-					drawCell(&painter,x+1,y,values.at(y).at(x),true);
+					drawCell(&painter,x+1,y,values.at(y).at(x),true,true);
 				}
-
+			}
+			else if (currentCell.y() == y && currentCell.x() == x)
+			{
+				if (m_inEdit)
+				{
+					drawCell(&painter,x+1,y,m_editText,true,true);
+				}
+				else
+				{
+					drawCell(&painter,x+1,y,values.at(y).at(x),true,true);
+				}
 			}
 			else
 			{
-				drawCell(&painter,x+1,y,values.at(y).at(x),false);
+				drawCell(&painter,x+1,y,values.at(y).at(x),false,false);
 			}
 		}
 	}
@@ -457,8 +478,66 @@ void TableViewNew3D::mousePressEvent(QMouseEvent *evt)
 	{
 		m_y = -1;
 	}
+	QPoint oldpoint = currentCell;
 	currentCell.setX(m_x-1);
 	currentCell.setY(m_y);
+
+	if (evt->modifiers() & Qt::ShiftModifier && currentCell.x() != -1 && currentCell.y() != -1)
+	{
+		if (oldpoint.x() == -1)
+		{
+			oldpoint.setX(0);
+		}
+		if (oldpoint.x() < currentCell.x())
+		{
+			m_minSelectedColumn = oldpoint.x();
+			m_maxSelectedColumn = currentCell.x();
+		}
+		else
+		{
+			m_minSelectedColumn = currentCell.x();
+			m_maxSelectedColumn = oldpoint.x();
+		}
+		if (oldpoint.y() == -1)
+		{
+			oldpoint.setY(m_rowCount-1);
+		}
+		if (oldpoint.y() < currentCell.y())
+		{
+
+			m_minSelectedRow = oldpoint.y();
+			m_maxSelectedRow = currentCell.y();
+		}
+		else
+		{
+			m_minSelectedRow = currentCell.y();
+			m_maxSelectedRow = oldpoint.y();
+		}
+	}
+	else
+	{
+		if (currentCell.x() == -1)
+		{
+			m_minSelectedColumn = -1;
+			m_maxSelectedColumn = -1;
+		}
+		else
+		{
+			m_minSelectedColumn = currentCell.x();
+			m_maxSelectedColumn = currentCell.x();
+		}
+		if (currentCell.y() == -1)
+		{
+			m_minSelectedRow = -1;
+			m_maxSelectedRow = -1;
+		}
+		else
+		{
+			m_minSelectedRow = currentCell.y();
+			m_maxSelectedRow = currentCell.y();
+		}
+
+	}
 	//if (currentCell)
 	/*if (m_highlightList.size() > m_y)
 	{
@@ -470,7 +549,19 @@ void TableViewNew3D::mousePressEvent(QMouseEvent *evt)
 
 	update();
 }
-
+QList<QPoint> TableViewNew3D::selectedItems()
+{
+	QList<QPoint> l;
+	for (int x=m_minSelectedColumn;x<=m_maxSelectedColumn;x++)
+	{
+		for (int y=m_minSelectedRow;y<=m_maxSelectedRow;y++)
+		{
+			l.append(QPoint(x,y));
+		}
+	}
+	//l.append(currentCell);
+	return l;
+}
 void TableViewNew3D::mouseReleaseEvent(QMouseEvent *evt)
 {
 	Q_UNUSED(evt)
@@ -512,7 +603,8 @@ void TableViewNew3D::keyPressEvent(QKeyEvent *evt)
 		if (m_inEdit)
 		{
 			m_inEdit = false;
-			emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+			//emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+			emit itemChangeRequest(m_minSelectedRow,m_maxSelectedRow,m_minSelectedColumn,m_maxSelectedColumn,m_editText);
 			m_editText = "";
 			update();
 		}
@@ -533,16 +625,54 @@ void TableViewNew3D::keyPressEvent(QKeyEvent *evt)
 			if (m_inEdit)
 			{
 				m_inEdit = false;
-				emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+				//emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+				emit itemChangeRequest(m_minSelectedRow,m_maxSelectedRow,m_minSelectedColumn,m_maxSelectedColumn,m_editText);
 				m_editText = "";
 			}
 			if (currentCell.y() == -1)
 			{
 				currentCell.setY(m_rowCount-1);
+				m_minSelectedRow = m_rowCount;
+				m_maxSelectedRow = m_rowCount-1;
 			}
 			else
 			{
 				currentCell.setY(currentCell.y()-1);
+			}
+			if (evt->modifiers() & Qt::ShiftModifier && currentCell.x() != -1)
+			{
+				//Shift modifier, let's decrease m_minSelectedRow
+				if (currentCell.y()+1 == m_minSelectedRow)
+				{
+					m_minSelectedRow--;
+				}
+				else
+				{
+					m_maxSelectedRow--;
+				}
+			}
+			else
+			{
+				if (currentCell.x() == -1)
+				{
+					m_minSelectedColumn = -1;
+					m_maxSelectedColumn = -1;
+				}
+				else
+				{
+					m_minSelectedColumn = currentCell.x();
+					m_maxSelectedColumn = currentCell.x();
+				}
+				if (currentCell.y() == -1)
+				{
+					m_minSelectedRow = -1;
+					m_maxSelectedRow = -1;
+				}
+				else
+				{
+					m_minSelectedRow = currentCell.y();
+					m_maxSelectedRow = currentCell.y();
+				}
 			}
 			m_selectionList.clear();
 			m_selectionList.append(QPair<int,int>(currentCell.x(),currentCell.y()));
@@ -558,7 +688,8 @@ void TableViewNew3D::keyPressEvent(QKeyEvent *evt)
 			if (m_inEdit)
 			{
 				m_inEdit = false;
-				emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+				//emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+				emit itemChangeRequest(m_minSelectedRow,m_maxSelectedRow,m_minSelectedColumn,m_maxSelectedColumn,m_editText);
 				m_editText = "";
 			}
 			if (currentCell.y() == m_rowCount-1)
@@ -574,6 +705,41 @@ void TableViewNew3D::keyPressEvent(QKeyEvent *evt)
 			{
 				currentCell.setY(currentCell.y()+1);
 			}
+			if (evt->modifiers() & Qt::ShiftModifier && currentCell.x() != -1 && currentCell.y() != -1)
+			{
+				//Shift modifier, let's decrease m_minSelectedRow
+				if (currentCell.y()-1 == m_maxSelectedRow)
+				{
+					m_maxSelectedRow++;
+				}
+				else
+				{
+					m_minSelectedRow++;
+				}
+			}
+			else
+			{
+				if (currentCell.x() == -1)
+				{
+					m_minSelectedColumn = -1;
+					m_maxSelectedColumn = -1;
+				}
+				else
+				{
+					m_minSelectedColumn = currentCell.x();
+					m_maxSelectedColumn = currentCell.x();
+				}
+				if (currentCell.y() == -1)
+				{
+					m_minSelectedRow = -1;
+					m_maxSelectedRow = -1;
+				}
+				else
+				{
+					m_minSelectedRow = currentCell.y();
+					m_maxSelectedRow = currentCell.y();
+				}
+			}
 			m_selectionList.clear();
 			m_selectionList.append(QPair<int,int>(currentCell.x(),currentCell.y()));
 			emit currentSelectionChanged(m_selectionList);
@@ -588,7 +754,8 @@ void TableViewNew3D::keyPressEvent(QKeyEvent *evt)
 			if (m_inEdit)
 			{
 				m_inEdit = false;
-				emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+//				emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+				emit itemChangeRequest(m_minSelectedRow,m_maxSelectedRow,m_minSelectedColumn,m_maxSelectedColumn,m_editText);
 				m_editText = "";
 			}
 			if (currentCell.x() == 0 && currentCell.y() == -1)
@@ -597,6 +764,45 @@ void TableViewNew3D::keyPressEvent(QKeyEvent *evt)
 				currentCell.setY(m_rowCount-1);
 			}
 			currentCell.setX(currentCell.x()-1);
+			if (evt->modifiers() & Qt::ShiftModifier && currentCell.x() != -1  && currentCell.y() != -1)
+			{
+				//Shift modifier, let's decrease m_minSelectedRow
+				if (currentCell.x()+1 == m_minSelectedColumn)
+				{
+					m_minSelectedColumn--;
+				}
+				else
+				{
+					m_maxSelectedColumn--;
+				}
+			}
+			else
+			{
+				if (currentCell.x() == -1)
+				{
+					m_minSelectedColumn = -1;
+					m_maxSelectedColumn = -1;
+				}
+				else
+				{
+					m_minSelectedColumn = currentCell.x();
+					m_maxSelectedColumn = currentCell.x();
+				}
+				if (currentCell.y() == -1)
+				{
+					m_minSelectedRow = -1;
+					m_maxSelectedRow = -1;
+				}
+				else
+				{
+					m_minSelectedRow = currentCell.y();
+					m_maxSelectedRow = currentCell.y();
+				}
+
+
+
+			}
+
 			m_selectionList.clear();
 			m_selectionList.append(QPair<int,int>(currentCell.x(),currentCell.y()));
 			emit currentSelectionChanged(m_selectionList);
@@ -611,10 +817,51 @@ void TableViewNew3D::keyPressEvent(QKeyEvent *evt)
 			if (m_inEdit)
 			{
 				m_inEdit = false;
-				emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+				//emit itemChangeRequest(currentCell.y(),currentCell.x(),m_editText);
+				emit itemChangeRequest(m_minSelectedRow,m_maxSelectedRow,m_minSelectedColumn,m_maxSelectedColumn,m_editText);
 				m_editText = "";
 			}
+			if (currentCell.x() == -1)
+			{
+				m_minSelectedColumn = 0;
+			}
 			currentCell.setX(currentCell.x()+1);
+			if (evt->modifiers() & Qt::ShiftModifier && currentCell.y() != -1)
+			{
+				//Shift modifier, let's decrease m_minSelectedRow
+				if (currentCell.x()-1 == m_maxSelectedColumn )
+				{
+					m_maxSelectedColumn++;
+				}
+				else
+				{
+					m_minSelectedColumn++;
+				}
+			}
+			else
+			{
+				if (currentCell.x() == -1)
+				{
+					m_minSelectedColumn = -1;
+					m_maxSelectedColumn = -1;
+				}
+				else
+				{
+					m_minSelectedColumn = currentCell.x();
+					m_maxSelectedColumn = currentCell.x();
+				}
+				if (currentCell.y() == -1)
+				{
+					m_minSelectedRow = -1;
+					m_maxSelectedRow = -1;
+				}
+				else
+				{
+					m_minSelectedRow = currentCell.y();
+					m_maxSelectedRow = currentCell.y();
+				}
+			}
+
 			m_selectionList.clear();
 			m_selectionList.append(QPair<int,int>(currentCell.x(),currentCell.y()));
 			emit currentSelectionChanged(m_selectionList);
@@ -643,4 +890,4 @@ void TableViewNew3D::keyPressEvent(QKeyEvent *evt)
 			}
 		}
 	}
-	}
+}

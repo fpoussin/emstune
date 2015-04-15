@@ -75,6 +75,7 @@ public slots:
 private slots:
 	void currentSelectionChanged(QList<QPair<int,int> > selectionList);
 	void itemChangeRequest(int row,int column,QString text);
+	void itemChangeRequest(int minrow,int maxrow, int mincolumn, int maxcolumn,QString text);
 	void tracingCheckBoxStateChanged(int newstate);
 	void tableCurrentCellChanged(int currentrow,int currentcolumn,int prevrow,int prevcolumn);
 	void saveClicked();
