@@ -114,10 +114,9 @@ public:
 	virtual Table2DData* get2DTableData(QString locationname)=0;
 	virtual Table3DData* get3DTableData(QString locationname)=0;
 	virtual RawData* getRawData(unsigned short locationid)=0;
-    virtual ConfigData* getConfigData(QString name) = 0;
-    virtual QList<QString> getConfigList()=0;
+	virtual ConfigData* getConfigData(QString name) = 0;
+	virtual QList<QString> getConfigList()=0;
 	//virtual void populateDataFields()=0;
-	virtual QByteArray generatePacket(QByteArray header,QByteArray payload)=0;
 	virtual int updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)=0;
 	virtual int updateBlockInFlash(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)=0;
 	virtual int retrieveBlockFromRam(unsigned short location, unsigned short offset, unsigned short size,bool mark=true)=0;

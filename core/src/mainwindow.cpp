@@ -334,6 +334,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 	statusBar()->addWidget(ui.ppsLabel);
 	statusBar()->addWidget(ui.statusLabel);
+	ui.statusLabel->setAccessibleName("Status Text");
+	ui.statusLabel->setAccessibleDescription("Status Text Label");
 
 
 	logfile = new QFile("myoutput.log");

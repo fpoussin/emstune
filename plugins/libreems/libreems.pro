@@ -104,7 +104,8 @@ HEADERS += datapacketdecoder.h \
     packetdecoder.h \
     packet.h \
     feconfigdata.h \
-    protocoldecoder.h
+    protocoldecoder.h \
+    protocolencoder.h
 
 SOURCES += fedatapacketdecoder.cpp \
            fetable2ddata.cpp \
@@ -119,4 +120,5 @@ SOURCES += fedatapacketdecoder.cpp \
     ferawdata.cpp \
     packetdecoder.cpp \
     feconfigdata.cpp \
-    protocoldecoder.cpp
+    protocoldecoder.cpp \
+    protocolencoder.cpp

@@ -39,6 +39,8 @@
 #include "ferawdata.h"
 #include "packet.h"
 #include "packetdecoder.h"
+#include "protocolencoder.h"
+#include "protocoldecoder.h"
 #include "feconfigdata.h"
 
 class FreeEmsComms : public EmsComms
@@ -88,7 +90,6 @@ public:
 	void loadLog(QString filename);
 	void playLog();
 	void startInterrogation();
-	QByteArray generatePacket(QByteArray header,QByteArray payload);
 	void setInterByteSendDelay(int milliseconds);
 	void setlogsDebugEnabled(bool enabled);
 	void verifyRamFromDevice(quint64 checksum);
@@ -133,6 +134,7 @@ private:
 		int sequencenumber;
 		void addArg(QVariant arg,int size=0) { args.append(arg); argsize.append(size);}
 	};
+	ProtocolEncoder m_protocolEncoder;
     bool m_firstPacketValid;
 	bool m_isSilent;
 	quint64 m_lastDatalogTime;
