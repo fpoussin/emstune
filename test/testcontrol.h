@@ -36,9 +36,24 @@ public:
 	void getFirmwareBuildDate();
 	void getMaxPacketSize();
 	void getOperatingSystem();
+	void getDatalogDescriptor();
+	void getLocationIdList();
+	void getLocationIdInfo(unsigned short locid);
+	void getBlockInRam(unsigned short locid,unsigned short offset,unsigned short size);
 private:
 	FreeEmsComms *m_comms;
+	QList<QString> jsonList;
+	int m_datalogDescriptorCount;
+	QString datalogDescriptor;
+	QList<unsigned short> m_locationIdList;
+	unsigned short m_locationIdInfoReq;
+	unsigned short m_locationIdOffset;
+	unsigned short m_locationIdSize;
 private slots:
+	void sendBlockInRam();
+	void sendLocationIdInfo();
+	void sendLocationIdList();
+	void sendDatalogDescriptor();
 	void sendOperatingSystem();
 	void sendMaxPacketSize();
 	void sendFirmwareBuildDate();

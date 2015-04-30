@@ -55,6 +55,22 @@ QByteArray ProtocolEncoder::encodePacket(unsigned short payloadid,QList<QVariant
 	{
 		m_testControl->getOperatingSystem();
 	}
+	else if (payloadid == GET_DATALOG_DESCRIPTOR)
+	{
+		m_testControl->getDatalogDescriptor();
+	}
+	else if (payloadid == GET_LOCATION_ID_LIST)
+	{
+		m_testControl->getLocationIdList();
+	}
+	else if (payloadid == GET_LOCATION_ID_INFO)
+	{
+		m_testControl->getLocationIdInfo(arglist.at(0).toInt());
+	}
+	else if (payloadid == RETRIEVE_BLOCK_IN_RAM)
+	{
+		m_testControl->getBlockInRam(arglist.at(0).toInt(),arglist.at(1).toInt(),arglist.at(2).toInt());
+	}
 	return QByteArray().append((char)0x00).append((char)0x01);
 	if (arglist.size() != argsizelist.size())
 	{
