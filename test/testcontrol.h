@@ -23,6 +23,7 @@
 #include <QString>
 #include <QObject>
 #include "../plugins/libreems/freeemscomms.h"
+
 class TestControl : public QObject
 {
 	Q_OBJECT
@@ -49,7 +50,11 @@ private:
 	unsigned short m_locationIdInfoReq;
 	unsigned short m_locationIdOffset;
 	unsigned short m_locationIdSize;
+	QList<QPair<QString,bool> > m_testResults;
+
 private slots:
+	void reportResults();
+	void TEST_interrogationComplete();
 	void sendBlockInRam();
 	void sendLocationIdInfo();
 	void sendLocationIdList();
