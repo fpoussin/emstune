@@ -46,15 +46,20 @@ private:
 	QList<QString> jsonList;
 	int m_datalogDescriptorCount;
 	QString datalogDescriptor;
-	QList<unsigned short> m_locationIdList;
+	QList<unsigned short> m_2dlocationIdList;
+	QList<unsigned short> m_3dlocationIdList;
 	unsigned short m_locationIdInfoReq;
 	unsigned short m_locationIdOffset;
 	unsigned short m_locationIdSize;
 	QList<QPair<QString,bool> > m_testResults;
+	QList<QString> m_testList;
+	void nextTest();
 
 private slots:
 	void reportResults();
 	void TEST_interrogationComplete();
+	void TEST_table3ddata_setData();
+	void TEST_table2ddata_setData();
 	void sendBlockInRam();
 	void sendLocationIdInfo();
 	void sendLocationIdList();

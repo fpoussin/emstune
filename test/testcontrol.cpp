@@ -51,13 +51,23 @@ TestControl::TestControl()
 	datalogDescriptor = json;
 	m_datalogDescriptorCount = 4;
 
-	m_locationIdList.append(0x0001);
-	m_locationIdList.append(0x0002);
-	m_locationIdList.append(0x0003);
-	m_locationIdList.append(0x0005);
+
+	m_3dlocationIdList.append(0x000);
+	m_3dlocationIdList.append(0x001);
+	m_3dlocationIdList.append(0x002);
+	m_3dlocationIdList.append(0x005);
+
+	m_2dlocationIdList.append(0x003);
+	m_2dlocationIdList.append(0x004);
+	m_2dlocationIdList.append(0x006);
 }
 void TestControl::start()
 {
+
+	m_testList.append(QString(SLOT(TEST_table3ddata_setData())));
+	m_testList.append(QString(SLOT(TEST_table2ddata_setData())));
+	m_testList.append(QString(SLOT(reportResults())));
+
 	m_comms = new FreeEmsComms();
 	connect(m_comms,SIGNAL(connected()),this,SLOT(connected()),Qt::QueuedConnection);
 	m_comms->passLogger(&QsLogging::Logger::instance());
@@ -155,7 +165,17 @@ void TestControl::getLocationIdList()
 
 void TestControl::sendLocationIdList()
 {
-	m_packetDecoder->locationIdList(m_locationIdList);
+	QList<unsigned short> combinedlist;
+	for (int i=0;i<m_2dlocationIdList.size();i++)
+	{
+		combinedlist.append(m_2dlocationIdList.at(i));
+	}
+	for (int i=0;i<m_3dlocationIdList.size();i++)
+	{
+		combinedlist.append(m_3dlocationIdList.at(i));
+	}
+
+	m_packetDecoder->locationIdList(combinedlist);
 	m_packetDecoder->packetAcked(GET_LOCATION_ID_LIST+1,QByteArray().append((char)0x01).append((char)0x00),QByteArray().append((char)0x01).append((char)0x00));
 }
 void TestControl::getLocationIdInfo(unsigned short locid)
@@ -173,7 +193,18 @@ void TestControl::sendLocationIdInfo()
 	info.isRam = true;
 	info.isFlash = false;
 	info.size = 1024;
-	info.type = DATA_TABLE_3D;
+	if (m_2dlocationIdList.contains(m_locationIdInfoReq))
+	{
+		info.type = DATA_TABLE_3D;
+	}
+	else if (m_3dlocationIdList.contains(m_locationIdInfoReq))
+	{
+		info.type = DATA_TABLE_3D;
+	}
+	else
+	{
+		info.type == DATA_UNDEFINED;
+	}
 	m_packetDecoder->locationIdInfo(info);
 	m_packetDecoder->packetAcked(GET_LOCATION_ID_INFO+1,QByteArray().append((char)0x01).append((char)0x00),QByteArray().append((char)0x01).append((char)0x00));
 }
@@ -243,9 +274,26 @@ void TestControl::firmwareTimerTick()
 void TestControl::TEST_interrogationComplete()
 {
 	//Verify data is as expected
-	for (int i=0;i<m_locationIdList.size();i++)
+	//Testing
+	nextTest();
+
+}
+void TestControl::nextTest()
+{
+	if (m_testList.size() > 0)
 	{
-		Table3DData *data = m_comms->get3DTableData(m_locationIdList.at(i));
+		QTimer::singleShot(250,this,m_testList.at(0).toStdString().c_str());
+		m_testList.removeAt(0);
+	}
+}
+
+void TestControl::TEST_table3ddata_setData()
+{
+	//void FETable3DData::setData(unsigned short locationid,bool isflashonly, QByteArray data)
+	//Test for every 3D table location
+	for (int i=0;i<m_3dlocationIdList.size();i++)
+	{
+		Table3DData *data = m_comms->get3DTableData(m_3dlocationIdList.at(i));
 		QList<double> xaxis = data->xAxis();
 		int endvalue = 0;
 		bool failed = false;
@@ -258,7 +306,6 @@ void TestControl::TEST_interrogationComplete()
 				break;
 			}
 			endvalue += 100;
-
 		}
 		m_testResults.append(QPair<QString,bool>("3D Tables:X Axis Encoding",failed));
 
@@ -276,8 +323,13 @@ void TestControl::TEST_interrogationComplete()
 		}
 		m_testResults.append(QPair<QString,bool>("3D Tables:Y Axis Encoding",failed));
 	}
-	QTimer::singleShot(500,this,SLOT(reportResults()));
+	nextTest();
 }
+void TestControl::TEST_table2ddata_setData()
+{
+
+}
+
 void TestControl::reportResults()
 {
 	QLOG_DEBUG() << "TEST\t\t\tRESULT";
