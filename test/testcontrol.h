@@ -54,8 +54,11 @@ private:
 	QList<QPair<QString,bool> > m_testResults;
 	QList<QString> m_testList;
 	void nextTest();
-
+	void succeedTest(QString testname);
+	void failTest(QString testname);
+	QMap<QString,QString> m_interrogationDataMap;
 private slots:
+	void interrogationData(QMap<QString,QString> datamap);
 	void reportResults();
 	void TEST_interrogationComplete();
 	void TEST_table3ddata_setData();
@@ -73,6 +76,7 @@ private slots:
 	void sendCompilerVersion();
 	void start();
 	void connected();
+	void TEST_interrogationData();
 };
 
 #endif // TESTCONTROL_H
