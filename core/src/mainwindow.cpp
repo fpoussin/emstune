@@ -71,7 +71,15 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	QString appDataDir = getenv("%AppData%");
 	if (appDataDir == "")
 	{
-		appDataDir = getenv("%UserProfile%");
+		appDataDir = getenv("AppData");
+		if (appDataDir == "")
+		{
+			appDataDir = getenv("%UserProfile%");
+			if (appDataDir == "")
+			{
+				appDataDir = getenv("UserProfile");
+			}
+		}
 	}
 	appDataDir = appDataDir.replace("\\","/");
 	if (!QDir(appDataDir).exists("EMStudio"))
@@ -82,7 +90,12 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 	m_settingsDir = appDataDir + "/" + "EMStudio";
 	//%HOMEPATH%//m_localHomeDir
-	m_localHomeDir = QString(getenv("%USERPROFILE%")).replace("\\","/") + "/EMStudio";
+	m_localHomeDir = QString(getenv("%USERPROFILE%")).replace("\\","/");
+	if (m_localHomeDir == "")
+	{
+		m_localHomeDir = QString(getenv("USERPROFILE")).replace("\\","/");
+	}
+	m_localHomeDir += "/EMStudio";
 	//m_settingsFile = appDataDir + "/" + "EMStudio/EMStudio-config.ini";
 //#elif Q_OS_MAC //<- Does not exist. Need OSX checking capabilities somewhere...
 	//Linux and Mac function identically here for now...

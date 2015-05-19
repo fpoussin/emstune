@@ -458,6 +458,7 @@ void FreeEmsComms::connectSerial(QString port,int baud)
 	serialPort = new SerialPort(this);
 	//connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
 	connect(serialPort,SIGNAL(bytesReady(QByteArray)),m_protocolDecoder,SLOT(parseBuffer(QByteArray)),Qt::QueuedConnection);
+	connect(serialPort,SIGNAL(bytesReady(QByteArray)),this,SLOT(dataLogRead(QByteArray)));
 	if (!serialPort->connectToPort(port))
 	{
 		emit error("Error connecting");
@@ -499,11 +500,7 @@ void FreeEmsComms::setLogsEnabled(bool enabled)
 	}
 	else if (!m_logsEnabled && enabled)
 	{
-		if (m_isConnected)
-		{
-			//If we're connected, open logs. Otherwise, don't as they will be open next time we connect.
-			openLogs();
-		}
+		openLogs();
 	}
 	m_logsEnabled = enabled;
 }
