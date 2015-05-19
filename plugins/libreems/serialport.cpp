@@ -47,10 +47,10 @@ bool SerialPort::connectToPort(QString portname)
 {
 	m_serialPort = new QSerialPort();
 	connect(m_serialPort,SIGNAL(readyRead()),this,SLOT(portReadyRead()));
-	m_serialPort->setReadBufferSize(10);
 	m_serialPort->setPortName(portname);
 	if (!m_serialPort->open(QIODevice::ReadWrite))
 	{
+		qDebug() << "Error opening port:" << m_serialPort->errorString();
 		return false;
 	}
 	m_serialPort->setBaudRate(115200);
