@@ -68,6 +68,10 @@ void TestControl::start()
 	m_testList.append(QString(SLOT(TEST_table3ddata_setData())));
 	m_testList.append(QString(SLOT(TEST_table2ddata_setData())));
 	m_testList.append(QString(SLOT(TEST_interrogationData())));
+	m_testList.append(QString(SLOT(TEST_table2dData_ramWrite())));
+	m_testList.append(QString(SLOT(TEST_table2dData_flashWrite())));
+	m_testList.append(QString(SLOT(TEST_table3dData_ramWrite())));
+	m_testList.append(QString(SLOT(TEST_table3dData_flashWrite())));
 	m_testList.append(QString(SLOT(reportResults())));
 
 	m_comms = new FreeEmsComms();
@@ -483,4 +487,30 @@ void TestControl::reportResults()
 void TestControl::interrogationData(QMap<QString,QString> datamap)
 {
 	m_interrogationDataMap = datamap;
+}
+void TestControl::TEST_table3dData_ramWrite()
+{
+
+}
+
+void TestControl::TEST_table3dData_flashWrite()
+{
+
+}
+
+void TestControl::TEST_table2dData_flashWrite()
+{
+
+}
+
+void TestControl::TEST_table2dData_ramWrite()
+{
+	Table2DData *data = m_comms->get2DTableData(m_2dlocationIdList.at(0));
+	//Change some data values
+	data->setCell(0,0,0);
+	//Verify the data
+	//Change some axis values
+	//Verify the data
+	//Verify flash has not changed
+	//Verify it reads as ram dirty
 }

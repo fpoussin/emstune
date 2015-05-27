@@ -63,6 +63,11 @@ private slots:
 	void TEST_interrogationComplete();
 	void TEST_table3ddata_setData();
 	void TEST_table2ddata_setData();
+	void TEST_interrogationData();
+	void TEST_table2dData_ramWrite();
+	void TEST_table3dData_ramWrite();
+	void TEST_table3dData_flashWrite();
+	void TEST_table2dData_flashWrite();
 	void sendBlockInRam();
 	void sendLocationIdInfo();
 	void sendLocationIdList();
@@ -76,7 +81,6 @@ private slots:
 	void sendCompilerVersion();
 	void start();
 	void connected();
-	void TEST_interrogationData();
 };
 
 #endif // TESTCONTROL_H
