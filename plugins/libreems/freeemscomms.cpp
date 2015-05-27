@@ -54,7 +54,7 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	connect(dataPacketDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SIGNAL(dataLogPayloadDecoded(QVariantMap)));
 	connect(dataPacketDecoder,SIGNAL(resetDetected(int)),this,SIGNAL(resetDetected(int)));
 	m_metaDataParser = new FEMemoryMetaData();
-	m_metaDataParser->loadMetaDataFromFile("freeems.config.json");
+	m_metaDataParser->loadMetaDataFromFile("libreems.config.json");
 
 
 	m_packetDecoder = new PacketDecoder();

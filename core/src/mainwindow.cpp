@@ -133,7 +133,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	}
 	else
 	{
-		//QMessageBox::information(0,"Error","Error: No freeems.config.json file found!");
+		//QMessageBox::information(0,"Error","Error: No libreems.config.json file found!");
 	}
 	if (QFile::exists(decoderfilestr))
 	{
