@@ -78,7 +78,7 @@ win32-x-g++ { #Linux based crossplatform 32bit build
 	wizards.files += wizards/DecoderOffset.qml
 	wizards.files += wizards/wizard.qml
 	config.path = $$PREFIX/share/emstudio/definitions
-	config.files += freeems.config.json
+	config.files += libreems.config.json
 	INSTALLS += target config dashboard wizards warninglabel
         LIBS += -lqjson -lGL -lGLU -lglut
         DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
