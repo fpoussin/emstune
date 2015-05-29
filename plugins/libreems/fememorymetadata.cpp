@@ -198,18 +198,17 @@ bool FEMemoryMetaData::parseMetaData(QString json)
 			meta.size = size;
 			meta.valid = true;
 			meta.xHighlight = xhighlight;
-            for (int i=0;i<m_table2DMetaData.size();i++)
-            {
-                if (m_table2DMetaData[i].locationId == meta.locationId)
-                {
-                    //Error, already exists;
-		    //QLOG_FATAL() << "Error: Location ID 0x" + QString::number(meta.locationId,16).toUpper() + " is defined twice in the metadata file";
-                    return false;
-                }
-            }
+			for (int i=0;i<m_table2DMetaData.size();i++)
+			{
+				if (m_table2DMetaData[i].locationId == meta.locationId)
+				{
+					//Error, already exists;
+					//QLOG_FATAL() << "Error: Location ID 0x" + QString::number(meta.locationId,16).toUpper() + " is defined twice in the metadata file";
+					return false;
+				}
+			}
 			m_table2DMetaData.append(meta);
 		}
-		i++;
 	}
 	return true;
 }
