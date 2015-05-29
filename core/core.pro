@@ -27,8 +27,6 @@ include(QsLog/QsLog.pri)
 win32-x-g++ { #Linux based crossplatform 32bit build
         message("Building for win32-x-g++")
 	DEFINES += WindowsBuild
-        INCLUDEPATH += /home/michael/QtWin32/libs/qjson/include
-        LIBS += -L/home/michael/QtWin32/libs/qjson/lib -lqjson
 	LIBS += -L/home/michael/QtWin32/lib
         DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
@@ -37,8 +35,6 @@ win32-x-g++ { #Linux based crossplatform 32bit build
 } else:win64-x-g++ { #Linux based crossplatform 64bit build
 	message("Building for win64-x-g++")
 	DEFINES += WindowsBuild
-        INCLUDEPATH += /home/michael/QtWin64/libs/qjson/include
-        LIBS += -L/home/michael/QtWin64/libs/qjson/lib -lqjson
         LIBS += -L/home/michael/QtWin64/lib
         DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
@@ -78,7 +74,7 @@ win32-x-g++ { #Linux based crossplatform 32bit build
 	config.path = $$PREFIX/share/emstudio/definitions
 	config.files += libreems.config.json
 	INSTALLS += target config dashboard wizards warninglabel
-        LIBS += -lqjson -lGL -lGLU -lglut
+	LIBS += -lGL -lGLU -lglut
         DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
         DEFINES += GIT_DATE=\""$$system(date)"\"
