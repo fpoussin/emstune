@@ -90,6 +90,7 @@ public:
 
 	void connectToEms();
 private:
+	void closeEvent(QCloseEvent *evt);
 	void loadWizards(QString dir);
 	void loadDashboards(QString dir);
 	QList<GaugeView*> m_dashboardList;

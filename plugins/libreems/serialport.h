@@ -60,8 +60,9 @@ public:
     int bufferSize() { return m_queuedMessages.size(); }
     void setInterByteSendDelay(int milliseconds);
     QString portName() { return m_portName; }
-    bool connectToPort(QString portname);
     ProtocolDecoder *m_protocolDecoder;
+public slots:
+    void connectToPort(QString portname);
 private:
     QSerialPort *m_serialPort;
     QByteArray m_privBuffer;
@@ -87,6 +88,8 @@ signals:
     void parseBuffer(QByteArray buffer);
     void dataWritten(QByteArray data);
     void bytesReady(QByteArray buffer);
+    void connected();
+    void unableToConnect(QString error);
 };
 
 #endif // SERIALPORT_H

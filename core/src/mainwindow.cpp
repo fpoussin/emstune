@@ -1485,10 +1485,14 @@ void MainWindow::interrogationComplete()
 	QLOG_INFO() << "Interrogation complete";
 	if (m_interrogationFailureCount > 0)
 	{
-		if (QMessageBox::question(this,"Error","One of the commands has failed during interrogation. This could be a sign of a more serious problem, Do you wish to continue?",QMessageBox::Yes,QMessageBox::No) != QMessageBox::Yes)
+		if (QMessageBox::question(0,"Error","One of the commands has failed during interrogation. This could be a sign of a more serious problem, Do you wish to continue?",QMessageBox::Yes,QMessageBox::No) != QMessageBox::Yes)
 		{
 			emsComms->disconnectSerial();
 			return;
+		}
+		else
+		{
+			emsMdiWindow->show();
 		}
 	}
 	else
@@ -1524,6 +1528,7 @@ void MainWindow::interrogationComplete()
 			else if (type == "tablesMdiWindow")
 			{
 				tablesMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
+				qDebug() << "Geom:" << tablesMdiWindow->geometry();
 				bool hidden = windowsettings.value("hidden",true).toBool();
 				if (!hidden)
 				{
@@ -2052,6 +2057,62 @@ void MainWindow::subMdiWindowActivated(QMdiSubWindow* window)
 
 MainWindow::~MainWindow()
 {
+
+
+
+
+	//Remove all WizardView windows
+	for (int i=0;i<m_wizardList.size();i++)
+	{
+		m_wizardList[i]->close();
+		delete m_wizardList[i];
+	}
+	m_wizardList.clear();
+
+	emsComms->stop();
+	//emsComms->wait(1000);
+	delete emsComms;
+}
+void MainWindow::emsMemoryDirty()
+{
+
+}
+
+void MainWindow::emsMemoryClean()
+{
+
+}
+void MainWindow::datalogDescriptor(QString data)
+{
+	Q_UNUSED(data)
+}
+void MainWindow::ramLocationDirty(unsigned short locationid)
+{
+	if (!ramDiffWindow)
+	{
+		ramDiffWindow = new RamDiffWindow();
+		connect(ramDiffWindow,SIGNAL(acceptLocalChanges()),this,SLOT(dirtyRamAcceptLocalChanges()));
+		connect(ramDiffWindow,SIGNAL(rejectLocalChanges()),this,SLOT(dirtyRamRejectLocalChanges()));
+		ramDiffWindow->show();
+	}
+	ramDiffWindow->setDirtyLocation(locationid);
+	//QMessageBox::information(0,"Error","Ram location dirty 0x" + QString::number(locationid,16));
+}
+void MainWindow::dirtyRamAcceptLocalChanges()
+{
+	emsComms->acceptLocalChanges();
+}
+void MainWindow::dirtyRamRejectLocalChanges()
+{
+	emsComms->rejectLocalChanges();
+}
+
+void MainWindow::flashLocationDirty(unsigned short locationid)
+{
+	QMessageBox::information(0,"Error","Flash location dirty 0x" + QString::number(locationid,16));
+}
+void MainWindow::closeEvent(QCloseEvent *evt)
+{
 	//Save the window state.
 	/*	QMap<unsigned short,QWidget*> m_rawDataView;
 	QMap<unsigned short,ConfigView*> m_configDataView;
@@ -2212,61 +2273,10 @@ MainWindow::~MainWindow()
 	windowsettings.setValue("isMaximized",this->isMaximized());
 	windowsettings.endGroup();
 	windowsettings.sync();
-
 	if (emsComms)
 	{
 		QString compat = emsComms->getPluginCompat();
 		windowsettings.setValue("plugincompat",compat);
 		windowsettings.sync();
 	}
-
-	//Remove all WizardView windows
-	for (int i=0;i<m_wizardList.size();i++)
-	{
-		m_wizardList[i]->close();
-		delete m_wizardList[i];
-	}
-	m_wizardList.clear();
-
-	emsComms->stop();
-	//emsComms->wait(1000);
-	delete emsComms;
-}
-void MainWindow::emsMemoryDirty()
-{
-
-}
-
-void MainWindow::emsMemoryClean()
-{
-
-}
-void MainWindow::datalogDescriptor(QString data)
-{
-	Q_UNUSED(data)
-}
-void MainWindow::ramLocationDirty(unsigned short locationid)
-{
-	if (!ramDiffWindow)
-	{
-		ramDiffWindow = new RamDiffWindow();
-		connect(ramDiffWindow,SIGNAL(acceptLocalChanges()),this,SLOT(dirtyRamAcceptLocalChanges()));
-		connect(ramDiffWindow,SIGNAL(rejectLocalChanges()),this,SLOT(dirtyRamRejectLocalChanges()));
-		ramDiffWindow->show();
-	}
-	ramDiffWindow->setDirtyLocation(locationid);
-	//QMessageBox::information(0,"Error","Ram location dirty 0x" + QString::number(locationid,16));
-}
-void MainWindow::dirtyRamAcceptLocalChanges()
-{
-	emsComms->acceptLocalChanges();
-}
-void MainWindow::dirtyRamRejectLocalChanges()
-{
-	emsComms->rejectLocalChanges();
-}
-
-void MainWindow::flashLocationDirty(unsigned short locationid)
-{
-	QMessageBox::information(0,"Error","Flash location dirty 0x" + QString::number(locationid,16));
 }

@@ -43,7 +43,7 @@ void SerialPort::setBaud(int baudrate)
 {
 	m_baud = baudrate;
 }
-bool SerialPort::connectToPort(QString portname)
+void SerialPort::connectToPort(QString portname)
 {
 	m_serialPort = new QSerialPort();
 	connect(m_serialPort,SIGNAL(readyRead()),this,SLOT(portReadyRead()));
@@ -51,14 +51,15 @@ bool SerialPort::connectToPort(QString portname)
 	if (!m_serialPort->open(QIODevice::ReadWrite))
 	{
 		qDebug() << "Error opening port:" << m_serialPort->errorString();
-		return false;
+		emit unableToConnect(m_serialPort->errorString());
+		return;
 	}
 	m_serialPort->setBaudRate(115200);
 	m_serialPort->setParity(QSerialPort::OddParity);
 	m_serialPort->setStopBits(QSerialPort::OneStop);
 	m_serialPort->setDataBits(QSerialPort::Data8);
 	m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
-	return true;
+	emit connected();
 }
 
 SerialPortStatus SerialPort::isSerialMonitor(QString portname)

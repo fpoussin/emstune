@@ -455,20 +455,27 @@ int FreeEmsComms::getDatalogDescriptor()
 }
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
-	serialPort = new SerialPort(this);
+	serialPort = new SerialPort();
+	QThread *secondary = new QThread(this);
+	serialPort->moveToThread(secondary);
+	secondary->start();
+
 	//connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
 	connect(serialPort,SIGNAL(bytesReady(QByteArray)),m_protocolDecoder,SLOT(parseBuffer(QByteArray)),Qt::QueuedConnection);
 	connect(serialPort,SIGNAL(bytesReady(QByteArray)),this,SLOT(dataLogRead(QByteArray)));
-	if (!serialPort->connectToPort(port))
-	{
-		emit error("Error connecting");
-		return;
-	}
-	//emit connected();
-	//Before we finish emitting the fact that we are connected, let's verify this is a freeems system we are talking to.
+	connect(serialPort,SIGNAL(connected()),this,SLOT(serialPortConnected()));
+	connect(serialPort,SIGNAL(unableToConnect(QString)),this,SLOT(serialPortUnableToConnect(QString)));
+	QMetaObject::invokeMethod(serialPort,"connectToPort",Q_ARG(QString,port));
+}
+void FreeEmsComms::serialPortConnected()
+{
 	m_state = 1; //1 is connected, waiting for firmware_version packet
 	sendPacket(GET_FIRMWARE_VERSION);
 	return;
+}
+void FreeEmsComms::serialPortUnableToConnect(QString errorstr)
+{
+	emit error(QString("Error connecting to port: ") + errorstr);
 }
 
 void FreeEmsComms::loadLog(QString filename)
