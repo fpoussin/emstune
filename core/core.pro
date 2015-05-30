@@ -53,12 +53,12 @@ win32-x-g++ { #Linux based crossplatform 32bit build
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
         DEFINES += GIT_DATE=\""$$system(date)"\"
 } else:unix {
-	message("Building for *nix");
+	message("Building for *nix")
 	isEmpty($$PREFIX) {
 		PREFIX = /usr/local
-		message("EMSTune using default install prefix " $$PREFIX);
+		message("EMSTune using default install prefix " $$PREFIX)
 	} else {
-		message("EMSTune using custom install prefix " $$PREFIX);
+		message("EMSTune using custom install prefix " $$PREFIX)
 	}
 	DEFINES += INSTALL_PREFIX=$$PREFIX
 	#QMAKE_CXXFLAGS += -Werror

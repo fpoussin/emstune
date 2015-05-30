@@ -53,12 +53,12 @@ win32-x-g++ { #Linux based crossplatform 32bit build
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
         DEFINES += GIT_DATE=\""$$system(date)"\"
 } else:unix {
-	message("Building libreems for *nix");
+	message("Building libreems for *nix")
 	isEmpty($$PREFIX) {
 		PREFIX = /usr/local
-		message("LibreEMS Plugin using default install prefix " $$PREFIX);
+		message("LibreEMS Plugin using default install prefix " $$PREFIX)
 	} else {
-		message("LibreEMS Plugin using custom install prefix " $$PREFIX);
+		message("LibreEMS Plugin using custom install prefix " $$PREFIX)
 	}
 	DEFINES += INSTALL_PREFIX=$$PREFIX
         TARGET = ../../core/plugins/libreemsplugin
