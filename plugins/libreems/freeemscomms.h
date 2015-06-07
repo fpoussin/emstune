@@ -29,7 +29,6 @@
 #include <QDateTime>
 #include <QTimer>
 #include "serialport.h"
-#include "serialrxthread.h"
 #include "emscomms.h"
 #include "fedatapacketdecoder.h"
 #include "fememorymetadata.h"
@@ -149,7 +148,6 @@ private:
 	QMap<LocationIdFlags,QString> m_blockFlagToNameMap;
 	bool m_terminateLoop;
 	QMutex m_waitingInfoMutex;
-	SerialRXThread *rxThread;
 	bool sendPacket(RequestClass request);
 	qint64 m_timeoutMsecs;
 	QList<LocationIdFlags> m_blockFlagList;

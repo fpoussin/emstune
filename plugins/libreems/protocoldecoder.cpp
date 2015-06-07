@@ -1,6 +1,15 @@
 #include "protocoldecoder.h"
 #include <QDebug>
 #include "QsLog.h"
+
+#define START_BYTE static_cast<unsigned char>(0xAA)
+#define ESCAPE_BYTE static_cast<unsigned char>(0xBB)
+#define STOP_BYTE static_cast<unsigned char>(0xCC)
+
+#define ESCAPE_START static_cast<unsigned char>(0x55)
+#define ESCAPE_ESCAPE static_cast<unsigned char>(0x44)
+#define ESCAPE_STOP static_cast<unsigned char>(0x33)
+
 ProtocolDecoder::ProtocolDecoder(QObject *parent) :
 	QObject(parent)
 {
@@ -11,7 +20,7 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 {
 	for (int i=0;i<buffer.size();i++)
 	{
-		if (((unsigned char)buffer.at(i)) == static_cast<unsigned char>(0xAA))
+		if (static_cast<unsigned char>(buffer.at(i)) == START_BYTE)
 		{
 			if (m_isInPacket)
 			{
@@ -22,7 +31,7 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 			m_isInEscape = false;
 			m_currMsg.clear();
 		}
-		else if (static_cast<unsigned char>(buffer.at(i)) == static_cast<unsigned char>(0xCC))
+		else if (static_cast<unsigned char>(buffer.at(i)) == STOP_BYTE)
 		{
 			if (!m_isInPacket)
 			{
@@ -31,18 +40,8 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 				continue;
 			}
 			m_isInPacket = false;
-			//m_currMsg; //Current packet.
 			QByteArray toemit = m_currMsg;
 			toemit.detach();
-			if (!toemit.startsWith(QByteArray().append(0x01).append(0x01).append(0x91)))
-			{
-				QLOG_DEBUG() << "protocol decoder incoming packet";
-			}
-			else
-			{
-				//QLOG_DEBUG() << "protocol decoder DATALOG PACKET";
-			}
-			//QLOG_DEBUG() << "MSG:" << toemit.toHex();
 			emit newPacket(toemit);
 			m_currMsg.clear();
 		}
@@ -50,17 +49,17 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 		{
 			if (m_isInEscape)
 			{
-				if (static_cast<unsigned char>(buffer.at(i)) == 0x55)
+				if (static_cast<unsigned char>(buffer.at(i)) == ESCAPE_START)
 				{
-					m_currMsg.append(0xAA);
+					m_currMsg.append(START_BYTE);
 				}
-				else if (static_cast<unsigned char>(buffer.at(i)) == 0x44)
+				else if (static_cast<unsigned char>(buffer.at(i)) == ESCAPE_ESCAPE)
 				{
-					m_currMsg.append(0xBB);
+					m_currMsg.append(ESCAPE_BYTE);
 				}
-				else if (static_cast<unsigned char>(buffer.at(i)) == 0x33)
+				else if (static_cast<unsigned char>(buffer.at(i)) == ESCAPE_STOP)
 				{
-					m_currMsg.append(0xCC);
+					m_currMsg.append(STOP_BYTE);
 				}
 				else
 				{
@@ -69,7 +68,7 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 				}
 				m_isInEscape = false;
 			}
-			else if (static_cast<unsigned char>(buffer.at(i)) == 0xBB)
+			else if (static_cast<unsigned char>(buffer.at(i)) == ESCAPE_BYTE)
 			{
 				m_isInEscape = true;
 			}
@@ -80,8 +79,8 @@ void ProtocolDecoder::parseBuffer(QByteArray buffer)
 		}
 		else
 		{
-			QLOG_DEBUG() << "Out of packet bytes" << QString::number(buffer.at(i),16);
 			//Out of packet bytes.
+			QLOG_DEBUG() << "Out of packet bytes" << QString::number(buffer.at(i),16);
 		}
 	}
 }

@@ -69,7 +69,6 @@ HEADERS += datapacketdecoder.h \
 	fetable3ddata.h \
 	freeemscomms.h \
 	serialport.h \
-	serialrxthread.h \
 	fememorymetadata.h \
 	datafield.h \
 	memorylocation.h \
@@ -87,7 +86,6 @@ SOURCES += fedatapacketdecoder.cpp \
 	fetable3ddata.cpp \
 	freeemscomms.cpp \
 	serialport.cpp \
-	serialrxthread.cpp \
 	fememorymetadata.cpp \
 	datafield.cpp \
 	memorylocation.cpp \

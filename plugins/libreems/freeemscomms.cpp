@@ -38,7 +38,6 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	qRegisterMetaType<SerialPortStatus>("SerialPortStatus");
 	qRegisterMetaType<ConfigBlock>("ConfigBlock");
 	qRegisterMetaType<QMap<QString,QString> >("QMap<QString,QString>");
-	rxThread = 0;
 	m_state = 0; //0 is not connected.
 	m_lastMessageSentTime = 0;
 	m_firstPacketValid = false;
