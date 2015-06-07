@@ -25,7 +25,9 @@
 #include <tablewidgetdelegate.h>
 #include <QPair>
 #include "QsLog.h"
-
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QJsonValue>
 //#include "freeems/fetable2ddata.h"
 TableView2D::TableView2D(QWidget *parent)
 {
@@ -495,15 +497,16 @@ void TableView2D::writeTable(bool ram)
 void TableView2D::exportJson(QString filename)
 {
 	//Create a JSON file similar to MTX's yaml format.
-	QVariantMap topmap;
-	QVariantMap x;
-	QVariantMap y;
-	QVariantMap z;
-	QVariantList xlist;
-	QVariantList ylist;
-	QVariantList zlist;
 
-	topmap["2DTable"] = "";
+	QJsonObject topmap;
+	QJsonObject x;
+	QJsonObject y;
+	QJsonObject z;
+	QJsonArray xlist;
+	QJsonArray ylist;
+	QJsonArray zlist;
+
+	topmap["2DTable"] = QString("");
 	topmap["title"] = m_metaData.tableTitle;
 	topmap["description"] = m_metaData.tableTitle;
 	x["unit"] = m_metaData.xAxisTitle;
@@ -524,18 +527,15 @@ void TableView2D::exportJson(QString filename)
 	topmap["X"] = x;
 	topmap["Y"] = y;
 
-/*	QJson::Serializer serializer;
-	QByteArray serialized = serializer.serialize(topmap);
-
-	//TODO: Open a message box and allow the user to select where they want to save the file.
+	QJsonDocument doc = QJsonDocument::fromVariant(topmap);
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadWrite | QIODevice::Truncate))
 	{
-		QLOG_DEBUG() << "Unable to open file to output JSON!";
+		QLOG_ERROR() << "Unable to open file to output JSON!";
 		return;
 	}
-	file.write(serialized);
-	file.close();*/
+	file.write(doc.toJson());
+	file.close();
 }
 
 void TableView2D::exportClicked()
@@ -559,10 +559,6 @@ void TableView2D::importClicked()
 		return;
 	}
 	//Create a JSON file similar to MTX's yaml format.
-
-	//QByteArray serialized = serializer.serialize(topmap);
-
-	//TODO: Open a message box and allow the user to select where they want to save the file.
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadOnly))
 	{
@@ -572,24 +568,25 @@ void TableView2D::importClicked()
 	}
 	QByteArray toparsebytes = file.readAll();
 	file.close();
-/*	QJson::Parser parser;
-	bool ok = false;
-	QVariant topvar = parser.parse(toparsebytes,&ok);
-	if (!ok)
+
+	QJsonDocument doc = QJsonDocument::fromJson(toparsebytes);
+
+	if (doc.isEmpty())
 	{
-		QLOG_DEBUG() << "Unable to parse import json";
-		QMessageBox::information(0,"Error","Unable to parse JSON. Error: " +  parser.errorString());
+		QLOG_ERROR() << "Unable to parse import json";
+		QMessageBox::information(0,"Error","Unable to parse JSON.");
 		return;
 	}
 
-	QVariantMap topmap = topvar.toMap();
-	QVariantMap x = topmap["X"].toMap();
-	QVariantMap y = topmap["Y"].toMap();
-	QVariantList xlist = x["values"].toList();
-	QVariantList ylist = y["values"].toList();
+	QJsonObject topmap = doc.object();
+	QJsonObject x = topmap["X"].toObject();
+	QJsonObject y = topmap["Y"].toObject();
+	QJsonArray xlist = x["values"].toArray();
+	QJsonArray ylist = y["values"].toArray();
 	QString type = topmap["type"].toString();
 	QString title = topmap["title"].toString();
 	QString description = topmap["description"].toString();
+
 
 	if (xlist.size() != ui.tableWidget->columnCount())
 	{
@@ -610,7 +607,7 @@ void TableView2D::importClicked()
 		setSilentValue(0,i,xlist[i].toString());
 		setSilentValue(1,i,ylist[i].toString());
 	}
-	writeTable(true);*/
+	writeTable(true);
 }
 
 void TableView2D::tableCurrentCellChanged(int currentrow,int currentcolumn,int prevrow,int prevcolumn)

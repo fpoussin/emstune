@@ -751,26 +751,24 @@ void TableView3D::exportJson(QString filename)
 	z["unit"] = m_metaData.zAxisTitle;
 	z["label"] = m_metaData.zAxisTitle;
 
-	for (int i=1;i<ui.tableWidget->columnCount();i++)
+	for (int i=0;i<ui.tableWidget->columnCount();i++)
 	{
-		//Reformat the number to be XXXX.XX to make Fred happy.
-		//double val = ui.tableWidget->item(ui.tableWidget->rowCount()-1,i)->text().toDouble();
-		//xlist.append(QString::number(val,'f',2));
+		double val = ui.tableWidget->item(-1,i).toDouble();
+		xlist.append(QString::number(val,'f',2));
 	}
-	for (int i=0;i<ui.tableWidget->rowCount()-1;i++)
+	for (int i=0;i<ui.tableWidget->rowCount();i++)
 	{
-		//Reformat the number to be XXXX.XX to make Fred happy.
-		//double val = ui.tableWidget->item(i,0)->text().toDouble();
-		//ylist.append(QString::number(val,'f',2));
+		double val = ui.tableWidget->item(i,-1).toDouble();
+		ylist.append(QString::number(val,'f',2));
 	}
-	for (int j=0;j<ui.tableWidget->rowCount()-1;j++)
+	for (int j=0;j<ui.tableWidget->rowCount();j++)
 	{
-		//QVariantList zrow;
-		//for (int i=1;i<ui.tableWidget->columnCount();i++)
-		//{
-		//	zrow.append(ui.tableWidget->item(j,i)->text());
-		//}
-		//zlist.append((QVariant)zrow);
+		QVariantList zrow;
+		for (int i=0;i<ui.tableWidget->columnCount();i++)
+		{
+			zrow.append(ui.tableWidget->item(j,i));
+		}
+		zlist.append((QVariant)zrow);
 	}
 
 	y["values"] = ylist;
@@ -780,19 +778,17 @@ void TableView3D::exportJson(QString filename)
 	topmap["Y"] = y;
 	topmap["Z"] = z;
 
-/*	QJson::Serializer serializer;
-	QByteArray serialized = serializer.serialize(topmap);
-
-	//TODO: Open a message box and allow the user to select where they want to save the file.
+	QJsonDocument doc = QJsonDocument::fromVariant(topmap);
 	QFile file(filename);
 	if (!file.open(QIODevice::ReadWrite | QIODevice::Truncate))
 	{
 		QLOG_ERROR() << "Unable to open file to output JSON!";
 		return;
 	}
-	file.write(serialized);
-	file.close();*/
+	file.write(doc.toJson());
+	file.close();
 }
+
 void TableView3D::importClicked()
 {
 	QString filename = QFileDialog::getOpenFileName(this,"Load Json File",".","Json Files (*.json)");
@@ -814,77 +810,77 @@ void TableView3D::importClicked()
 	}
 	QByteArray toparsebytes = file.readAll();
 	file.close();
-/*	QJson::Parser parser;
-	bool ok = false;
-	QVariant topvar = parser.parse(toparsebytes,&ok);
-	if (!ok)
+
+	QJsonDocument doc = QJsonDocument::fromJson(toparsebytes);
+
+	if (doc.isEmpty())
 	{
 		QLOG_ERROR() << "Unable to parse import json";
-		QMessageBox::information(0,"Error","Unable to parse JSON. Error: " +  parser.errorString());
+		QMessageBox::information(0,"Error","Unable to parse JSON.");
 		return;
 	}
+	QJsonObject topmap = doc.object();
+	QJsonObject x = topmap.value("X").toObject();
+	QJsonObject y = topmap.value("Y").toObject();
+	QJsonObject z = topmap.value("Z").toObject();
+	QJsonArray xlist = x.value("values").toArray();
+	QJsonArray ylist = y.value("values").toArray();
+	QJsonArray zlist = z.value("values").toArray();
+	QString type = topmap.value("type").toString();
+	QString title = topmap.value("title").toString();
+	QString description = topmap.value("description").toString();
 
-	QVariantMap topmap = topvar.toMap();
-	QVariantMap x = topmap["X"].toMap();
-	QVariantMap y = topmap["Y"].toMap();
-	QVariantMap z = topmap["Z"].toMap();
-	QVariantList xlist = x["values"].toList();
-	QVariantList ylist = y["values"].toList();
-	QVariantList zlist = z["values"].toList();
-	QString type = topmap["type"].toString();
-	QString title = topmap["title"].toString();
-	QString description = topmap["description"].toString();
-
-	if (xlist.size() != ui.tableWidget->columnCount()-1)
+	if (xlist.size() != ui.tableWidget->columnCount())
 	{
-		//Error here, wrong number of columns
-		QMessageBox::information(0,"Error","Unable to load JSON file. File had " + QString::number(xlist.size()) + " columns of axis data, but table has " + QString::number(ui.tableWidget->columnCount()-1) + " columns of axis data");
+		QMessageBox::information(0,"Error","Unable to load JSON file. File had " + QString::number(xlist.size()) + " columns of axis data, but table has " + QString::number(ui.tableWidget->columnCount()) + " columns of axis data");
 		return;
+
 	}
-	if (ylist.size() != ui.tableWidget->rowCount()-1)
+	if (ylist.size() != ui.tableWidget->rowCount())
 	{
 		//Error here, wrong number of rows!
-		QMessageBox::information(0,"Error","Unable to load JSON file. File had " + QString::number(ylist.size()) + " rows of axis data, but table has " + QString::number(ui.tableWidget->rowCount()-1) + " rows of axis data");
+		QMessageBox::information(0,"Error","Unable to load JSON file. File had " + QString::number(ylist.size()) + " rows of axis data, but table has " + QString::number(ui.tableWidget->rowCount()) + " rows of axis data");
 		return;
 	}
-	if (zlist.size() != ui.tableWidget->rowCount()-1)
+	if (zlist.size() != ui.tableWidget->rowCount())
 	{
-		QMessageBox::information(0,"Error","Unable to load JSON file. File had " + QString::number(zlist.size()) + " rows of data, but table has " + QString::number(ui.tableWidget->rowCount()-1) + " rows of data");
+		QMessageBox::information(0,"Error","Unable to load JSON file. File had " + QString::number(zlist.size()) + " rows of data, but table has " + QString::number(ui.tableWidget->rowCount()) + " rows of data");
 		return;
 	}
 	for (int i=0;i<zlist.size();i++)
 	{
-		if (zlist[i].toList().size() != ui.tableWidget->columnCount()-1)
+		if (zlist[i].toArray().size() != ui.tableWidget->columnCount())
 		{
-			QMessageBox::information(0,"Error","Unable to load JSON file. File had " + QString::number(zlist[i].toList().size()) + " columns of data, but table has " + QString::number(ui.tableWidget->columnCount()-1) + " columns of data");
+			QMessageBox::information(0,"Error","Unable to load JSON file. File had " + QString::number(zlist[i].toArray().size()) + " columns of data, but table has " + QString::number(ui.tableWidget->columnCount()) + " columns of data");
 			return;
 		}
 
 	}
 
-	for (int i=1;i<ui.tableWidget->columnCount();i++)
+
+	for (int i=0;i<ui.tableWidget->columnCount();i++)
 	{
-		setSilentValue(ui.tableWidget->rowCount()-1,i,xlist[i-1].toString());
+		setSilentValue(-1,i,xlist[i].toString());
 	}
-	for (int i=0;i<ui.tableWidget->rowCount()-1;i++)
+	for (int i=0;i<ui.tableWidget->rowCount();i++)
 	{
-		setSilentValue(i,0,ylist[i].toString());
+		setSilentValue(i,-1,ylist[i].toString());
 	}
-	for (int j=0;j<ui.tableWidget->rowCount()-1;j++)
+	for (int j=0;j<ui.tableWidget->rowCount();j++)
 	{
-		QVariantList zrow = zlist[j].toList();
-		for (int i=1;i<ui.tableWidget->columnCount();i++)
+		QJsonArray zrow = zlist[j].toArray();
+		for (int i=0;i<ui.tableWidget->columnCount();i++)
 		{
 			//zrow.append(ui.tableWidget->item(j,i)->text());
-			setSilentValue(j,i,zrow[i-1].toString());
+			setSilentValue(j,i,zrow[i].toString());
 		}
 	}
-	writeTable(true);*/
+	writeTable(true);
 }
 
 void TableView3D::exportClicked()
 {
-	QString filename = QFileDialog::getSaveFileName(this,"Save Json File",".","Json Files (*.json)");
+	QString filename = QFileDialog::getSaveFileName(0,"Save Json File",".","Json Files (*.json)");
 	if (filename == "")
 	{
 		return;
