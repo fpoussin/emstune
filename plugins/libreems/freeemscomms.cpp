@@ -87,6 +87,7 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	connect(m_packetDecoder,SIGNAL(supportEmail(QString)),this,SLOT(supportEmail(QString)));
 	connect(m_packetDecoder,SIGNAL(benchTestReply(unsigned short,unsigned char)),this,SIGNAL(benchTestReply(unsigned short,unsigned char)));
 	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),this,SIGNAL(datalogDescriptor(QString)));
+	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),this,SLOT(saveDatalogDescriptor(QString)));
 	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),dataPacketDecoder,SLOT(datalogDescriptor(QString)));
 
 	m_lastdatalogTimer = new QTimer(this);
@@ -1769,4 +1770,10 @@ void FreeEmsComms::timeoutTimerTick()
 	}
 }
 
-//Q_EXPORT_PLUGIN2(FreeEmsPlugin, FreeEmsComms)
+void FreeEmsComms::saveDatalogDescriptor(QString json)
+{
+	QFile jsonfile(m_logsDirectory + "/" + m_logsFilename + ".json");
+	jsonfile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+	jsonfile.write(json.toLatin1());
+	jsonfile.close();
+}

@@ -264,6 +264,7 @@ private slots:
 	void builtByName(QString name);
 	void supportEmail(QString email);
 	void timeoutTimerTick();
+	void saveDatalogDescriptor(QString json);
 
 
 };
