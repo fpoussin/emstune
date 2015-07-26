@@ -456,16 +456,13 @@ int FreeEmsComms::getDatalogDescriptor()
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
 	serialPort = new SerialPort();
-	QThread *secondary = new QThread(this);
-	serialPort->moveToThread(secondary);
-	secondary->start();
 
 	//connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
 	connect(serialPort,SIGNAL(bytesReady(QByteArray)),m_protocolDecoder,SLOT(parseBuffer(QByteArray)),Qt::QueuedConnection);
 	connect(serialPort,SIGNAL(bytesReady(QByteArray)),this,SLOT(dataLogRead(QByteArray)));
 	connect(serialPort,SIGNAL(connected()),this,SLOT(serialPortConnected()));
 	connect(serialPort,SIGNAL(unableToConnect(QString)),this,SLOT(serialPortUnableToConnect(QString)));
-	QMetaObject::invokeMethod(serialPort,"connectToPort",Q_ARG(QString,port));
+	serialPort->connectToPort(port);
 }
 void FreeEmsComms::serialPortConnected()
 {
@@ -1386,10 +1383,23 @@ void FreeEmsComms::datalogTimerTimeout()
 	quint64 current = QDateTime::currentMSecsSinceEpoch() - m_lastDatalogTime;
 	if (current > 1500)
 	{
-		//It's been 1.5 seconds since our last datalog. We've likely either reset, or stopped responding.
-		m_isSilent = true;
-		m_lastDatalogUpdateEnabled = false;
-		emit emsSilenceStarted(m_lastDatalogTime);
+		if (m_interrogateInProgress)
+		{
+			//Give interrogation a bit more of a timeout between datalog packets.
+			if (current > 5000)
+			{
+				m_isSilent = true;
+				m_lastDatalogUpdateEnabled = false;
+				emit emsSilenceStarted(m_lastDatalogTime);
+			}
+		}
+		else
+		{
+			//It's been 1.5 seconds since our last datalog. We've likely either reset, or stopped responding.
+			m_isSilent = true;
+			m_lastDatalogUpdateEnabled = false;
+			emit emsSilenceStarted(m_lastDatalogTime);
+		}
 	}
 }
 Table2DData* FreeEmsComms::get2DTableData(unsigned short locationid)

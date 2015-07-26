@@ -19,7 +19,7 @@ DEPENDPATH += $$PWD/../../lib/core
 
 
 include (../../core/QsLog/QsLog.pri)
-
+include (serial/serial.pri)
 win32 { #Windows based mingw build
 	TARGET = ../../../core/plugins/libreemsplugin
 	win32:QMAKE_LFLAGS += -shared

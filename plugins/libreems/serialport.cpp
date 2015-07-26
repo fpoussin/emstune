@@ -25,7 +25,7 @@
 #include <cassert>
 #include "QsLog.h"
 
-SerialPort::SerialPort(QObject *parent) : QObject(parent)
+SerialPort::SerialPort(QObject *parent) : QThread(parent)
 {
 	m_serialLockMutex = new QMutex();
 	m_interByteSendDelay=0;
@@ -43,69 +43,43 @@ void SerialPort::setBaud(int baudrate)
 {
 	m_baud = baudrate;
 }
-void SerialPort::connectToPort(QString portname)
+void SerialPort::run()
 {
-	m_serialPort = new QSerialPort();
-	connect(m_serialPort,SIGNAL(readyRead()),this,SLOT(portReadyRead()));
-	m_serialPort->setPortName(portname);
-	if (!m_serialPort->open(QIODevice::ReadWrite))
+	serialPort = new serial::Serial();
+	serialPort->setPort(m_portName.toStdString());
+	serialPort->open();
+	if (!serialPort->isOpen())
 	{
-		qDebug() << "Error opening port:" << m_serialPort->errorString();
-		emit unableToConnect(m_serialPort->errorString());
+		qDebug() << "Error opening port:";
+		emit unableToConnect("Error opening port");
 		return;
 	}
-	m_serialPort->setBaudRate(115200);
-	m_serialPort->setParity(QSerialPort::OddParity);
-	m_serialPort->setStopBits(QSerialPort::OneStop);
-	m_serialPort->setDataBits(QSerialPort::Data8);
-	m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
+	serialPort->setBaudrate(115200);
+	serialPort->setParity(serial::parity_odd);
+	serialPort->setStopbits(serial::stopbits_one);
+	serialPort->setBytesize(serial::eightbits);
+	serialPort->setFlowcontrol(serial::flowcontrol_none);
+	serialPort->setTimeout(1,1,0,100,0); //1ms read timeout, 100ms write timeout.
+	uint8_t buffer[1024];
 	emit connected();
-}
-
-SerialPortStatus SerialPort::isSerialMonitor(QString portname)
-{
-	if (openPort(portname,115200,false) < 0)
+	while(true)
 	{
-		return NONE;
-	}
-	int retry = 0;
-
-	while (retry++ <= 3)
-	{
-		//m_port->clear();
-		//m_port->flush();
-		//m_privBuffer.clear();
-		writeBytes(QByteArray().append(0x0D));
-		QByteArray verifybuf;
-		int verifylen = readBytes(&verifybuf,3,1000);
-		qDebug() << "Verify len:" << verifylen;
-		if ((unsigned char)verifybuf[0] == 0xE0)
+		if (serialPort->available())
 		{
-			if ((unsigned char)verifybuf[2] == 0x3E)
-			{
-				qDebug() << "In SM mode";
-				closePort();
-				return SM_MODE;
-			}
-		}
-		else if ((unsigned char)verifybuf[0] == 0xE1)
-		{
-			if ((unsigned char)verifybuf[2] == 0x3E)
-			{
-				qDebug() << "In SM mode two";
-				closePort();
-				return SM_MODE;
-			}
+			int size = serialPort->read(buffer,1024);
+			emit bytesReady(QByteArray((const char*)buffer,size));
 		}
 		else
 		{
-			//Likely not in SM mode
-			//qDebug() << "Bad return:" << QString::number((unsigned char)verifybuf[0],16) << QString::number((unsigned char)verifybuf[2],16);
+			msleep(10);
 		}
 	}
-	//Timed out.
-	closePort();
-	return NONE;
+}
+
+void SerialPort::connectToPort(QString portname)
+{
+	m_portName = portname;
+	start();
 }
 
 void SerialPort::setInterByteSendDelay(int milliseconds)
@@ -113,68 +87,11 @@ void SerialPort::setInterByteSendDelay(int milliseconds)
 	m_interByteSendDelay = milliseconds;
 }
 
-int SerialPort::readBytes(QByteArray *array, int maxlen,int timeout)
-{
-	QMutexLocker locker(m_serialLockMutex);
-	if (m_privBuffer.size() >= maxlen)
-	{
-		*array = m_privBuffer.mid(0,maxlen);
-		m_privBuffer.remove(0,maxlen);
-		return maxlen;
-	}
-	while (m_serialPort->waitForReadyRead(timeout))
-	{
-		m_privBuffer.append(m_serialPort->readAll());
-		if (m_privBuffer.size() >= maxlen)
-		{
-			*array = m_privBuffer.mid(0,maxlen);
-			m_privBuffer.remove(0,maxlen);
-			return maxlen;
-		}
-	}
-	return 0;
-}
-
 int SerialPort::writeBytes(QByteArray packet)
 {
 	QLOG_TRACE() << "Writing bytes:" << packet.size();
-	if (!m_serialPort->write(packet))
-	{
-		QLOG_ERROR() << "Serial write error:" << m_serialPort->errorString();
-		return -1;
-	}
-	m_serialPort->waitForBytesWritten(1);
+	serialPort->write((const uint8_t*)packet.data(),packet.length());
 	QLOG_TRACE() << "Wrote bytes";
-	//m_serialPort->flush();
-	return packet.size();
-	QMutexLocker locker(m_serialLockMutex);
-	if (m_interByteSendDelay > 0)
-	{
-		for (int i=0;i<packet.size();i++)
-		{
-			//char c = packet.data()[i];
-
-			//if (write(m_portHandle,&c,1)<0)
-			if (m_serialPort->write(QByteArray().append(packet.at(i))) == -1)
-			{
-				//TODO: Error here
-				QLOG_ERROR() << "Serial write error" << m_serialPort->errorString();
-				return -1;
-			}
-			m_serialPort->waitForBytesWritten(1); //Verify.
-			//usleep(m_interByteSendDelay * 1000);
-		}
-
-	}
-	else
-	{
-		if (m_serialPort->write(packet) == -1)
-		{
-			QLOG_ERROR() << "Serial write error" << m_serialPort->errorString();
-			return -1;
-		}
-		m_serialPort->waitForBytesWritten(1); //Verify.
-	}
 	return packet.size();
 
 }
@@ -182,35 +99,8 @@ int SerialPort::writeBytes(QByteArray packet)
 void SerialPort::closePort()
 {
 	QLOG_DEBUG() << "SerialPort::closePort thread:" << QThread::currentThread();
-	m_serialPort->close();
+	//m_serialPort->close();
+	serialPort->close();
 	//delete m_serialPort;
 	m_privBuffer.clear();
-}
-
-int SerialPort::openPort(QString portName,int baudrate,bool oddparity)
-{
-	//QLOG_DEBUG() << "SerialPort::openPort thread:" << QThread::currentThread();
-	//m_serialPort = new QSerialPort();
-	m_portName = portName;
-	m_serialPort->setPortName(portName);
-	if (!m_serialPort->open(QIODevice::ReadWrite))
-	{
-		return -1;
-	}
-	m_serialPort->setBaudRate(baudrate);
-	if (oddparity)
-	{
-		m_serialPort->setParity(QSerialPort::OddParity);
-	}
-	else
-	{
-		m_serialPort->setParity(QSerialPort::NoParity);
-	}
-	return 0;
-}
-void SerialPort::portReadyRead()
-{
-	//m_protocolDecoder->parseBuffer(m_serialPort->readAll());
-
-	emit bytesReady(m_serialPort->readAll());
 }
