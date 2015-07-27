@@ -234,6 +234,8 @@ public slots:
 private slots:
 	void serialPortConnected();
 	void serialPortUnableToConnect(QString error);
+	void serialPortDisconnected();
+	void serialPortError(QString errorstr);
 	void triggerNextSend();
 	void dataLogPayloadReceivedRec(QByteArray header,QByteArray payload);
 	void ramBlockUpdateRec(QByteArray header,QByteArray payload);

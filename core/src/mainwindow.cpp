@@ -58,6 +58,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	m_debugLogs = false;
 	emsSilenceTimer = new QTimer(this);
 	connect(emsSilenceTimer,SIGNAL(timeout()),this,SLOT(emsCommsSilenceTimerTick()));
+	emsSilenceTimer->start();
 
 //	emsData = new EmsData();
 //	connect(emsData,SIGNAL(updateRequired(unsigned short)),this,SLOT(updateDataWindows(unsigned short)));
@@ -370,6 +371,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	this->setAttribute(Qt::WA_DeleteOnClose,true);
 	this->setAccessibleDescription("MainWindow");
 
+	ui.statusLabel->setText("<font bgcolor=\"#FF0000\">DISCONNECTED</font>");
+
 
 }
 void MainWindow::menu_windows_interrogateProgressViewClicked()
@@ -633,11 +636,13 @@ void MainWindow::emsCommsSilenceTimerTick()
 	{
 		m_emsSilenceLabelIsRed = false;
 		ui.statusLabel->setStyleSheet("color: rgb(255, 255, 0);\nbackground-color: rgb(255, 85, 0);");
+		ui.statusLabel->update();
 	}
 	else
 	{
 		m_emsSilenceLabelIsRed = true;
 		ui.statusLabel->setStyleSheet("color: rgb(255, 255, 0);\nbackground-color: rgb(255, 0, 0);");
+		ui.statusLabel->update();
 	}
 }
 
@@ -1032,6 +1037,7 @@ void MainWindow::menu_connectClicked()
 	{
 		//emsData->clearAllMemory();
 	}
+	emsSilenceTimer->stop();
 	emsInfo->clear();
 	ui.actionConnect->setEnabled(false);
 	ui.actionDisconnect->setEnabled(true);
@@ -1042,21 +1048,15 @@ void MainWindow::menu_connectClicked()
 	m_locIdMsgList.clear();
 	m_locIdInfoMsgList.clear();
 	emsMdiWindow->hide();
+	QList<QWidget*> toDeleteList;
 	for (QMap<unsigned short,QWidget*>::const_iterator i= m_rawDataView.constBegin();i != m_rawDataView.constEnd();i++)
 	{
-		QMdiSubWindow *win = qobject_cast<QMdiSubWindow*>((*i)->parent());
-		if (win)
-		{
-			ui.mdiArea->removeSubWindow(win);
-			delete win;
-		}
-		else
-		{
-			//Something is wrong here
-			QLOG_ERROR() << "QWidget pointer found in m_rawDataView that is NOT a QMdiSubWindow!!!";
-		}
-
+		toDeleteList.append(i.value());
 		//delete (*i);
+	}
+	for (int i=0;i<toDeleteList.size();i++)
+	{
+		delete toDeleteList[i];
 	}
 	m_rawDataView.clear();
 	if (!emsComms)
@@ -1071,8 +1071,7 @@ void MainWindow::menu_connectClicked()
 void MainWindow::menu_disconnectClicked()
 {
 	emsComms->disconnectSerial();
-	ui.actionConnect->setEnabled(true);
-	ui.actionDisconnect->setEnabled(false);
+	emsSilenceTimer->start();
 }
 
 void MainWindow::timerTick()

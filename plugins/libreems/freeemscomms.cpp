@@ -307,6 +307,7 @@ void FreeEmsComms::firmwareVersion(QString version)
 		//Good to go!
 		m_state = 2; //2 is running, kick off the next packet send.
 		m_waitingForResponse = false; //Clear this out, since we're not parsing the packet direct.
+		m_lastDatalogUpdateEnabled = true;
 		emit connected();
 		QLOG_DEBUG() << "Connected...." << m_reqList.size() << "Items in queue";
 	}
@@ -354,6 +355,14 @@ FreeEmsComms::~FreeEmsComms()
 
 void FreeEmsComms::disconnectSerial()
 {
+	m_lastDatalogUpdateEnabled = false;
+	serialPort->closePort();
+	m_state = 1;
+	serialPort->wait(2000);
+	serialPort->terminate();
+	delete serialPort;
+	serialPort = 0;
+	emit disconnected();
 	RequestClass req;
 	req.type = SERIAL_DISCONNECT;
 }
@@ -462,6 +471,8 @@ void FreeEmsComms::connectSerial(QString port,int baud)
 	connect(serialPort,SIGNAL(bytesReady(QByteArray)),this,SLOT(dataLogRead(QByteArray)));
 	connect(serialPort,SIGNAL(connected()),this,SLOT(serialPortConnected()));
 	connect(serialPort,SIGNAL(unableToConnect(QString)),this,SLOT(serialPortUnableToConnect(QString)));
+	connect(serialPort,SIGNAL(error(QString)),this,SLOT(serialPortError(QString)));
+	connect(serialPort,SIGNAL(disconnected()),this,SLOT(serialPortDisconnected()));
 	serialPort->connectToPort(port);
 }
 void FreeEmsComms::serialPortConnected()
@@ -1786,4 +1797,20 @@ void FreeEmsComms::saveDatalogDescriptor(QString json)
 	jsonfile.open(QIODevice::ReadWrite | QIODevice::Truncate);
 	jsonfile.write(json.toLatin1());
 	jsonfile.close();
+}
+void FreeEmsComms::serialPortDisconnected()
+{
+	m_state = 1;
+	m_lastDatalogUpdateEnabled = false;
+	serialPort->wait(2000);
+	serialPort->terminate();
+	delete serialPort;
+	serialPort = 0;
+	emit disconnected();
+
+}
+
+void FreeEmsComms::serialPortError(QString errorstr)
+{
+	emit error(errorstr);
 }

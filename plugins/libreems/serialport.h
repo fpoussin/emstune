@@ -85,6 +85,8 @@ signals:
     void bytesReady(QByteArray buffer);
     void connected();
     void unableToConnect(QString error);
+    void disconnected();
+    void error(QString error);
 };
 
 #endif // SERIALPORT_H
