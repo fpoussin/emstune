@@ -141,7 +141,7 @@
   "xtitle" : "MAF",
   "xcalc" : [ {"type":"div","value" : 100.0}],
   "xdp" : 1,
-  "xhighlight" : "EGO",
+  "xhighlight" : "MAF Grams/Second",
   "ytitle" : "Voltage",
   "ycalc" : [ {"type":"div","value":1000.0}],
   "ydp" : 3,
@@ -242,7 +242,19 @@
   "ycalc" : [{ "type":"div","value" : 1.0 }],
   "ydp" : 0,
   "size" : 32
- }
+ },
+  "Fueling Delta vs Scaler" : {
+  "locationid" : "0x0129",
+  "type" : "2D",
+  "xtitle" : "Fuel Delta %",
+  "xcalc" : [{ "type":"div","value" : 100.0}],
+  "xdp" : 0,
+  "xhighlight" : "Scaler",
+  "ytitle" : "Fuel Scaler %",
+  "ycalc" : [{ "type":"div","value" : 100.0 }],
+  "ydp" : 0,
+  "size" : 32 
+}
 },
 "ramvars" : {
  "0xF001" : { 
