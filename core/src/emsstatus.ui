@@ -58,35 +58,35 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="combustionSyncLineEdit">
+      <widget class="QLineEdit" name="minLockLineEdit">
        <property name="text">
-        <string>Combustion Sync</string>
+        <string>Minimum Lock</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="crankSyncLineEdit">
+      <widget class="QLineEdit" name="crankLockLineEdit">
        <property name="text">
-        <string>Crank Sync</string>
+        <string>Crank Lock</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="camSyncLineEdit">
+      <widget class="QLineEdit" name="camLockLineEdit">
        <property name="text">
-        <string>Cam Sync</string>
+        <string>Cam Lock</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lastTimeValidLineEdit">
+      <widget class="QLineEdit" name="previousPrimaryValidLineEdit">
        <property name="text">
-        <string>Last Timestamp Valid</string>
+        <string>Last Event Valid</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lastPeriodValidLineEdit">
+      <widget class="QLineEdit" name="previousPeriodValidLineEdit">
        <property name="text">
         <string>Last Period Valid</string>
        </property>

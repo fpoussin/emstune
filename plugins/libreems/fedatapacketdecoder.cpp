@@ -204,7 +204,7 @@ void FEDataPacketDecoder::loadDataFieldsFromValues()
 	m_dataFieldList.append(DataField("MAT","Manifold Air Temperature",14,2,100.0,-273.15));
 	m_dataFieldList.append(DataField("EGO2","Exhaust Gas Oxygen 2",16,2,32768.0));
 	m_dataFieldList.append(DataField("IAP","Intercooler Absolute Pressure",18,2,100.0));
-    m_dataFieldList.append(DataField("MAF","Mass Air Flow",20,2,204.8));
+	m_dataFieldList.append(DataField("MAF","Mass Air Flow",20,2,204.8));
 	m_dataFieldList.append(DataField("DMAP","Delta Map",22,2,1.0));
 	m_dataFieldList.append(DataField("DTPS","Delta TPS",24,2,1.0));
 	m_dataFieldList.append(DataField("RPM","Engine Speed",26,2,2.0));
@@ -233,7 +233,7 @@ void FEDataPacketDecoder::loadDataFieldsFromValues()
 
 	// TODO bits:
 	m_dataFieldList.append(DataField("coreStatusA","Duplicate",60,1,1.0,0,true)); // Needs flags
-	m_dataFieldList.append(DataField("decoderFlags","Various decoder state flags",61,1,1.0,0,true)); // Needs flags
+	m_dataFieldList.append(DataField("Decoder Flags","Various decoder state flags",61,1,1.0,0,true)); // Needs flags
 
 	// Flaggable flags
 	m_dataFieldList.append(DataField("callsToUISRs","to ensure we aren't accidentally triggering unused ISRs.",62,2,1.0,0,0,0,true,0));

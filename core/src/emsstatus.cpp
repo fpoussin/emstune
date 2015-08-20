@@ -28,11 +28,11 @@ EmsStatus::EmsStatus(QWidget *parent) : QDockWidget(parent)
 	ui.setupUi(this);
 	connect(ui.hardResetPushButton,SIGNAL(clicked()),this,SIGNAL(hardResetRequest()));
 	connect(ui.softResetPushButton,SIGNAL(clicked()),this,SIGNAL(softResetRequest()));
-	setFlag(ui.combustionSyncLineEdit,false);
-	setFlag(ui.crankSyncLineEdit,false);
-	setFlag(ui.camSyncLineEdit,false);
-	setFlag(ui.lastPeriodValidLineEdit,false);
-	setFlag(ui.lastTimeValidLineEdit,false);
+	setFlag(ui.minLockLineEdit,false);
+	setFlag(ui.crankLockLineEdit,false);
+	setFlag(ui.camLockLineEdit,false);
+	setFlag(ui.previousPrimaryValidLineEdit,false);
+	setFlag(ui.previousPeriodValidLineEdit,false);
 	emsMemoryTimer = new QTimer(this);
 	connect(emsMemoryTimer,SIGNAL(timeout()),this,SLOT(emsMemoryTimerTick()));
 	ui.memoryCleanLineEdit->setText("NO BURN REQUIRED");
@@ -74,12 +74,12 @@ void EmsStatus::setFlag(QLineEdit *edit,bool green)
 void EmsStatus::passData(QVariantMap data)
 {
 
-	unsigned char decoderFlags = data["decoderFlags"].toInt();
-	setFlag(ui.combustionSyncLineEdit,decoderFlags & 0x01);
-	setFlag(ui.crankSyncLineEdit,decoderFlags & 0x02);
-	setFlag(ui.camSyncLineEdit,decoderFlags & 0x04);
-	setFlag(ui.lastPeriodValidLineEdit,decoderFlags & 0x08);
-	setFlag(ui.lastTimeValidLineEdit,decoderFlags & 0x010);
+	unsigned char decoderFlags = data["Decoder Flags"].toInt();
+	setFlag(ui.minLockLineEdit,decoderFlags & 0x01);
+	setFlag(ui.crankLockLineEdit,decoderFlags & 0x02);
+	setFlag(ui.camLockLineEdit,decoderFlags & 0x04);
+	setFlag(ui.previousPrimaryValidLineEdit,decoderFlags & 0x08);
+	setFlag(ui.previousPeriodValidLineEdit,decoderFlags & 0x010);
 
 }
 void EmsStatus::setEmsMemoryDirty()
