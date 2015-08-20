@@ -486,6 +486,13 @@ void MainWindow::menu_file_saveOfflineDataClicked()
 	top["2D"] = datatable2d;
 	top["3D"] = datatable3d;
 	top["RAW"] = dataraw;
+	QJsonDocument doc = QJsonDocument::fromVariant(top);
+
+	QFile outfile2(filename);
+	outfile2.open(QIODevice::ReadWrite | QIODevice::Truncate);
+	outfile2.write(doc.toJson());
+	outfile2.flush();
+	outfile2.close();
 /*	QJson::Serializer serializer2;
 	QByteArray out2 = serializer2.serialize(top);
 	QFile outfile2(filename);
@@ -509,6 +516,44 @@ void MainWindow::menu_file_loadOfflineDataClicked()
 	outfile.open(QIODevice::ReadOnly);
 	QByteArray out = outfile.readAll();
 	outfile.close();
+
+	//Load a new instance of the plugin
+
+	QPluginLoader *tmppluginLoader = new QPluginLoader(this);
+	tmppluginLoader->setFileName(m_pluginFileName);
+	QLOG_INFO() << tmppluginLoader->metaData();
+	/*for (QJsonObject::const_iterator i = pluginLoader->metaData().constBegin();i!=pluginLoader->metaData().constEnd();i++)
+	{
+		qDebug() << i.key() << i.value();
+	}*/
+
+	QLOG_INFO() << "Attempting to load plugin:" << m_pluginFileName;
+	if (!tmppluginLoader->load())
+	{
+
+		QLOG_ERROR() << "Unable to load plugin. error:" << tmppluginLoader->errorString();
+		exit(-1);
+	}
+	m_emsCommsOffline = qobject_cast<EmsComms*>(tmppluginLoader->instance());
+	if (!m_emsCommsOffline)
+	{
+		QLOG_ERROR() << "Unable to load plugin!!!";
+		QLOG_ERROR() << tmppluginLoader->errorString();
+		exit(-1);
+	}
+	m_emsCommsOffline->passLogger(&QsLogging::Logger::instance());
+
+	QJsonDocument doc = QJsonDocument::fromJson(out);
+	QJsonObject top = doc.object();
+	QJsonObject datatable2d = top.value("2D").toObject();
+	for (QJsonObject::const_iterator i=datatable2d.constBegin();i!=datatable2d.constEnd();i++)
+	{
+		int locid = i.key().toInt();
+		QJsonObject data = i.value().toObject();
+		QJsonArray axislist = data["axis"].toArray();
+		QJsonArray datalist = data["data"].toArray();
+		Table2DData *datar = m_emsCommsOffline->get2DTableData(locid);
+	}
 
 /*	QJson::Parser parser;
 	bool ok = false;
@@ -681,11 +726,11 @@ void MainWindow::setPlugin(QString plugin)
 	pluginLoader=0;
 	pluginLoader = new QPluginLoader(this);
 	pluginLoader->setFileName(m_pluginFileName);
-	qDebug() << pluginLoader->metaData();
-	for (QJsonObject::const_iterator i = pluginLoader->metaData().constBegin();i!=pluginLoader->metaData().constEnd();i++)
+	QLOG_INFO() << pluginLoader->metaData();
+	/*for (QJsonObject::const_iterator i = pluginLoader->metaData().constBegin();i!=pluginLoader->metaData().constEnd();i++)
 	{
 		qDebug() << i.key() << i.value();
-	}
+	}*/
 
 	QLOG_INFO() << "Attempting to load plugin:" << m_pluginFileName;
 	if (!pluginLoader->load())

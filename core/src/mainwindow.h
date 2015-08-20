@@ -147,6 +147,7 @@ private:
 	QString m_pluginFileName;
 	QPluginLoader *pluginLoader;
 	EmsComms *emsComms;
+	EmsComms *m_emsCommsOffline;
 	int pidcount;
 	QTimer *timer;
 	QTimer *guiUpdateTimer;
