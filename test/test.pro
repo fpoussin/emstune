@@ -16,6 +16,7 @@ TEMPLATE = app
 
 INCLUDEPATH += ../lib/core
 #INCLUDEPATH += ../emstune/plugins/libreems/
+include (../plugins/libreems/serial/serial.pri)
 include (../core/QsLog/QsLog.pri)
 SOURCES += main.cpp \
     ../plugins/libreems/datafield.cpp \
@@ -29,7 +30,7 @@ SOURCES += main.cpp \
     ../plugins/libreems/freeemscomms.cpp \
     ../plugins/libreems/memorylocation.cpp \
     serialport.cpp \
-    serialrxthread.cpp \
+    #serialrxthread.cpp \
     protocolencoder.cpp \
     protocoldecoder.cpp \
     packetdecoder.cpp \

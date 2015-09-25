@@ -25,7 +25,7 @@
 #include <cassert>
 #include "QsLog.h"
 
-SerialPort::SerialPort(QObject *parent) : QObject(parent)
+SerialPort::SerialPort(QObject *parent) : QThread(parent)
 {
 	m_serialLockMutex = new QMutex();
 	m_interByteSendDelay=0;
@@ -43,161 +43,39 @@ void SerialPort::setBaud(int baudrate)
 {
 	m_baud = baudrate;
 }
-bool SerialPort::connectToPort(QString portname)
+void SerialPort::connectToPort(QString portname)
 {
-	return true;
+	start();
+}
+void SerialPort::run()
+{
+	emit connected();
+	while (true)
+	{
+
+		msleep(10);
+	}
+
 }
 
-SerialPortStatus SerialPort::isSerialMonitor(QString portname)
-{
-	if (openPort(portname,115200,false) < 0)
-	{
-		return NONE;
-	}
-	int retry = 0;
 
-	while (retry++ <= 3)
-	{
-		//m_port->clear();
-		//m_port->flush();
-		//m_privBuffer.clear();
-		writeBytes(QByteArray().append(0x0D));
-		QByteArray verifybuf;
-		int verifylen = readBytes(&verifybuf,3,1000);
-		qDebug() << "Verify len:" << verifylen;
-		if ((unsigned char)verifybuf[0] == 0xE0)
-		{
-			if ((unsigned char)verifybuf[2] == 0x3E)
-			{
-				qDebug() << "In SM mode";
-				closePort();
-				return SM_MODE;
-			}
-		}
-		else if ((unsigned char)verifybuf[0] == 0xE1)
-		{
-			if ((unsigned char)verifybuf[2] == 0x3E)
-			{
-				qDebug() << "In SM mode two";
-				closePort();
-				return SM_MODE;
-			}
-		}
-		else
-		{
-			//Likely not in SM mode
-			//qDebug() << "Bad return:" << QString::number((unsigned char)verifybuf[0],16) << QString::number((unsigned char)verifybuf[2],16);
-		}
-	}
-	//Timed out.
-	closePort();
-	return NONE;
-}
 
 void SerialPort::setInterByteSendDelay(int milliseconds)
 {
 	m_interByteSendDelay = milliseconds;
 }
 
-int SerialPort::readBytes(QByteArray *array, int maxlen,int timeout)
-{
-	QMutexLocker locker(m_serialLockMutex);
-	if (m_privBuffer.size() >= maxlen)
-	{
-		*array = m_privBuffer.mid(0,maxlen);
-		m_privBuffer.remove(0,maxlen);
-		return maxlen;
-	}
-	while (m_serialPort->waitForReadyRead(timeout))
-	{
-		m_privBuffer.append(m_serialPort->readAll());
-		if (m_privBuffer.size() >= maxlen)
-		{
-			*array = m_privBuffer.mid(0,maxlen);
-			m_privBuffer.remove(0,maxlen);
-			return maxlen;
-		}
-	}
-	return 0;
-}
+
 
 int SerialPort::writeBytes(QByteArray packet)
 {
 	return packet.size();
-	QLOG_TRACE() << "Writing bytes:" << packet.size();
-	if (!m_serialPort->write(packet))
-	{
-		QLOG_ERROR() << "Serial write error:" << m_serialPort->errorString();
-		return -1;
-	}
-	m_serialPort->waitForBytesWritten(1);
-	QLOG_TRACE() << "Wrote bytes";
-	//m_serialPort->flush();
-	return packet.size();
-	QMutexLocker locker(m_serialLockMutex);
-	if (m_interByteSendDelay > 0)
-	{
-		for (int i=0;i<packet.size();i++)
-		{
-			//char c = packet.data()[i];
-
-			//if (write(m_portHandle,&c,1)<0)
-			if (m_serialPort->write(QByteArray().append(packet.at(i))) == -1)
-			{
-				//TODO: Error here
-				QLOG_ERROR() << "Serial write error" << m_serialPort->errorString();
-				return -1;
-			}
-			m_serialPort->waitForBytesWritten(1); //Verify.
-			//usleep(m_interByteSendDelay * 1000);
-		}
-
-	}
-	else
-	{
-		if (m_serialPort->write(packet) == -1)
-		{
-			QLOG_ERROR() << "Serial write error" << m_serialPort->errorString();
-			return -1;
-		}
-		m_serialPort->waitForBytesWritten(1); //Verify.
-	}
-	return packet.size();
-
 }
 
 void SerialPort::closePort()
 {
 	QLOG_DEBUG() << "SerialPort::closePort thread:" << QThread::currentThread();
-	m_serialPort->close();
+	//m_serialPort->close();
 	//delete m_serialPort;
 	m_privBuffer.clear();
-}
-
-int SerialPort::openPort(QString portName,int baudrate,bool oddparity)
-{
-	//QLOG_DEBUG() << "SerialPort::openPort thread:" << QThread::currentThread();
-	//m_serialPort = new QSerialPort();
-	m_portName = portName;
-	m_serialPort->setPortName(portName);
-	if (!m_serialPort->open(QIODevice::ReadWrite))
-	{
-		return -1;
-	}
-	m_serialPort->setBaudRate(baudrate);
-	if (oddparity)
-	{
-		m_serialPort->setParity(QSerialPort::OddParity);
-	}
-	else
-	{
-		m_serialPort->setParity(QSerialPort::NoParity);
-	}
-	return 0;
-}
-void SerialPort::portReadyRead()
-{
-	//m_protocolDecoder->parseBuffer(m_serialPort->readAll());
-
-	emit bytesReady(m_serialPort->readAll());
 }
