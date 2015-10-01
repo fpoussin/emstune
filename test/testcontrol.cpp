@@ -223,6 +223,19 @@ void TestControl::getBlockInRam(unsigned short locid,unsigned short offset,unsig
 	m_locationIdSize = size;
 	QTimer::singleShot(250,this,SLOT(sendBlockInRam()));
 }
+void TestControl::updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)
+{
+	m_locationIdInfoReq = locid;
+	m_locationIdOffset = offset;
+	m_locationIdSize = size;
+	m_locationIdData = data;
+	QTimer::singleShot(250,this,SLOT(updateBlockInRamTimerTick()));
+}
+void TestControl::updateBlockInRamTimerTick()
+{
+	m_packetDecoder->packetAcked(UPDATE_BLOCK_IN_RAM+1,QByteArray(),m_locationIdData);
+}
+
 void TestControl::sendBlockInRam()
 {
 	if (m_2dlocationIdList.contains(m_locationIdInfoReq))
@@ -490,27 +503,35 @@ void TestControl::interrogationData(QMap<QString,QString> datamap)
 }
 void TestControl::TEST_table3dData_ramWrite()
 {
-
+	m_testResults.append(QPair<QString,bool>("3D Tables Ram Write (Unimplemented)",true));
+	nextTest();
 }
 
 void TestControl::TEST_table3dData_flashWrite()
 {
-
+	m_testResults.append(QPair<QString,bool>("3D Tables Flash Write (Unimplemented)",true));
+	nextTest();
 }
 
 void TestControl::TEST_table2dData_flashWrite()
 {
-
+	m_testResults.append(QPair<QString,bool>("2D Tables Flash Write (Unimplemented)",true));
+	nextTest();
 }
 
 void TestControl::TEST_table2dData_ramWrite()
 {
 	Table2DData *data = m_comms->get2DTableData(m_2dlocationIdList.at(0));
 	//Change some data values
-	data->setCell(0,0,0);
+	data->setCell(0,0,5);
+	double value = data->axis()[0];
+	qDebug() << "Value is:" << value;
+
 	//Verify the data
 	//Change some axis values
 	//Verify the data
 	//Verify flash has not changed
 	//Verify it reads as ram dirty
+	m_testResults.append(QPair<QString,bool>("2D Tables Ram Write (Unimplemented)",true));
+	nextTest();
 }

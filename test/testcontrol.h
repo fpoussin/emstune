@@ -41,6 +41,7 @@ public:
 	void getLocationIdList();
 	void getLocationIdInfo(unsigned short locid);
 	void getBlockInRam(unsigned short locid,unsigned short offset,unsigned short size);
+	void updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data);
 private:
 	FreeEmsComms *m_comms;
 	QList<QString> jsonList;
@@ -57,6 +58,7 @@ private:
 	void succeedTest(QString testname);
 	void failTest(QString testname);
 	QMap<QString,QString> m_interrogationDataMap;
+	QByteArray m_locationIdData;
 private slots:
 	void interrogationData(QMap<QString,QString> datamap);
 	void reportResults();
@@ -78,6 +80,7 @@ private slots:
 	void sendDecoderName();
 	void firmwareTimerTick();
 	void sendInterfaceVersion();
+	void updateBlockInRamTimerTick();
 	void sendCompilerVersion();
 	void start();
 	void connected();

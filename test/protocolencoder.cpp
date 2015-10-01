@@ -71,6 +71,10 @@ QByteArray ProtocolEncoder::encodePacket(unsigned short payloadid,QList<QVariant
 	{
 		m_testControl->getBlockInRam(arglist.at(0).toInt(),arglist.at(1).toInt(),arglist.at(2).toInt());
 	}
+	else if (payloadid == UPDATE_BLOCK_IN_RAM)
+	{
+		m_testControl->updateBlockInRam(arglist.at(0).toInt(),arglist.at(1).toInt(),arglist.at(2).toInt(),arglist.at(3).toByteArray());
+	}
 	return QByteArray().append((char)0x00).append((char)0x01);
 	if (arglist.size() != argsizelist.size())
 	{
