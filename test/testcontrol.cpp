@@ -61,6 +61,8 @@ TestControl::TestControl()
 	m_2dlocationIdList.append(0x003);
 	m_2dlocationIdList.append(0x004);
 	m_2dlocationIdList.append(0x006);
+
+	m_ramFailNextUpdate = false;
 }
 void TestControl::start()
 {
@@ -68,7 +70,14 @@ void TestControl::start()
 	m_testList.append(QString(SLOT(TEST_table3ddata_setData())));
 	m_testList.append(QString(SLOT(TEST_table2ddata_setData())));
 	m_testList.append(QString(SLOT(TEST_interrogationData())));
+	m_testList.append(QString(SLOT(TEST_table2dData_ramPreWrite())));
 	m_testList.append(QString(SLOT(TEST_table2dData_ramWrite())));
+	m_testList.append(QString(SLOT(TEST_table2dData_ramPostWrite())));
+
+	m_testList.append(QString(SLOT(TEST_table2dData_ramFailWrite())));
+	m_testList.append(QString(SLOT(TEST_table2dData_ramFailPostWrite())));
+
+
 	m_testList.append(QString(SLOT(TEST_table2dData_flashWrite())));
 	m_testList.append(QString(SLOT(TEST_table3dData_ramWrite())));
 	m_testList.append(QString(SLOT(TEST_table3dData_flashWrite())));
@@ -225,15 +234,24 @@ void TestControl::getBlockInRam(unsigned short locid,unsigned short offset,unsig
 }
 void TestControl::updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)
 {
-	m_locationIdInfoReq = locid;
+	m_locationIdInfoReq = location;
 	m_locationIdOffset = offset;
 	m_locationIdSize = size;
 	m_locationIdData = data;
-	QTimer::singleShot(250,this,SLOT(updateBlockInRamTimerTick()));
+	QTimer::singleShot(1,this,SLOT(updateBlockInRamTimerTick()));
 }
 void TestControl::updateBlockInRamTimerTick()
 {
-	m_packetDecoder->packetAcked(UPDATE_BLOCK_IN_RAM+1,QByteArray(),m_locationIdData);
+	if (m_ramFailNextUpdate)
+	{
+		m_ramFailNextUpdate = false;
+		//Invaid axis order
+		m_packetDecoder->packetNaked(UPDATE_BLOCK_IN_RAM+1,QByteArray(),m_locationIdData,0x1);
+	}
+	else
+	{
+		m_packetDecoder->packetAcked(UPDATE_BLOCK_IN_RAM+1,QByteArray(),m_locationIdData);
+	}
 }
 
 void TestControl::sendBlockInRam()
@@ -501,11 +519,19 @@ void TestControl::interrogationData(QMap<QString,QString> datamap)
 {
 	m_interrogationDataMap = datamap;
 }
+
+//3D Table Ram Write
+//Change the scale and reverse the data on a 3d table in ram.
+//TODO: Implement test
 void TestControl::TEST_table3dData_ramWrite()
 {
 	m_testResults.append(QPair<QString,bool>("3D Tables Ram Write (Unimplemented)",true));
 	nextTest();
 }
+
+//3D Table Flash Write
+//Change the scale and reverse the data on a 3d table, then write changes to flash
+//TODO: Implement test
 
 void TestControl::TEST_table3dData_flashWrite()
 {
@@ -513,25 +539,86 @@ void TestControl::TEST_table3dData_flashWrite()
 	nextTest();
 }
 
+//2D Table Flash Write
+//Change the scale and reverse the data on a 2d table, then write changes to flash
+//TODO: Implement test
 void TestControl::TEST_table2dData_flashWrite()
 {
 	m_testResults.append(QPair<QString,bool>("2D Tables Flash Write (Unimplemented)",true));
 	nextTest();
 }
+void TestControl::TEST_table2dData_ramPreWrite()
+{
+	Table2DData *data = m_comms->get2DTableData(m_2dlocationIdList.at(0));
+	double first = data->axis()[0];
+	qDebug() << "2D Table First Data is:" << data->axis()[0] << data->axis()[1] << data->axis()[2] << data->axis()[3];
+	m_testResults.append(QPair<QString,bool>("2D Tables Ram Pre Write Verify ",false));
+	nextTest();
+}
 
+//Ram Write
+//Change the scale, and reverse the data on a 2d table in ram
 void TestControl::TEST_table2dData_ramWrite()
 {
 	Table2DData *data = m_comms->get2DTableData(m_2dlocationIdList.at(0));
-	//Change some data values
-	data->setCell(0,0,5);
-	double value = data->axis()[0];
-	qDebug() << "Value is:" << value;
 
-	//Verify the data
-	//Change some axis values
-	//Verify the data
-	//Verify flash has not changed
-	//Verify it reads as ram dirty
-	m_testResults.append(QPair<QString,bool>("2D Tables Ram Write (Unimplemented)",true));
+	//Change the scale
+	for (int x=0;x<16;x++)
+	{
+		data->setCell(0,x,x * 50);
+	}
+	//Reverse the data values
+	for (int y=0;y<16;y++)
+	{
+		data->setCell(1,y,(16-(y+1)) * 200);
+	}
+
+	m_testResults.append(QPair<QString,bool>("2D Tables Ram Write",false));
+	nextTest();
+}
+
+//Ram Post Write
+//This test is called after ramWrite to verify that the ram locations have been changed properly
+//TODO: Check that flash doesn't change
+void TestControl::TEST_table2dData_ramPostWrite()
+{
+	Table2DData *data = m_comms->get2DTableData(m_2dlocationIdList.at(0));
+	//Change some data values
+	bool fail = false;
+	for (int x=0;x<16;x++)
+	{
+		if (data->axis()[x] != x * 50)
+		{
+			fail = true;
+		}
+	}
+	m_testResults.append(QPair<QString,bool>("2D Tables Ram Post Write",fail));
+	nextTest();
+}
+
+//Ram Fail Write
+//Writes to a cell and intentionally returns a NAK packet to ensure the value gets reverted.
+void TestControl::TEST_table2dData_ramFailWrite()
+{
+	m_ramFailNextUpdate = true;
+	Table2DData *data = m_comms->get2DTableData(m_2dlocationIdList.at(0));
+	data->setCell(0,1,10);
+	nextTest();
+}
+
+//Ram Post Write
+//Verify the value didn't get written to the location, indicating it failed, and reverted.
+void TestControl::TEST_table2dData_ramFailPostWrite()
+{
+	Table2DData *data = m_comms->get2DTableData(m_2dlocationIdList.at(0));
+	//data->setCell(0,1,10);
+	if (data->axis()[1] == 10)
+	{
+		//Failed
+		m_testResults.append(QPair<QString,bool>("2D Tables Ram Write Failure",true));
+		nextTest();
+		return;
+	}
+	m_testResults.append(QPair<QString,bool>("2D Tables Ram Write Failure",false));
 	nextTest();
 }

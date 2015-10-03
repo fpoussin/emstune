@@ -59,6 +59,7 @@ private:
 	void failTest(QString testname);
 	QMap<QString,QString> m_interrogationDataMap;
 	QByteArray m_locationIdData;
+	bool m_ramFailNextUpdate;
 private slots:
 	void interrogationData(QMap<QString,QString> datamap);
 	void reportResults();
@@ -66,10 +67,17 @@ private slots:
 	void TEST_table3ddata_setData();
 	void TEST_table2ddata_setData();
 	void TEST_interrogationData();
-	void TEST_table2dData_ramWrite();
+	//void TEST_table2dData_ramWrite();
 	void TEST_table3dData_ramWrite();
 	void TEST_table3dData_flashWrite();
 	void TEST_table2dData_flashWrite();
+
+	void TEST_table2dData_ramPreWrite();
+	void TEST_table2dData_ramWrite();
+	void TEST_table2dData_ramPostWrite();
+	void TEST_table2dData_ramFailWrite();
+	void TEST_table2dData_ramFailPostWrite();
+
 	void sendBlockInRam();
 	void sendLocationIdInfo();
 	void sendLocationIdList();
