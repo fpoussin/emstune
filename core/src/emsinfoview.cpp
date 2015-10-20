@@ -112,6 +112,10 @@ void EmsInfoView::locationInfoWidgetDoubleClicked(int row, int column)
 	{
 		type = DATA_CONFIG;
 	}
+	else if (ui.locationIdInfoTableWidget->item(row,2)->text() == "2D 32bit Table")
+	{
+		type = DATA_TABLE_2D_32BIT;
+	}
 
 
 	/*if (ui.locationIdInfoTableWidget->item(row,9)->text().toLower() == "true" && ui.locationIdInfoTableWidget->item(row,10)->text().toLower() == "true")
@@ -217,6 +221,10 @@ void EmsInfoView::locationIdInfo(unsigned short locationid,QString title,MemoryL
 	else if (info.type == DATA_CONFIG)
 	{
 		ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("Configuration"));
+	}
+	else if (info.type == DATA_TABLE_2D_32BIT)
+	{
+		ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("2D 32bit Table"));
 	}
 	else
 	{
