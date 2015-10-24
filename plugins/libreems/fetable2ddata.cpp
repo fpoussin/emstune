@@ -102,9 +102,17 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 	{
 		m_maxCalcedXAxis = calcAxis(INT_MAX,metadata.xAxisCalc);
 		m_maxCalcedYAxis = calcAxis(INT_MAX,metadata.yAxisCalc);
-		m_minCalcedXAxis = calcAxis(0,metadata.xAxisCalc);
-		m_minCalcedYAxis = calcAxis(0,metadata.yAxisCalc);
 
+		if (m_isSignedData)
+		{
+			m_minCalcedXAxis = calcAxis(-65535,metadata.xAxisCalc);
+			m_minCalcedYAxis = calcAxis(-65535,metadata.yAxisCalc);
+		}
+		else
+		{
+			m_minCalcedXAxis = calcAxis(0,metadata.xAxisCalc);
+			m_minCalcedYAxis = calcAxis(0,metadata.yAxisCalc);
+		}
 		//Reverse the min and max, so we can figure them out based on real data
 		m_minActualXAxis = calcAxis(INT_MAX,metadata.xAxisCalc);
 		m_minActualYAxis = calcAxis(INT_MAX,metadata.yAxisCalc);
@@ -156,8 +164,16 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 	{
 		m_maxCalcedXAxis = calcAxis(65535,metadata.xAxisCalc);
 		m_maxCalcedYAxis = calcAxis(65535,metadata.yAxisCalc);
-		m_minCalcedXAxis = calcAxis(-65535,metadata.xAxisCalc);
-		m_minCalcedYAxis = calcAxis(-65535,metadata.yAxisCalc);
+		if (m_isSignedData)
+		{
+			m_minCalcedXAxis = calcAxis(-65535,metadata.xAxisCalc);
+			m_minCalcedYAxis = calcAxis(-65535,metadata.yAxisCalc);
+		}
+		else
+		{
+			m_minCalcedXAxis = calcAxis(0,metadata.xAxisCalc);
+			m_minCalcedYAxis = calcAxis(0,metadata.yAxisCalc);
+		}
 
 		//Reverse the min and max, so we can figure them out based on real data
 		m_minActualXAxis = calcAxis(65535,metadata.xAxisCalc);
@@ -386,7 +402,7 @@ QByteArray FETable2DData::data()
 	}
 	return data;
 }
-double FETable2DData::calcAxis(quint64 val,QList<QPair<QString,double> > metadata)
+double FETable2DData::calcAxis(qint64 val,QList<QPair<QString,double> > metadata)
 {
 	if (metadata.size() == 0)
 	{
