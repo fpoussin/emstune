@@ -139,11 +139,11 @@
   "locationid" : "0x011F",
   "type" : "2D",
   "xtitle" : "MAF",
-  "xcalc" : [ {"type":"div","value" : 100.0}],
+  "xcalc" : [ {"type":"div","value" : 204.80}],
   "xdp" : 1,
   "xhighlight" : "MAF Grams/Second",
   "ytitle" : "Voltage",
-  "ycalc" : [ {"type":"div","value":1000.0}],
+  "ycalc" : [ {"type":"div","value":1000000.0}],
   "ydp" : 3,
   "size" : 192
  },
