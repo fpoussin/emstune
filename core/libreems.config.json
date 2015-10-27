@@ -191,7 +191,7 @@
   "xdp" : 1,
   "xhighlight" : "MAP",
   "ytitle" : "Voltage",
-  "ycalc" : [ {"type":"div","value":1000.0}],
+  "ycalc" : [ {"type":"div","value":204.8}],
   "ydp" : 3,
   "size" : 32
  },
@@ -203,7 +203,7 @@
   "xdp" : 1,
   "xhighlight" : "MAP",
   "ytitle" : "Voltage",
-  "ycalc" : [ {"type":"div","value":1000.0}],
+  "ycalc" : [ {"type":"div","value":204.8}],
   "ydp" : 3,
   "size" : 32
  },
@@ -215,7 +215,7 @@
   "xdp" : 2,
   "xhighlight" : "EGO",
   "ytitle" : "Voltage",
-  "ycalc" : [ {"type":"div","value":1000.0}],
+  "ycalc" : [ {"type":"div","value":204.8}],
   "ydp" : 3,
   "size" : 32
  },
