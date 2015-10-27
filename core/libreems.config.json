@@ -155,7 +155,7 @@
   "xdp" : 2,
   "xhighlight" : "IAT",
   "ytitle" : "Timing",
-  "ycalc" : [{ "type":"div","value" : 1024.0}],
+  "ycalc" : [{ "type":"div","value" : 2.0}],
   "ydp" : 1,
   "size" : 64
  },
@@ -175,7 +175,7 @@
   "locationid" : "0x0123",
   "type" : "2D",
   "xtitle" : "Ethanol (%)",
-  "xcalc" : [{ "type":"div","value" : 163.84}],
+  "xcalc" : [{ "type":"div","value" : 655.35}],
   "xdp" : 1,
   "xhighlight" : "CLT",
   "ytitle" : "Timing",
