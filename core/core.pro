@@ -21,8 +21,8 @@ include(QsLog/QsLog.pri)
 
 win32 {
 	message("Building for win32")
-	DEFINES += GIT_COMMIT=$$system(\"c:/program files (x86)/git/bin/git.exe\" describe --dirty=-DEV --always)
-	DEFINES += GIT_HASH=$$system(\"c:/program files (x86)/git/bin/git.exe\" log -n 1 --pretty=format:%H)
+        DEFINES += GIT_COMMIT=$$system(\"c:/program files/git/bin/git.exe\" describe --dirty=-DEV --always)
+        DEFINES += GIT_HASH=$$system(\"c:/program files/git/bin/git.exe\" log -n 1 --pretty=format:%H)
 } else:mac {
 	QMAKE_CXXFLAGS += -Werror
 	INCLUDEPATH += /opt/local/include
