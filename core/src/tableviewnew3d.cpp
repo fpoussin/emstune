@@ -452,15 +452,23 @@ void TableViewNew3D::paintEvent (QPaintEvent *evt)
 	if (foundy && foundx && m_traceEnabled)
 	{
 		QPen pen = painter.pen();
-		pen.setWidth(5);
-		pen.setColor(QColor::fromRgb(255,255,0));
-		painter.setPen(pen);
-		//painter.drawLine(0,drawTraceY,width(),drawTraceY);
-		painter.drawEllipse(drawTraceX-2,drawTraceY-1,4,2);
+		pen.setWidth(6);
 		pen.setColor(QColor::fromRgb(0,0,0));
-		pen.setWidth(2);
 		painter.setPen(pen);
-		painter.drawEllipse(drawTraceX-6,drawTraceY-4,12,8);
+		painter.drawLine(0,drawTraceY,drawTraceX - (m_itemWidth/2),drawTraceY);
+		painter.drawLine(drawTraceX + (m_itemWidth/2.0),drawTraceY,width(),drawTraceY);
+		painter.drawLine(drawTraceX,0,drawTraceX,drawTraceY - (m_itemHeight/2.0));
+		painter.drawLine(drawTraceX,drawTraceY + (m_itemHeight/2.0),drawTraceX,height());
+		painter.drawRect(drawTraceX-(m_itemWidth/2.0),drawTraceY-(m_itemHeight/2.0),m_itemWidth,m_itemHeight);
+
+		pen.setWidth(4);
+		pen.setColor(QColor::fromRgb(160,32,240));
+		painter.setPen(pen);
+		painter.drawLine(0,drawTraceY,drawTraceX - (m_itemWidth/2),drawTraceY);
+		painter.drawLine(drawTraceX + (m_itemWidth/2.0),drawTraceY,width(),drawTraceY);
+		painter.drawLine(drawTraceX,0,drawTraceX,drawTraceY - (m_itemHeight/2.0));
+		painter.drawLine(drawTraceX,drawTraceY + (m_itemHeight/2.0),drawTraceX,height());
+		painter.drawRect(drawTraceX-(m_itemWidth/2.0),drawTraceY-(m_itemHeight/2.0),m_itemWidth,m_itemHeight);
 	}
 }
 
