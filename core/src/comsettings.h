@@ -52,6 +52,7 @@ protected:
 	void closeEvent(QCloseEvent *event);
 private slots:
 	void browseLogFolderClicked();
+	void chooseColorClicked();
 private:
 	Ui::ComSettings ui;
 signals:

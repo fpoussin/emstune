@@ -21,12 +21,14 @@
 
 #include "comsettings.h"
 #include <QFileDialog>
+#include <QColorDialog>
 ComSettings::ComSettings(QWidget *parent) : QWidget(parent)
 {
 	ui.setupUi(this);
 	connect(ui.cancelPushButton,SIGNAL(clicked()),this,SIGNAL(cancelClicked()));
 	connect(ui.savePushButton,SIGNAL(clicked()),this,SIGNAL(saveClicked()));
 	connect(ui.datalogLocationBrowseButton,SIGNAL(clicked()),this,SLOT(browseLogFolderClicked()));
+	connect(ui.chooseColorButton,SIGNAL(clicked(bool)),this,SLOT(chooseColorClicked()));
 }
 
 ComSettings::~ComSettings()
@@ -126,4 +128,12 @@ int ComSettings::getBaud()
 QString ComSettings::getComPort()
 {
 	return ui.portNameLineEdit->text();
+}
+void ComSettings::chooseColorClicked()
+{
+	QColor color = QColorDialog::getColor();
+	if (color.isValid())
+	{
+		ui.chooseColorButton->setStyleSheet(QString("background-color: ") + color.name());
+	}
 }

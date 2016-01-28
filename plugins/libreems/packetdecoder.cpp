@@ -3,6 +3,7 @@
 #include <QMutexLocker>
 #include "memorylocationinfo.h"
 #include <QDateTime>
+#include <QFile>
 #define NAK 0x02
 
 PacketDecoder::PacketDecoder(QObject *parent) : QObject(parent)
@@ -322,6 +323,7 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 					unsigned short ramaddress;
 					unsigned short flashaddress;
 					unsigned short size;
+					unsigned short descid;
 					test += parsedPacket.payload[1];
 
 
@@ -353,6 +355,9 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 					flashaddress += (unsigned char)parsedPacket.payload[9];
 					size = ((unsigned char)parsedPacket.payload[10]) << 8;
 					size += (unsigned char)parsedPacket.payload[11];
+					//descid = ((unsigned char)parsedPacket.payload[12]) << 8;
+					//descid += (unsigned char)parsedPacket.payload[13];
+					descid = (unsigned char)parsedPacket.payload[12];
 
 					//info.locationid = locationid;
 					info.parent = parent;
@@ -362,6 +367,7 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 					info.flashpage = flashpage;
 					info.rawflags = test;
 					info.size = size;
+					info.descid = descid;
 
 					info.propertymap.append(QPair<QString,QString>("parent","0x" + QString::number(parent,16).toUpper()));
 					info.propertymap.append(QPair<QString,QString>("rampage","0x" + QString::number(rampage,16).toUpper()));
@@ -406,19 +412,20 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 					qDebug() << flags;
 					if (flaglist.contains(BLOCK_SPARE_10))
 					{
-						info.type = DATA_TABLE_2D_32BIT;
+						info.type = DATA_TABLE;
 					}
 					else if (flaglist.contains(BLOCK_IS_2D_TABLE))
 					{
-						info.type = DATA_TABLE_2D;
+						info.type = DATA_TABLE;
 					}
 					else if (flaglist.contains(BLOCK_IS_2D_SIGNED_TABLE))
 					{
-						info.type = DATA_TABLE_2D_SIGNED;
+						info.type = DATA_TABLE;
 					}
 					else if (flaglist.contains(BLOCK_IS_MAIN_TABLE))
 					{
-						info.type = DATA_TABLE_3D;
+						//info.type = DATA_TABLE_3D;
+						info.type = DATA_TABLE;
 					}
 					else if (flaglist.contains(BLOCK_IS_CONFIGURATION))
 					{
@@ -514,6 +521,59 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 				isPartialPacketWaiting=false;
 			}
 
+		}
+		else if (payloadid == 0x030D)
+		{
+			qDebug() << "Field Descriptor packet:" << parsedPacket.header.toHex();
+			//Field descriptor
+			if (!isPartialPacketWaiting)
+			{
+				isPartialPacketWaiting = true;
+				m_partialPacketBuffer.clear();
+				m_currentPartialPacketSequence = parsedPacket.partialSequence-1;
+			}
+			if (m_currentPartialPacketSequence != parsedPacket.partialSequence-1)
+			{
+				//Current is not directly after!!!
+			}
+			m_partialPacketBuffer.append(parsedPacket.payload);
+			m_currentPartialPacketSequence = parsedPacket.partialSequence;
+			if (parsedPacket.isComplete)
+			{
+				//Final in sequence
+				emit fieldDescriptor(m_partialPacketBuffer);
+				isPartialPacketWaiting=false;
+			}
+		}
+		else if (payloadid == 0x030F)
+		{
+			qDebug() << "Table Descriptor packet:" << parsedPacket.header.toHex();
+			//Field descriptor
+			if (!isPartialPacketWaiting)
+			{
+				isPartialPacketWaiting = true;
+				m_partialPacketBuffer.clear();
+				m_currentPartialPacketSequence = parsedPacket.partialSequence-1;
+			}
+			if (m_currentPartialPacketSequence != parsedPacket.partialSequence-1)
+			{
+				//Current is not directly after!!!
+			}
+			m_partialPacketBuffer.append(parsedPacket.payload);
+			m_currentPartialPacketSequence = parsedPacket.partialSequence;
+			if (parsedPacket.isComplete)
+			{
+				//Final in sequence
+				emit tableDescriptor(m_partialPacketBuffer);
+
+				//QFile jsonfile("C:\\Users\Michael\\EMStudio\\logs\\2016.01.11-05.28.15.tables.json");
+				//jsonfile.open(QIODevice::ReadOnly);
+				//jsonfile.write(json.toLatin1());
+				//QByteArray partial = jsonfile.readAll();
+				//jsonfile.close();
+				//emit tableDescriptor(partial);
+				isPartialPacketWaiting=false;
+			}
 		}
 		else if (payloadid == BENCHTEST+1)
 		{

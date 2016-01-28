@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include "packet.h"
+#include "datatype.h"
+#include "formattype.h"
 #include "memorylocationinfo.h"
 #include <QMap>
 
@@ -35,6 +37,8 @@ signals:
 	void commandSuccessful(int sequencenum);
 	void commandFailed(int sequencenum,unsigned short errornum);
 	void datalogDescriptor(QString data);
+	void fieldDescriptor(QString data);
+	void tableDescriptor(QString data);
 	void packetNaked(unsigned short payloadid,QByteArray header,QByteArray payload,unsigned short errornum);
 	void packetAcked(unsigned short payloadid,QByteArray header,QByteArray payload);
 	void partialPacketAcked(unsigned short payloadid,QByteArray header,QByteArray payload);

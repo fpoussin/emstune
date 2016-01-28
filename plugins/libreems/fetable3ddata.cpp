@@ -32,6 +32,7 @@ void FETable3DData::setData(unsigned short locationid,bool isflashonly, QByteArr
 	m_acccessMutex->lock();
 	Q_UNUSED(locationid)
 	m_isFlashOnly = isflashonly;
+	m_locationId = locationid;
 	m_xAxis.clear();
 	m_yAxis.clear();
 	m_values.clear();
@@ -41,23 +42,23 @@ void FETable3DData::setData(unsigned short locationid,bool isflashonly, QByteArr
 	QLOG_DEBUG() << "YAxis:" << yaxissize;
 
 
-	m_maxCalcedXAxis = calcAxis(65535,m_metaData.xAxisCalc);
-	m_maxCalcedYAxis = calcAxis(65535,m_metaData.yAxisCalc);
-	m_maxCalcedValue = calcAxis(65535,m_metaData.zAxisCalc);
+	m_maxCalcedXAxis = calcAxis(65535,x_metaData);
+	m_maxCalcedYAxis = calcAxis(65535,y_metaData);
+	m_maxCalcedValue = calcAxis(65535,z_metaData);
 
-	m_minCalcedXAxis = calcAxis(0,m_metaData.xAxisCalc);
-	m_minCalcedYAxis = calcAxis(0,m_metaData.yAxisCalc);
-	m_minCalcedValue = calcAxis(0,m_metaData.zAxisCalc);
+	m_minCalcedXAxis = calcAxis(0,x_metaData);
+	m_minCalcedYAxis = calcAxis(0,y_metaData);
+	m_minCalcedValue = calcAxis(0,z_metaData);
 
 	for (int i=0;i<xaxissize*2;i+=2)
 	{
 		unsigned short val = (((unsigned char)data[4+i]) << 8) + (unsigned char)data[5+i];
-		m_xAxis.append(calcAxis(val,m_metaData.xAxisCalc));
+		m_xAxis.append(calcAxis(val,x_metaData));
 	}
 	for (int i=0;i<yaxissize*2;i+=2)
 	{
 		unsigned short val = (((unsigned char)data[58+i]) << 8) + (unsigned char)data[59+i];
-		m_yAxis.append(calcAxis(val,m_metaData.yAxisCalc));
+		m_yAxis.append(calcAxis(val,y_metaData));
 	}
 	for (int y=0;y<yaxissize*2;y+=2)
 	{
@@ -65,7 +66,7 @@ void FETable3DData::setData(unsigned short locationid,bool isflashonly, QByteArr
 		for (int x=0;x<xaxissize*2;x+=2)
 		{
 			unsigned short val = (((unsigned char)data[100 + x + (y * xaxissize)]) << 8) + (unsigned char)data[101 + x + (y * xaxissize)];
-			currrow.append(calcAxis(val,m_metaData.zAxisCalc));
+			currrow.append(calcAxis(val,z_metaData));
 		}
 		m_values.append(currrow);
 	}
@@ -73,12 +74,13 @@ void FETable3DData::setData(unsigned short locationid,bool isflashonly, QByteArr
 	emit update();
 }
 
-void FETable3DData::setData(unsigned short locationid,bool isflashonly,QByteArray data,Table3DMetaData metadata)
+void FETable3DData::setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta,FieldMeta zMeta)
 {
-	m_locationId = locationid;
-	m_metaData = metadata;
-	m_isFlashOnly = isflashonly;
-	setData(locationid,isflashonly,data);
+//	m_metaData = metadata;
+	m_tableMeta = metadata;
+	x_metaData = xMeta;
+	y_metaData = yMeta;
+	z_metaData = zMeta;
 }
 double FETable3DData::maxCalcedXAxis()
 {
@@ -154,7 +156,7 @@ void FETable3DData::setXAxis(int index,double val)
 {
 	QMutexLocker locker(m_acccessMutex);
 	QByteArray data;
-	unsigned short newval = backConvertAxis(val,m_metaData.xAxisCalc);
+	unsigned short newval = backConvertAxis(val,x_metaData);
 	data.append((char)((newval >> 8) & 0xFF));
 	data.append((char)(newval & 0xFF));
 	if (!m_isFlashOnly)
@@ -182,7 +184,7 @@ void FETable3DData::setYAxis(int index,double val)
 {
 	QMutexLocker locker(m_acccessMutex);
 	QByteArray data;
-	unsigned short newval = backConvertAxis(val,m_metaData.yAxisCalc);
+	unsigned short newval = backConvertAxis(val,y_metaData);
 	data.append((char)((newval >> 8) & 0xFF));
 	data.append((char)(newval & 0xFF));
 	if (!m_isFlashOnly)
@@ -199,7 +201,7 @@ void FETable3DData::setCell(int yIndex, int xIndex,double val)
 {
 	QMutexLocker locker(m_acccessMutex);
 	QByteArray data;
-	unsigned short newval = backConvertAxis(val,m_metaData.zAxisCalc);
+	unsigned short newval = backConvertAxis(val,z_metaData);
 	data.append((char)((newval >> 8) & 0xFF));
 	data.append((char)(newval & 0xFF));
 	if (!m_isFlashOnly)
@@ -230,7 +232,7 @@ QByteArray FETable3DData::data()
 	data.append((char)(yaxissize & 0xFF));
 	for (int i=0;i<m_xAxis.size();i++)
 	{
-		unsigned short val = backConvertAxis(m_xAxis[i],m_metaData.xAxisCalc);
+		unsigned short val = backConvertAxis(m_xAxis[i],x_metaData);
 		data.append((char)((val>> 8) & 0xFF));
 		data.append((char)(val & 0xFF));
 	}
@@ -240,7 +242,7 @@ QByteArray FETable3DData::data()
 	}
 	for (int i=0;i<m_yAxis.size();i++)
 	{
-		unsigned short val = backConvertAxis(m_yAxis[i],m_metaData.yAxisCalc);
+		unsigned short val = backConvertAxis(m_yAxis[i],y_metaData);
 		data.append((char)((val>> 8) & 0xFF));
 		data.append((char)(val & 0xFF));
 	}
@@ -252,7 +254,7 @@ QByteArray FETable3DData::data()
 	{
 		for (int j=0;j<m_values[i].size();j++)
 		{
-			unsigned short val = backConvertAxis(m_values[i][j],m_metaData.zAxisCalc);
+			unsigned short val = backConvertAxis(m_values[i][j],z_metaData);
 			data.append((char)((val>> 8) & 0xFF));
 			data.append((char)(val & 0xFF));
 		}
@@ -293,8 +295,9 @@ int FETable3DData::rows()
 	QMutexLocker locker(m_acccessMutex);
 	return m_yAxis.size();
 }
-double FETable3DData::calcAxis(int val,QList<QPair<QString,double> > metadata)
+double FETable3DData::calcAxis(int val,FieldMeta metadata)
 {
+	/*
     if (metadata.size() == 0)
     {
         return val;
@@ -319,10 +322,17 @@ double FETable3DData::calcAxis(int val,QList<QPair<QString,double> > metadata)
             newval /= metadata[j].second;
         }
     }
-    return newval;
+    return newval;*/
+	if (m_tableMeta.valid)
+	{
+		double newval = (val * metadata.multiplier) + metadata.adder;
+		return newval;
+	}
+	return (val);
 }
-int FETable3DData::backConvertAxis(double val,QList<QPair<QString,double> > metadata)
+int FETable3DData::backConvertAxis(double val,FieldMeta metadata)
 {
+	/*
     if (metadata.size() == 0)
     {
         return val;
@@ -347,7 +357,13 @@ int FETable3DData::backConvertAxis(double val,QList<QPair<QString,double> > meta
             newval *= metadata[j].second;
         }
     }
-    return (unsigned short)newval;
+    return (unsigned short)newval;*/
+	if (m_tableMeta.valid)
+	{
+		double newval = (val - metadata.adder) / metadata.multiplier;
+		return (quint16)newval;
+	}
+	return (quint16)val;
 }
 void FETable3DData::updateFromFlash()
 {

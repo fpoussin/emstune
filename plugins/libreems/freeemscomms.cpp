@@ -28,6 +28,7 @@
 #include "fetable3ddata.h"
 #include "feconfigdata.h"
 #include "QsLog.h"
+#include "paths.h"
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QJsonArray>
@@ -53,6 +54,8 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	connect(dataPacketDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SIGNAL(dataLogPayloadDecoded(QVariantMap)));
 	connect(dataPacketDecoder,SIGNAL(resetDetected(int)),this,SIGNAL(resetDetected(int)));
 	m_metaDataParser = new FEMemoryMetaData();
+
+	//m_metaDataParser->loadMetaDataFromFile(Paths::getDefaultsDir() + "/libreems.config.json");
 	m_metaDataParser->loadMetaDataFromFile("libreems.config.json");
 
 
@@ -88,6 +91,9 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	connect(m_packetDecoder,SIGNAL(benchTestReply(unsigned short,unsigned char)),this,SIGNAL(benchTestReply(unsigned short,unsigned char)));
 	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),this,SIGNAL(datalogDescriptor(QString)));
 	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),this,SLOT(saveDatalogDescriptor(QString)));
+	connect(m_packetDecoder,SIGNAL(fieldDescriptor(QString)),this,SLOT(fieldDescriptor(QString)));
+	connect(m_packetDecoder,SIGNAL(tableDescriptor(QString)),this,SLOT(tableDescriptor(QString)));
+
 	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),dataPacketDecoder,SLOT(datalogDescriptor(QString)));
 
 	m_lastdatalogTimer = new QTimer(this);
@@ -417,6 +423,16 @@ void FreeEmsComms::startInterrogation()
 		emit interrogateTaskStart("Datalog Descriptor request",seq);
 		m_interrogatePacketList.append(seq);
 
+		seq = getFieldDescriptor();
+		emit interrogateTaskStart("Field Descriptor request",seq);
+		m_interrogatePacketList.append(seq);
+
+		seq = getTableDescriptor();
+		emit interrogateTaskStart("Table Descriptor request",seq);
+		m_interrogatePacketList.append(seq);
+
+
+
 		seq = getLocationIdList(0x00,0x00);
 		emit interrogateTaskStart("Ecu Info Location ID List",seq);
 		m_interrogatePacketList.append(seq);
@@ -458,9 +474,30 @@ int FreeEmsComms::getDatalogDescriptor()
 	req.type = GET_DATALOG_DESCRIPTOR;
 	req.sequencenumber = m_sequenceNumber;
 	req.hasReply = true;
-        m_sequenceNumber++;
+	m_sequenceNumber++;
 	sendPacket(req);
-        return m_sequenceNumber-1;
+	return m_sequenceNumber-1;
+}
+
+int FreeEmsComms::getFieldDescriptor()
+{
+	RequestClass req;
+	req.type = GET_FIELD_DESCRIPTOR;
+	req.sequencenumber = m_sequenceNumber;
+	req.hasReply = true;
+	m_sequenceNumber++;
+	sendPacket(req);
+	return m_sequenceNumber-1;
+}
+int FreeEmsComms::getTableDescriptor()
+{
+	RequestClass req;
+	req.type = RETRIEVE_JSON_TABLE_DESCRIPTOR;
+	req.sequencenumber = m_sequenceNumber;
+	req.hasReply = true;
+	m_sequenceNumber++;
+	sendPacket(req);
+	return m_sequenceNumber-1;
 }
 void FreeEmsComms::connectSerial(QString port,int baud)
 {
@@ -1180,11 +1217,11 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 			emsData.setLocalFlashBlock(locid,emsData.getDeviceFlashBlock(locid));
 			if (m_2dTableMap.contains(locid))
 			{
-		m_2dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid),m_metaDataParser->get2DMetaData(locid),false);
+				m_2dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid));
 			}
 			if (m_3dTableMap.contains(locid))
 			{
-		m_3dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid),m_metaDataParser->get3DMetaData(locid));
+				m_3dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid));
 			}
 			if (m_rawDataMap.contains(locid))
 			{
@@ -1212,11 +1249,11 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 			emsData.setLocalRamBlock(locid,emsData.getDeviceRamBlock(locid));
 			if (m_2dTableMap.contains(locid))
 			{
-				m_2dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalRamBlock(locid),m_metaDataParser->get2DMetaData(locid),false);
+				m_2dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalRamBlock(locid));
 			}
 			if (m_3dTableMap.contains(locid))
 			{
-				m_3dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalRamBlock(locid),m_metaDataParser->get3DMetaData(locid));
+				m_3dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalRamBlock(locid));
 			}
 			if (m_rawDataMap.contains(locid))
 			{
@@ -1523,11 +1560,11 @@ void FreeEmsComms::locationIdUpdate(unsigned short locationid)
 		//QLOG_DEBUG() << "Updating location id:" << QString::number(updatelist[i],16);
 		if (m_2dTableMap.contains(updatelist[i]))
 		{
-			m_2dTableMap[updatelist[i]]->setData(updatelist[i],!emsData.hasDeviceRamBlock(updatelist[i]),emsData.getDeviceRamBlock(updatelist[i]),m_metaDataParser->get2DMetaData(updatelist[i]),false);
+			m_2dTableMap[updatelist[i]]->setData(updatelist[i],!emsData.hasDeviceRamBlock(updatelist[i]),emsData.getDeviceRamBlock(updatelist[i]));
 		}
 		if (m_3dTableMap.contains(updatelist[i]))
 		{
-			m_3dTableMap[updatelist[i]]->setData(updatelist[i],!emsData.hasDeviceRamBlock(updatelist[i]),emsData.getDeviceRamBlock(updatelist[i]),m_metaDataParser->get3DMetaData(updatelist[i]));
+			m_3dTableMap[updatelist[i]]->setData(updatelist[i],!emsData.hasDeviceRamBlock(updatelist[i]),emsData.getDeviceRamBlock(updatelist[i]));
 		}
 		if (m_rawDataMap.contains(updatelist[i]))
 		{
@@ -1555,11 +1592,11 @@ void FreeEmsComms::copyFlashToRam(unsigned short locationid)
 	emsData.setLocalRamBlock(locationid,emsData.getLocalFlashBlock(locationid));
 	if (m_2dTableMap.contains(locationid))
 	{
-		m_2dTableMap[locationid]->setData(locationid,!emsData.hasLocalRamBlock(locationid),emsData.getLocalRamBlock(locationid),m_metaDataParser->get2DMetaData(locationid),false);
+		m_2dTableMap[locationid]->setData(locationid,!emsData.hasLocalRamBlock(locationid),emsData.getLocalRamBlock(locationid));
 	}
 	if (m_3dTableMap.contains(locationid))
 	{
-		m_3dTableMap[locationid]->setData(locationid,!emsData.hasLocalRamBlock(locationid),emsData.getLocalRamBlock(locationid),m_metaDataParser->get3DMetaData(locationid));
+		m_3dTableMap[locationid]->setData(locationid,!emsData.hasLocalRamBlock(locationid),emsData.getLocalRamBlock(locationid));
 	}
 	if (m_rawDataMap.contains(locationid))
 	{
@@ -1700,20 +1737,46 @@ void FreeEmsComms::locationIdInfoRec(MemoryLocationInfo info)
 	}
 	unsigned short locationid = m_currentWaitingRequest.args[0].toInt();
 	info.locationid = locationid;
+	TableMeta tableMeta;
+	FieldMeta xMeta;
+	FieldMeta yMeta;
+	FieldMeta zMeta;
+	if (m_tableMetaMap.contains(info.descid))
+	{
+		//We have metadata!
+		tableMeta = m_tableMetaMap.value(info.descid);
+		tableMeta.size = info.size;
+		m_tableMetaMap.remove(info.descid);
+		m_tableMetaMap.insert(info.descid,tableMeta);
+		xMeta = m_fieldMetaMap.value(tableMeta.xAxisId);
+		yMeta = m_fieldMetaMap.value(tableMeta.yAxisId);
+		zMeta = m_fieldMetaMap.value(tableMeta.zAxisId);
+		info.metaData = tableMeta;
+		info.xAxis = xMeta;
+		info.yAxis = yMeta;
+		info.zAxis = zMeta;
+	}
+	else
+	{
+		tableMeta.valid = false;
+		info.metaData = tableMeta;
+	}
+
 	emit locationIdInfo(locationid,info);
 	emsData.passLocationInfo(locationid,info);
 	QLOG_DEBUG() << "Got memory location:" << info.locationid;
-	if (info.type == DATA_TABLE_2D || info.type == DATA_TABLE_2D_32BIT)
+	if ((tableMeta.formatId == TABLE_2D_STRUCTURED || tableMeta.formatId == TABLE_2D_LEGACY) && tableMeta.valid)
 	{
 		Table2DData *data = 0;
-		if (info.type == DATA_TABLE_2D)
-		{
-			data = new FETable2DData(false);
-		}
-		else
+		if (xMeta.size == 32)
 		{
 			data = new FETable2DData(true);
 		}
+		else
+		{
+			data = new FETable2DData(false);
+		}
+		data->setMetaData(tableMeta,xMeta,zMeta);
 		connect(data,SIGNAL(saveSingleDataToRam(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(ramBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(data,SIGNAL(saveSingleDataToFlash(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(flashBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(data,SIGNAL(requestBlockFromRam(unsigned short,unsigned short,unsigned short)),this,SLOT(retrieveBlockFromRam(unsigned short,unsigned short,unsigned short)));
@@ -1721,10 +1784,12 @@ void FreeEmsComms::locationIdInfoRec(MemoryLocationInfo info)
 		connect(data,SIGNAL(requestRamUpdateFromFlash(unsigned short)),this,SLOT(copyFlashToRam(unsigned short)));
 		connect(data,SIGNAL(requestFlashUpdateFromRam(unsigned short)),this,SLOT(copyRamToFlash(unsigned short)));
 		m_2dTableMap[locationid] = data;
+		return;
 	}
-	else if (info.type == DATA_TABLE_3D)
+	else if (tableMeta.formatId == TABLE_3D && tableMeta.valid)
 	{
 		Table3DData *data = new FETable3DData();
+		data->setMetaData(tableMeta,xMeta,yMeta,zMeta);
 		connect(data,SIGNAL(saveSingleDataToRam(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(ramBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(data,SIGNAL(saveSingleDataToFlash(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(flashBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
 		connect(data,SIGNAL(requestBlockFromRam(unsigned short,unsigned short,unsigned short)),this,SLOT(retrieveBlockFromRam(unsigned short,unsigned short,unsigned short)));
@@ -1732,16 +1797,14 @@ void FreeEmsComms::locationIdInfoRec(MemoryLocationInfo info)
 		connect(data,SIGNAL(requestRamUpdateFromFlash(unsigned short)),this,SLOT(copyFlashToRam(unsigned short)));
 		connect(data,SIGNAL(requestFlashUpdateFromRam(unsigned short)),this,SLOT(copyRamToFlash(unsigned short)));
 		m_3dTableMap[locationid] = data;
+		return;
 	}
-	else
-	{
-		RawData *data = new FERawData();
-		connect(data,SIGNAL(saveSingleDataToRam(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(ramBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
-		connect(data,SIGNAL(saveSingleDataToFlash(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(flashBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
-		connect(data,SIGNAL(requestBlockFromRam(unsigned short,unsigned short,unsigned short)),this,SLOT(retrieveBlockFromRam(unsigned short,unsigned short,unsigned short)));
-		connect(data,SIGNAL(requestBlockFromFlash(unsigned short,unsigned short,unsigned short)),this,SLOT(retrieveBlockFromFlash(unsigned short,unsigned short,unsigned short)));
-		m_rawDataMap[locationid] = data;
-	}
+	RawData *data = new FERawData();
+	connect(data,SIGNAL(saveSingleDataToRam(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(ramBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
+	connect(data,SIGNAL(saveSingleDataToFlash(unsigned short,unsigned short,unsigned short,QByteArray)),&emsData,SLOT(flashBytesLocalUpdate(unsigned short,unsigned short,unsigned short,QByteArray)));
+	connect(data,SIGNAL(requestBlockFromRam(unsigned short,unsigned short,unsigned short)),this,SLOT(retrieveBlockFromRam(unsigned short,unsigned short,unsigned short)));
+	connect(data,SIGNAL(requestBlockFromFlash(unsigned short,unsigned short,unsigned short)),this,SLOT(retrieveBlockFromFlash(unsigned short,unsigned short,unsigned short)));
+	m_rawDataMap[locationid] = data;
 }
 
 void FreeEmsComms::ramLocationMarkedDirty(unsigned short locationid)
@@ -1798,6 +1861,93 @@ void FreeEmsComms::saveDatalogDescriptor(QString json)
 	jsonfile.write(json.toLatin1());
 	jsonfile.close();
 }
+void FreeEmsComms::fieldDescriptor(QString json)
+{
+	QFile jsonfile(m_logsDirectory + "/" + m_logsFilename + ".fields.json");
+	jsonfile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+	jsonfile.write(json.toLatin1());
+	jsonfile.close();
+
+	QJsonDocument document = QJsonDocument::fromJson(json.toLatin1());
+	if (document.isEmpty())
+	{
+		//qDebug() << "Unable to parse datalog descriptor json:" << parser.errorString();
+		return;
+	}
+	QJsonObject toplevelobject = document.object();
+	QJsonArray descriptorlist = toplevelobject.value("descriptor").toArray();
+	for (int i=0;i<descriptorlist.size();i++)
+	{
+		QJsonObject itemmap = descriptorlist.at(i).toObject();
+		int id = itemmap.value("id").toInt();
+		int size = itemmap.value("size").toInt();
+		int issigned = itemmap.value("is_signed").toInt();
+		//int locid = itemmap.value("locationId").toInt();
+		QString name = itemmap.value("name").toString();
+		QString desc = itemmap.value("description").toString();
+		double mult = itemmap.value("multiplier").toString().toDouble();
+		double adder = itemmap.value("adder").toString().toDouble();
+		QString transfer = itemmap.value("transfer_function").toString();
+		QString flags = itemmap.value("flags").toString();
+		QString suffix = itemmap.value("suffix").toString();
+
+		FieldMeta meta;
+
+		meta.id = id;
+		meta.size = size;
+		meta.isSigned = issigned;
+		meta.name = name;
+		meta.desc = desc;
+		meta.multiplier = mult;
+		meta.adder = adder;
+		meta.trasnfer = transfer;
+		meta.flags = flags;
+		meta.suffix = suffix;
+		meta.valid = true;
+		m_fieldMetaMap[id] = meta;
+	}
+}
+void FreeEmsComms::tableDescriptor(QString json)
+{
+	QFile jsonfile(m_logsDirectory + "/" + m_logsFilename + ".tables.json");
+	jsonfile.open(QIODevice::ReadWrite | QIODevice::Truncate);
+	jsonfile.write(json.toLatin1());
+	jsonfile.close();
+
+	QJsonDocument document = QJsonDocument::fromJson(json.toLatin1());
+	if (document.isEmpty())
+	{
+		//qDebug() << "Unable to parse datalog descriptor json:" << parser.errorString();
+		return;
+	}
+	QJsonObject toplevelobject = document.object();
+	QJsonArray descriptorlist = toplevelobject.value("descriptor").toArray();
+	for (int i=0;i<descriptorlist.size();i++)
+	{
+		QJsonObject itemmap = descriptorlist.at(i).toObject();
+		int id = itemmap.value("id").toString().toInt();
+		//int locid = itemmap.value("locationId").toInt();
+		QString name = itemmap.value("name").toString();
+		QString desc = itemmap.value("description").toString();
+		int format_id = itemmap.value("format_id").toString().toInt();
+		int xAxis_id = itemmap.value("xAxisID").toString().toInt();
+		int yAxis_id = itemmap.value("yAxisID").toString().toInt();
+		int zAxis_id = itemmap.value("lookupID").toString().toInt();
+
+		TableMeta meta;
+		meta.id = id;
+		//meta.locationId = locid;
+		meta.name = name;
+		meta.desc = desc;
+		meta.formatId = format_id;
+		meta.xAxisId = xAxis_id;
+		meta.yAxisId = yAxis_id;
+		meta.zAxisId = zAxis_id;
+		meta.valid = true;
+		m_tableMetaMap[id] = meta;
+	}
+}
+
 void FreeEmsComms::serialPortDisconnected()
 {
 	m_state = 1;

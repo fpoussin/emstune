@@ -34,7 +34,8 @@ class FETable2DData : public Table2DData
 	Q_OBJECT
 public:
 	FETable2DData(bool is32bit);
-	void setData(unsigned short locationid,bool isflashonly, QByteArray payload,Table2DMetaData metadata,bool signedData);
+	void setData(unsigned short locationid,bool isflashonly, QByteArray payload);
+	void setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta);
 	QByteArray data();
 	double maxActualXAxis();
 	double maxActualYAxis();
@@ -55,8 +56,8 @@ public:
 	void setWritesEnabled(bool enabled);
 	void writeWholeLocation(bool ram);
 	bool isRam() { return !m_isFlashOnly; }
-	double calcAxis(qint64 val,QList<QPair<QString,double> > metadata);
-	quint64 backConvertAxis(double val,QList<QPair<QString,double> > metadata);
+	double calcAxis(qint64 val,FieldMeta metadata);
+	quint64 backConvertAxis(double val,FieldMeta metadata);
 private:
 	bool m_is32Bit;
 	QMutex *m_acccessMutex;
@@ -73,7 +74,10 @@ private:
 	double m_minCalcedXAxis;
 	double m_minCalcedYAxis;
 
-	Table2DMetaData m_metaData;
+	//Table2DMetaData m_metaData;
+	TableMeta m_tableMeta;
+	FieldMeta x_metaData;
+	FieldMeta y_metaData;
 	unsigned short m_locationId;
 	QList<double> m_axis;
 	QList<double> m_values;

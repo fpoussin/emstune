@@ -76,6 +76,8 @@ public:
 	int getBuiltByName();
 	int getOperatingSystem();
 	int getDatalogDescriptor();
+	int getFieldDescriptor();
+	int getTableDescriptor();
 	int echoPacket(QByteArray packet);
 	Q_INVOKABLE int startBenchTest(unsigned char eventspercycle,unsigned short numcycles,unsigned short ticksperevent,QVariantList pineventmask,QVariantList pinmode);
 	Q_INVOKABLE int stopBenchTest();
@@ -187,6 +189,8 @@ private:
 	QMap<QString,QString> m_interrogationMetaDataMap;
 	void sendNextInterrogationPacket();
 	QList<unsigned int> m_dirtyRamAddresses;
+	QMap<int,TableMeta> m_tableMetaMap;
+	QMap<int,FieldMeta> m_fieldMetaMap;
 signals:
 	void packetSent(unsigned short locationid,QByteArray header,QByteArray payload);
 	void packetAcked(unsigned short locationid,QByteArray header,QByteArray payload);
@@ -267,6 +271,8 @@ private slots:
 	void supportEmail(QString email);
 	void timeoutTimerTick();
 	void saveDatalogDescriptor(QString json);
+	void fieldDescriptor(QString json);
+	void tableDescriptor(QString json);
 
 
 };

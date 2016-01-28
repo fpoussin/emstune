@@ -38,6 +38,8 @@ public:
 	void getMaxPacketSize();
 	void getOperatingSystem();
 	void getDatalogDescriptor();
+	void getFieldDescriptor();
+	void getTableDescriptor();
 	void getLocationIdList();
 	void getLocationIdInfo(unsigned short locid);
 	void getBlockInRam(unsigned short locid,unsigned short offset,unsigned short size);
@@ -82,6 +84,8 @@ private slots:
 	void sendLocationIdInfo();
 	void sendLocationIdList();
 	void sendDatalogDescriptor();
+	void sendFieldDescriptor();
+	void sendTableDescriptor();
 	void sendOperatingSystem();
 	void sendMaxPacketSize();
 	void sendFirmwareBuildDate();

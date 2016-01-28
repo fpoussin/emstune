@@ -427,19 +427,20 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 					qDebug() << flags;
 					if (flaglist.contains(BLOCK_SPARE_10))
 					{
-						info.type = DATA_TABLE_2D_32BIT;
+						info.type = DATA_TABLE;
 					}
 					else if (flaglist.contains(BLOCK_IS_2D_TABLE))
 					{
-						info.type = DATA_TABLE_2D;
+						info.type = DATA_TABLE;
 					}
 					else if (flaglist.contains(BLOCK_IS_2D_SIGNED_TABLE))
 					{
-						info.type = DATA_TABLE_2D_SIGNED;
+						info.type = DATA_TABLE;
 					}
 					else if (flaglist.contains(BLOCK_IS_MAIN_TABLE))
 					{
-						info.type = DATA_TABLE_3D;
+						//info.type = DATA_TABLE_3D;
+						info.type = DATA_TABLE;
 					}
 					else if (flaglist.contains(BLOCK_IS_CONFIGURATION))
 					{

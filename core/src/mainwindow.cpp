@@ -233,7 +233,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	m_logFileName = QDateTime::currentDateTime().toString("yyyy.MM.dd-hh.mm.ss");
 
 	emsInfo = new EmsInfoView();
-	connect(emsInfo,SIGNAL(displayLocationId(int,bool,DataType)),this,SLOT(emsInfoDisplayLocationId(int,bool,DataType)));
+	connect(emsInfo,SIGNAL(displayLocationId(int,bool,FormatType)),this,SLOT(emsInfoDisplayLocationId(int,bool,FormatType)));
 
 	emsMdiWindow = ui.mdiArea->addSubWindow(emsInfo);
 	emsMdiWindow->setGeometry(emsInfo->geometry());
@@ -909,9 +909,9 @@ void MainWindow::showTable(QString table)
 
 }
 
-void MainWindow::createView(unsigned short locid,DataType type)
+void MainWindow::createView(unsigned short locid,FormatType type)
 {
-	if (type == DATA_TABLE_3D)
+	if (type == TABLE_3D)
 	{
 		Table3DData *data = emsComms->get3DTableData(locid);
 		TableView3D *view = new TableView3D();
@@ -938,7 +938,7 @@ void MainWindow::createView(unsigned short locid,DataType type)
 		QApplication::postEvent(win, new QEvent(QEvent::Show));
 		QApplication::postEvent(win, new QEvent(QEvent::WindowActivate));
 	}
-	else if (type == DATA_TABLE_2D || type == DATA_TABLE_2D_32BIT)
+	else if (type == TABLE_2D_STRUCTURED || type == TABLE_2D_STRUCTURED || type == TABLE_2D_STRUCTURED)
 	{
 		Table2DData *data = emsComms->get2DTableData(locid);
 		TableView2D *view = new TableView2D();
@@ -983,7 +983,7 @@ void MainWindow::createView(unsigned short locid,DataType type)
 }
 
 
-void MainWindow::emsInfoDisplayLocationId(int locid,bool isram,DataType type)
+void MainWindow::emsInfoDisplayLocationId(int locid,bool isram,FormatType type)
 {
 	Q_UNUSED(isram)
 	if (!m_rawDataView.contains(locid))
@@ -1168,9 +1168,17 @@ void MainWindow::locationIdInfo(unsigned short locationid,MemoryLocationInfo inf
 	}
 	m_memoryInfoMap[locationid] = info;
 	QString title = "";
-	if (m_memoryMetaData->has2DMetaData(locationid))
+	if (info.metaData.valid)
 	{
-		title = m_memoryMetaData->get2DMetaData(locationid).tableTitle;
+		title = info.metaData.name;
+	}
+	else
+	{
+		title = "Unknown";
+	}
+	/*if (m_memoryMetaData->has2DMetaData(locationid))
+	{
+		//title = m_memoryMetaData->get2DMetaData(locationid).tableTitle;
 		if (m_memoryMetaData->get2DMetaData(locationid).size != info.size)
 		{
 			interrogateProgressViewCancelClicked();
@@ -1179,7 +1187,7 @@ void MainWindow::locationIdInfo(unsigned short locationid,MemoryLocationInfo inf
 	}
 	if (m_memoryMetaData->has3DMetaData(locationid))
 	{
-		title = m_memoryMetaData->get3DMetaData(locationid).tableTitle;
+		//title = m_memoryMetaData->get3DMetaData(locationid).tableTitle;
 		if (m_memoryMetaData->get3DMetaData(locationid).size != info.size)
 		{
 			interrogateProgressViewCancelClicked();
@@ -1188,13 +1196,13 @@ void MainWindow::locationIdInfo(unsigned short locationid,MemoryLocationInfo inf
 	}
 	if (m_memoryMetaData->hasRORMetaData(locationid))
 	{
-		title = m_memoryMetaData->getRORMetaData(locationid).dataTitle;
+		//title = m_memoryMetaData->getRORMetaData(locationid).dataTitle;
 		//m_readOnlyMetaDataMap[locationid]
 	}
 	if (m_memoryMetaData->hasLookupMetaData(locationid))
 	{
-		title = m_memoryMetaData->getLookupMetaData(locationid).title;
-	}
+		//title = m_memoryMetaData->getLookupMetaData(locationid).title;
+	}*/
 	//emsInfo->locationIdInfo(locationid,title,rawFlags,flags,parent,rampage,flashpage,ramaddress,flashaddress,size);
 	emsInfo->locationIdInfo(locationid,title,info);
 	//emsData->passLocationInfo(locationid,info);
@@ -1547,7 +1555,7 @@ void MainWindow::interrogationComplete()
 	QSettings windowsettings(m_settingsFile,QSettings::IniFormat);
 	QString compat = emsComms->getPluginCompat();
 	QString savecompat = windowsettings.value("plugincompat","").toString();
-	if (compat == savecompat)
+	if (compat == savecompat && false)
 	{
 		windowsettings.sync();
 		int size = windowsettings.beginReadArray("rawwindows");
@@ -1559,13 +1567,13 @@ void MainWindow::interrogationComplete()
 			QString type = windowsettings.value("type").toString();
 			if (type == "TableView2D")
 			{
-				createView(locid,DATA_TABLE_2D);
+				createView(locid,TABLE_2D_STRUCTURED);
 				QWidget *parent = (QWidget*)m_rawDataView[locid]->parent();
 				parent->restoreGeometry(windowsettings.value("location").toByteArray());
 			}
 			else if (type == "TableView3D")
 			{
-				createView(locid,DATA_TABLE_3D);
+				createView(locid,TABLE_3D);
 				QWidget *parent = (QWidget*)m_rawDataView[locid]->parent();
 				parent->restoreGeometry(windowsettings.value("location").toByteArray());
 			}

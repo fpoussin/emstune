@@ -48,7 +48,7 @@ public slots:
 private:
 	Ui::EmsInfo ui;
 signals:
-	void displayLocationId(int locid, bool isram,DataType type);
+	void displayLocationId(int locid, bool isram,FormatType type);
 	void checkSync();
 	void windowHiding(QMdiSubWindow *parent);
 };

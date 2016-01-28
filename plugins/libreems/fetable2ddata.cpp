@@ -20,6 +20,8 @@
  ************************************************************************************/
 
 #include "fetable2ddata.h"
+#include "formattype.h"
+
 #include <QDebug>
 FETable2DData::FETable2DData(bool is32bit) : Table2DData()
 {
@@ -46,18 +48,18 @@ void FETable2DData::reCalcAxisData()
 {
 	if (m_is32Bit)
 	{
-		m_minActualXAxis = calcAxis(UINT_MAX,m_metaData.xAxisCalc);
-		m_minActualYAxis = calcAxis(UINT_MAX,m_metaData.yAxisCalc);
-		m_maxActualXAxis = calcAxis(0,m_metaData.xAxisCalc);
-		m_maxActualYAxis = calcAxis(0,m_metaData.yAxisCalc);
+		m_minActualXAxis = calcAxis(UINT_MAX,x_metaData);
+		m_minActualYAxis = calcAxis(UINT_MAX,y_metaData);
+		m_maxActualXAxis = calcAxis(0,x_metaData);
+		m_maxActualYAxis = calcAxis(0,y_metaData);
 
 	}
 	else
 	{
-		m_minActualXAxis = calcAxis(65535,m_metaData.xAxisCalc);
-		m_minActualYAxis = calcAxis(65535,m_metaData.yAxisCalc);
-		m_maxActualXAxis = calcAxis(0,m_metaData.xAxisCalc);
-		m_maxActualYAxis = calcAxis(0,m_metaData.yAxisCalc);
+		m_minActualXAxis = calcAxis(65535,x_metaData);
+		m_minActualYAxis = calcAxis(65535,y_metaData);
+		m_maxActualXAxis = calcAxis(0,x_metaData);
+		m_maxActualYAxis = calcAxis(0,y_metaData);
 	}
 	for (int i=0;i<m_axis.size();i++)
 	{
@@ -85,58 +87,177 @@ void FETable2DData::reCalcAxisData()
 	}
 }
 
-void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArray payload,Table2DMetaData metadata,bool signedData)
+void FETable2DData::setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta)
 {
+	m_tableMeta = metadata;
+	x_metaData = xMeta;
+	y_metaData = yMeta;
+}
+
+void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArray payload)
+{
+
+	if (locationid == 0x10E)
+	{
+		int stopper = 1;
+	}
+	//0x10E
 	m_acccessMutex->lock();
 	m_dataSize = payload.size();
-	m_isSignedData = signedData;
+	//m_isSignedData = signedData;
 	m_isFlashOnly = isflashonly;
-	m_metaData = metadata;
 
 	m_locationId = locationid;
 	m_axis.clear();
 	m_values.clear();
 
 
-	if (m_is32Bit)
-	{
-		m_maxCalcedXAxis = calcAxis(INT_MAX,metadata.xAxisCalc);
-		m_maxCalcedYAxis = calcAxis(INT_MAX,metadata.yAxisCalc);
 
-		if (m_isSignedData)
+
+
+	if (x_metaData.size == 32)
+	{
+		m_maxCalcedXAxis = calcAxis(INT_MAX,x_metaData);
+	}
+	else
+	{
+		m_maxCalcedXAxis = calcAxis(65535,x_metaData);
+	}
+	if (y_metaData.size == 32)
+	{
+		m_maxCalcedYAxis = calcAxis(INT_MAX,y_metaData);
+	}
+	else
+	{
+		m_maxCalcedYAxis = calcAxis(65535,y_metaData);
+	}
+
+	if (x_metaData.isSigned)
+	{
+		if (x_metaData.size == 32)
 		{
-			m_minCalcedXAxis = calcAxis(-65535,metadata.xAxisCalc);
-			m_minCalcedYAxis = calcAxis(-65535,metadata.yAxisCalc);
+			m_minCalcedXAxis = calcAxis(INT_MIN,x_metaData);
 		}
 		else
 		{
-			m_minCalcedXAxis = calcAxis(0,metadata.xAxisCalc);
-			m_minCalcedYAxis = calcAxis(0,metadata.yAxisCalc);
+			m_minCalcedXAxis = calcAxis(-65535,x_metaData);
 		}
-		//Reverse the min and max, so we can figure them out based on real data
-		m_minActualXAxis = calcAxis(INT_MAX,metadata.xAxisCalc);
-		m_minActualYAxis = calcAxis(INT_MAX,metadata.yAxisCalc);
-		m_maxActualXAxis = calcAxis(0,metadata.xAxisCalc);
-		m_maxActualYAxis = calcAxis(0,metadata.yAxisCalc);
-		qDebug() << "32bit 2d table!" << QString::number(locationid,16).toUpper();
-		int valuecount = 0;
+	}
+	else
+	{
+		m_minCalcedXAxis = calcAxis(0,x_metaData);
+	}
+	if (y_metaData.isSigned)
+	{
+		if (y_metaData.size == 32)
+		{
+			m_minCalcedYAxis = calcAxis(INT_MIN,y_metaData);
+		}
+		else
+		{
+			m_minCalcedYAxis = calcAxis(-65535,y_metaData);
+		}
+	}
+	else
+	{
+		m_minCalcedYAxis = calcAxis(0,y_metaData);
+	}
+	//Reverse the min and max, so we can figure them out based on real data
+	m_minActualXAxis = calcAxis(INT_MAX,x_metaData);
+	m_minActualYAxis = calcAxis(INT_MAX,y_metaData);
+	m_maxActualXAxis = calcAxis(0,x_metaData);
+	m_maxActualYAxis = calcAxis(0,y_metaData);
+	qDebug() << "32bit 2d table!" << QString::number(locationid,16).toUpper();
+	int valuecount = 0;
+	if (m_tableMeta.formatId == TABLE_2D_STRUCTURED)
+	{
+		int adder = 4;
+		if (y_metaData.size == 32)
+		{
+			adder = 6;
+		}
+		for (int i=0;i<payload.size();i+=adder)
+		{
+			double xdouble = 0;
+			double ydouble = 0;
+
+			//Iterate through all the axisvalues
+			unsigned short x = (((unsigned char)payload[i]) << 8) + ((unsigned char)payload[i+1]);
+			if (x_metaData.isSigned)
+			{
+				xdouble = calcAxis((short)x,x_metaData);
+			}
+			else
+			{
+				xdouble = calcAxis(x,x_metaData);
+			}
+			//unsigned int y = (((unsigned char)payload[(payload.size()/3)+ valuecount]) << 24) + (((unsigned char)payload[(payload.size()/3)+ valuecount+1]) << 16) + (((unsigned char)payload[(payload.size()/3)+ valuecount+2]) << 8) + ((unsigned char)payload[(payload.size()/3) + valuecount+3]);
+			if (y_metaData.size == 32)
+			{
+				unsigned int y = (((unsigned char)payload[i+2]) << 24) + (((unsigned char)payload[i+3]) << 16) << (((unsigned char)payload[i+4]) << 8) << (((unsigned char)payload[i+5]));
+				if (y_metaData.isSigned)
+				{
+					ydouble = calcAxis((short)y,y_metaData);
+				}
+				else
+				{
+					ydouble = calcAxis(y,y_metaData);
+				}
+			}
+			else
+			{
+				unsigned short y = (((unsigned char)payload[i+2]) << 8) + ((unsigned char)payload[i+3]);
+				if (y_metaData.isSigned)
+				{
+					ydouble = calcAxis((short)y,y_metaData);
+				}
+				else
+				{
+					ydouble = calcAxis(y,y_metaData);
+				}
+			}
+			if (xdouble > m_maxActualXAxis)
+			{
+				m_maxActualXAxis = xdouble;
+			}
+			if (xdouble < m_minActualXAxis)
+			{
+				m_minActualXAxis = xdouble;
+			}
+
+			if (ydouble > m_maxActualYAxis)
+			{
+				m_maxActualYAxis = ydouble;
+			}
+			if (ydouble < m_minActualYAxis)
+			{
+				m_minActualYAxis = ydouble;
+			}
+
+			m_axis.append(xdouble);
+			m_values.append(ydouble);
+		}
+	}
+	else if (m_tableMeta.formatId == TABLE_2D_LEGACY)
+	{
 		for (int i=0;i<payload.size()/3;i+=2)
 		{
 			//Iterate through all the axisvalues
 			unsigned short x = (((unsigned char)payload[i]) << 8) + ((unsigned char)payload[i+1]);
 			unsigned int y = (((unsigned char)payload[(payload.size()/3)+ valuecount]) << 24) + (((unsigned char)payload[(payload.size()/3)+ valuecount+1]) << 16) + (((unsigned char)payload[(payload.size()/3)+ valuecount+2]) << 8) + ((unsigned char)payload[(payload.size()/3) + valuecount+3]);
+			//unsigned int y = (((unsigned char)payload[i+2]) << 24) + (((unsigned char)payload[i+3]) << 16) << (((unsigned char)payload[i+4]) << 8) << (((unsigned char)payload[i+5]));
 			valuecount+=4;
 			double xdouble = 0;
 			double ydouble = 0;
-			if (signedData)
+			if (m_isSignedData)
 			{
-				xdouble = calcAxis((short)x,metadata.xAxisCalc);
-				ydouble = calcAxis((short)y,metadata.yAxisCalc);
+				xdouble = calcAxis((short)x,x_metaData);
+				ydouble = calcAxis((short)y,y_metaData);
 			}
 			else
 			{
-				xdouble = calcAxis(x,metadata.xAxisCalc);
-				ydouble = calcAxis(y,metadata.yAxisCalc);
+				xdouble = calcAxis(x,x_metaData);
+				ydouble = calcAxis(y,y_metaData);
 			}
 			if (xdouble > m_maxActualXAxis)
 			{
@@ -160,65 +281,8 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 			m_values.append(ydouble);
 		}
 	}
-	else
-	{
-		m_maxCalcedXAxis = calcAxis(65535,metadata.xAxisCalc);
-		m_maxCalcedYAxis = calcAxis(65535,metadata.yAxisCalc);
-		if (m_isSignedData)
-		{
-			m_minCalcedXAxis = calcAxis(-65535,metadata.xAxisCalc);
-			m_minCalcedYAxis = calcAxis(-65535,metadata.yAxisCalc);
-		}
-		else
-		{
-			m_minCalcedXAxis = calcAxis(0,metadata.xAxisCalc);
-			m_minCalcedYAxis = calcAxis(0,metadata.yAxisCalc);
-		}
 
-		//Reverse the min and max, so we can figure them out based on real data
-		m_minActualXAxis = calcAxis(65535,metadata.xAxisCalc);
-		m_minActualYAxis = calcAxis(65535,metadata.yAxisCalc);
-		m_maxActualXAxis = calcAxis(-65535,metadata.xAxisCalc);
-		m_maxActualYAxis = calcAxis(-65535,metadata.yAxisCalc);
-		qDebug() << "16bit 2d table!" << QString::number(locationid,16).toUpper();
-		for (int i=0;i<payload.size()/2;i+=2)
-		{
-			unsigned short x = (((unsigned char)payload[i]) << 8) + ((unsigned char)payload[i+1]);
-			unsigned short y = (((unsigned char)payload[(payload.size()/2)+ i]) << 8) + ((unsigned char)payload[(payload.size()/2) + i+1]);
-			double xdouble = 0;
-			double ydouble = 0;
-			if (signedData)
-			{
-				xdouble = calcAxis((short)x,metadata.xAxisCalc);
-				ydouble = calcAxis((short)y,metadata.yAxisCalc);
-			}
-			else
-			{
-				xdouble = calcAxis(x,metadata.xAxisCalc);
-				ydouble = calcAxis(y,metadata.yAxisCalc);
-			}
-			if (xdouble > m_maxActualXAxis)
-			{
-				m_maxActualXAxis = xdouble;
-			}
-			if (xdouble < m_minActualXAxis)
-			{
-				m_minActualXAxis = xdouble;
-			}
 
-			if (ydouble > m_maxActualYAxis)
-			{
-				m_maxActualYAxis = ydouble;
-			}
-			if (ydouble < m_minActualYAxis)
-			{
-				m_minActualYAxis = ydouble;
-			}
-
-			m_axis.append(xdouble);
-			m_values.append(ydouble);
-		}
-	}
 	m_acccessMutex->unlock();
 	emit update();
 }
@@ -299,76 +363,150 @@ void FETable2DData::setCell(int row, int column,double newval)
 	//offset = column + (row * 32), size == 2
 	//QLOG_DEBUG() << "Update:" << row << column << newval;
 	quint64 val = 0;
+	QByteArray data;
 	if (row == 0)
 	{
-		val = backConvertAxis(newval,m_metaData.xAxisCalc);
+		val = backConvertAxis(newval,x_metaData);
 		m_axis.replace(column,newval);
+		if (x_metaData.isSigned)
+		{
+			if (x_metaData.size == 32)
+			{
+				data.append((char)(((qint32)val >> 24) & 0xFF));
+				data.append((char)(((qint32)val >> 16) & 0xFF));
+				data.append((char)(((qint32)val >> 8) & 0xFF));
+				data.append((char)(((qint32)val) & 0xFF));
+			}
+			else
+			{
+				data.append((char)(((short)val >> 8) & 0xFF));
+				data.append((char)((short)val & 0xFF));
+			}
+		}
+		else
+		{
+			if (x_metaData.size == 32)
+			{
+				data.append((char)(((quint32)val >> 24) & 0xFF));
+				data.append((char)(((quint32)val >> 16) & 0xFF));
+				data.append((char)(((quint32)val >> 8) & 0xFF));
+				data.append((char)(((quint32)val) & 0xFF));
+			}
+			else
+			{
+				data.append((char)((((unsigned short)val) >> 8) & 0xFF));
+				data.append((char)(((unsigned short)val) & 0xFF));
+			}
+
+		}
 	}
 	else if (row == 1)
 	{
 
-		val = backConvertAxis(newval,m_metaData.yAxisCalc);
+		val = backConvertAxis(newval,y_metaData);
 		m_values.replace(column,newval);
+		if (y_metaData.isSigned)
+		{
+			if (y_metaData.size == 32)
+			{
+				data.append((char)(((qint32)val >> 24) & 0xFF));
+				data.append((char)(((qint32)val >> 16) & 0xFF));
+				data.append((char)(((qint32)val >> 8) & 0xFF));
+				data.append((char)(((qint32)val) & 0xFF));
+			}
+			else
+			{
+				data.append((char)(((short)val >> 8) & 0xFF));
+				data.append((char)((short)val & 0xFF));
+			}
+		}
+		else
+		{
+			if (y_metaData.size == 32)
+			{
+				data.append((char)(((quint32)val >> 24) & 0xFF));
+				data.append((char)(((quint32)val >> 16) & 0xFF));
+				data.append((char)(((quint32)val >> 8) & 0xFF));
+				data.append((char)(((quint32)val) & 0xFF));
+			}
+			else
+			{
+				data.append((char)((((unsigned short)val) >> 8) & 0xFF));
+				data.append((char)(((unsigned short)val) & 0xFF));
+			}
+
+		}
 	}
 
-	QByteArray data;
-	if (m_isSignedData)
-	{
-		if (m_is32Bit)
-		{
-			data.append((char)(((qint32)val >> 24) & 0xFF));
-			data.append((char)(((qint32)val >> 16) & 0xFF));
-			data.append((char)(((qint32)val >> 8) & 0xFF));
-			data.append((char)(((qint32)val) & 0xFF));
-		}
-		else
-		{
-			data.append((char)(((short)val >> 8) & 0xFF));
-			data.append((char)((short)val & 0xFF));
-		}
-	}
-	else
-	{
-		if (m_is32Bit)
-		{
-			data.append((char)(((quint32)val >> 24) & 0xFF));
-			data.append((char)(((quint32)val >> 16) & 0xFF));
-			data.append((char)(((quint32)val >> 8) & 0xFF));
-			data.append((char)(((quint32)val) & 0xFF));
-		}
-		else
-		{
-			data.append((char)((((unsigned short)val) >> 8) & 0xFF));
-			data.append((char)(((unsigned short)val) & 0xFF));
-		}
-	}
 	reCalcAxisData();
 	if (!m_isFlashOnly)
 	{
 		if (m_writesEnabled)
 		{
-			if (m_metaData.valid)
+			if (m_tableMeta.formatId == TABLE_2D_STRUCTURED)
 			{
-		if (m_is32Bit)
-		{
-		    emit saveSingleDataToRam(m_locationId,(column*4) + (row * m_metaData.size / 3.0),4,data);
-		}
-		else
-		{
-		    emit saveSingleDataToRam(m_locationId,(column*2)+(row * (m_metaData.size / 2.0)),2,data);
-		}
+				if (x_metaData.size == 32)
+				{
+					if (y_metaData.size == 32)
+					{
+						emit saveSingleDataToRam(m_locationId,(column*8) + (row*4),data.size(),data);
+					}
+					else
+					{
+						emit saveSingleDataToRam(m_locationId,(column*6) + (row*2),data.size(),data);
+					}
+				}
+				else if (y_metaData.size == 32)
+				{
+					emit saveSingleDataToRam(m_locationId,(column*6) + (row*4),data.size(),data);
+				}
+				else
+				{
+					emit saveSingleDataToRam(m_locationId,((column+1)*4) - ((row+1)*2),data.size(),data);
+				}
+			}
+			else if (m_tableMeta.formatId == TABLE_2D_LEGACY)
+			{
+				if (y_metaData.size == 32)
+				{
+					emit saveSingleDataToRam(m_locationId,(column*4) + (row * m_tableMeta.size / 3.0),4,data);
+				}
+				else
+				{
+					emit saveSingleDataToRam(m_locationId,(column*4) + (row * m_tableMeta.size / 3.0),4,data);
+				}
 			}
 			else
 			{
-		if (m_is32Bit)
-		{
-		    emit saveSingleDataToRam(m_locationId,(column*4) + (row * m_dataSize / 3.0),4,data);
-		}
-		else
-		{
-		    emit saveSingleDataToRam(m_locationId,(column*2)+(row * (m_dataSize / 2.0)),2,data);
-		}
+				//Error
+				int stopper = 1;
 			}
+
+			/*if (m_metaData.valid)
+			{
+				if (m_is32Bit)
+				{
+					emit saveSingleDataToRam(m_locationId,(column*4) + (row * m_tableMeta.size / 3.0),4,data);
+				}
+				else
+				{
+				    //emit saveSingleDataToRam(m_locationId,(column*2)+(row * (m_metaData.size / 2.0)),2,data);
+					emit saveSingleDataToRam(m_locationId,(column*2+(row*2)),2,data);
+
+				}
+			}
+			else
+			{
+				if (m_is32Bit)
+				{
+					emit saveSingleDataToRam(m_locationId,(column*4) + (row * m_dataSize / 3.0),4,data);
+				}
+				else
+				{
+					//emit saveSingleDataToRam(m_locationId,(column*2)+(row * (m_dataSize / 2.0)),2,data);
+					emit saveSingleDataToRam(m_locationId,(column*2+(row*2)),2,data);
+				}
+			}*/
 		}
 	}
 }
@@ -377,93 +515,81 @@ QByteArray FETable2DData::data()
 {
 	QMutexLocker locker(m_acccessMutex);
 	QByteArray data;
-	for (int i=0;i<m_axis.size();i++)
+	if (m_tableMeta.formatId == TABLE_2D_LEGACY)
 	{
-		unsigned short val = backConvertAxis(m_axis[i],m_metaData.xAxisCalc);
-		data.append((char)((val >> 8) & 0xFF));
-		data.append((char)(val & 0xFF));
+		for (int i=0;i<m_axis.size();i++)
+		{
+			unsigned short axis = backConvertAxis(m_axis[i],x_metaData);
+			data.append((char)((axis >> 8) & 0xFF));
+			data.append((char)(axis & 0xFF));
+		}
+		for (int i=0;i<m_values.size();i++)
+		{
+			if (y_metaData.size == 32)
+			{
+				quint64 val = backConvertAxis(m_values[i],y_metaData);
+				data.append((char)((val >> 24) & 0xFF));
+				data.append((char)((val >> 16) & 0xFF));
+				data.append((char)((val >> 8) & 0xFF));
+				data.append((char)(val & 0xFF));
+			}
+			else
+			{
+				unsigned short val = backConvertAxis(m_values[i],y_metaData);
+				data.append((char)((val >> 8) & 0xFF));
+				data.append((char)(val & 0xFF));
+			}
+		}
 	}
-	for (int i=0;i<m_values.size();i++)
+	else if (m_tableMeta.formatId == TABLE_2D_STRUCTURED)
 	{
-	if (m_is32Bit)
-	{
-	    quint64 val = backConvertAxis(m_values[i],m_metaData.yAxisCalc);
-	    data.append((char)((val >> 24) & 0xFF));
-	    data.append((char)((val >> 16) & 0xFF));
-	    data.append((char)((val >> 8) & 0xFF));
-	    data.append((char)(val & 0xFF));
-	}
-	else
-	{
-	    unsigned short val = backConvertAxis(m_values[i],m_metaData.yAxisCalc);
-	    data.append((char)((val >> 8) & 0xFF));
-	    data.append((char)(val & 0xFF));
-	}
+		for (int i=0;i<m_axis.size();i++)
+		{
+			unsigned short axis = backConvertAxis(m_axis[i],x_metaData);
+			data.append((char)((axis >> 8) & 0xFF));
+			data.append((char)(axis & 0xFF));
+			if (y_metaData.size == 32)
+			{
+				quint64 val = backConvertAxis(m_values[i],y_metaData);
+				data.append((char)((val >> 24) & 0xFF));
+				data.append((char)((val >> 16) & 0xFF));
+				data.append((char)((val >> 8) & 0xFF));
+				data.append((char)(val & 0xFF));
+			}
+			else
+			{
+				unsigned short val = backConvertAxis(m_values[i],y_metaData);
+				data.append((char)((val >> 8) & 0xFF));
+				data.append((char)(val & 0xFF));
+			}
+		}
 	}
 	return data;
 }
-double FETable2DData::calcAxis(qint64 val,QList<QPair<QString,double> > metadata)
+double FETable2DData::calcAxis(qint64 val,FieldMeta metadata)
 {
-	if (metadata.size() == 0)
+	if (m_tableMeta.valid)
 	{
-		return val;
+		double newval = (val * metadata.multiplier) + metadata.adder;
+		return newval;
 	}
-	double newval = val;
-	for (int j=0;j<metadata.size();j++)
-	{
-		if (metadata[j].first == "add")
-		{
-			newval += metadata[j].second;
-		}
-		else if (metadata[j].first == "sub")
-		{
-			newval -= metadata[j].second;
-		}
-		else if (metadata[j].first == "mult")
-		{
-			newval *= metadata[j].second;
-		}
-		else if (metadata[j].first == "div")
-		{
-			newval /= metadata[j].second;
-		}
-	}
-	return newval;
+	return (double)val;
 }
-quint64 FETable2DData::backConvertAxis(double val,QList<QPair<QString,double> > metadata)
+quint64 FETable2DData::backConvertAxis(double val,FieldMeta metadata)
 {
-	if (metadata.size() == 0)
+	if (m_tableMeta.valid)
 	{
-		return val;
-	}
-	double newval = val;
-	for (int j=metadata.size()-1;j>=0;j--)
-	{
-		if (metadata[j].first == "add")
+		double newval = (val - metadata.adder) / metadata.multiplier;
+		if (m_is32Bit)
 		{
-			newval -= metadata[j].second;
+			return (quint32)newval;
 		}
-		else if (metadata[j].first == "sub")
+		else
 		{
-			newval += metadata[j].second;
-		}
-		else if (metadata[j].first == "mult")
-		{
-			newval /= metadata[j].second;
-		}
-		else if (metadata[j].first == "div")
-		{
-			newval *= metadata[j].second;
+			return (quint16)newval;
 		}
 	}
-	if (m_is32Bit)
-	{
-		return (quint32)newval;
-	}
-	else
-	{
-		return (quint16)newval;
-	}
+	return (quint64)val;
 }
 void FETable2DData::updateFromFlash()
 {

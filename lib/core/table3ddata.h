@@ -60,8 +60,8 @@ class Table3DData : public DataBlock
 	Q_OBJECT
 public:
 	//Table3DData(unsigned short locationid,bool isflashonly, QByteArray data,Table3DMetaData metadata);
-	virtual void setData(unsigned short locationid,bool isflashonly,QByteArray payload,Table3DMetaData metadata)=0;
 	virtual void setData(unsigned short locationid,bool isflashonly,QByteArray payload)=0;
+	virtual void setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta,FieldMeta zMeta)=0;
 	virtual QByteArray data()=0;
 	virtual QList<double> xAxis()=0;
 	virtual QList<double> yAxis()=0;

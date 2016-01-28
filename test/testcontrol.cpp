@@ -163,6 +163,16 @@ void TestControl::getDatalogDescriptor()
 {
 	QTimer::singleShot(250,this,SLOT(sendDatalogDescriptor()));
 }
+void TestControl::getFieldDescriptor()
+{
+	QTimer::singleShot(250,this,SLOT(sendFieldDescriptor()));
+}
+
+void TestControl::getTableDescriptor()
+{
+	QTimer::singleShot(250,this,SLOT(sendTableDescriptor()));
+}
+
 void TestControl::sendDatalogDescriptor()
 {
 	if (m_datalogDescriptorCount == 0)
@@ -175,6 +185,16 @@ void TestControl::sendDatalogDescriptor()
 	m_packetDecoder->partialPacketAcked(GET_DATALOG_DESCRIPTOR+1,QByteArray().append((char)0x01).append((char)0x00),QByteArray().append((char)0x01).append((char)0x00));
 	QTimer::singleShot(250,this,SLOT(sendDatalogDescriptor()));
 }
+void TestControl::sendFieldDescriptor()
+{
+
+}
+
+void TestControl::sendTableDescriptor()
+{
+
+}
+
 void TestControl::getLocationIdList()
 {
 	QTimer::singleShot(250,this,SLOT(sendLocationIdList()));
@@ -212,11 +232,11 @@ void TestControl::sendLocationIdInfo()
 	info.size = 1024;
 	if (m_2dlocationIdList.contains(m_locationIdInfoReq))
 	{
-		info.type = DATA_TABLE_2D;
+		info.type = DATA_TABLE;
 	}
 	else if (m_3dlocationIdList.contains(m_locationIdInfoReq))
 	{
-		info.type = DATA_TABLE_3D;
+		info.type = DATA_TABLE;
 	}
 	else
 	{

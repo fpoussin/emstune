@@ -91,30 +91,30 @@ void EmsInfoView::locationInfoWidgetDoubleClicked(int row, int column)
 		QLOG_ERROR() << "Numeric conversion failed for:" << num;
 		return;
 	}
-	DataType type = DATA_UNDEFINED;
-	if (ui.locationIdInfoTableWidget->item(row,2)->text() == "2D Table")
+	FormatType type = TABLE_1D;
+	if (ui.locationIdInfoTableWidget->item(row,2)->text().contains("2D Table"))
 	{
-		type = DATA_TABLE_2D;
+		type = TABLE_2D_STRUCTURED;
 	}
-	else if (ui.locationIdInfoTableWidget->item(row,2)->text() == "2D Signed Table")
+	else if (ui.locationIdInfoTableWidget->item(row,2)->text().contains("2D Signed Table"))
 	{
-		type = DATA_TABLE_2D_SIGNED;
+		type = TABLE_2D_STRUCTURED;
 	}
 	else if (ui.locationIdInfoTableWidget->item(row,2)->text() == "3D Table")
 	{
-		type = DATA_TABLE_3D;
+		type = TABLE_3D;
 	}
 	else if (ui.locationIdInfoTableWidget->item(row,2)->text() == "Lookup Table")
 	{
-		type = DATA_TABLE_LOOKUP;
+		type = TABLE_1D;
 	}
 	else if (ui.locationIdInfoTableWidget->item(row,2)->text() == "Configuration")
 	{
-		type = DATA_CONFIG;
+		type = TABLE_1D;
 	}
-	else if (ui.locationIdInfoTableWidget->item(row,2)->text() == "2D 32bit Table")
+	else if (ui.locationIdInfoTableWidget->item(row,2)->text().contains("2D 32bit Table"))
 	{
-		type = DATA_TABLE_2D_32BIT;
+		type = TABLE_2D_STRUCTURED;
 	}
 
 
@@ -202,29 +202,50 @@ void EmsInfoView::locationIdInfo(unsigned short locationid,QString title,MemoryL
 		foundi = ui.locationIdInfoTableWidget->rowCount()-1;
 	}
 	ui.locationIdInfoTableWidget->setItem(foundi,0,new QTableWidgetItem("0x" + QString::number(locationid,16).toUpper()));
-	if (info.type == DATA_TABLE_2D)
+	if (info.metaData.valid)
 	{
-		ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("2D Table"));
-	}
-	else if (info.type == DATA_TABLE_2D_SIGNED)
-	{
-		ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("2D Signed Table"));
-	}
-	else if (info.type == DATA_TABLE_3D)
-	{
-		ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("3D Table"));
-	}
-	else if (info.type == DATA_TABLE_LOOKUP)
-	{
-		ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("Lookup Table"));
-	}
-	else if (info.type == DATA_CONFIG)
-	{
-		ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("Configuration"));
-	}
-	else if (info.type == DATA_TABLE_2D_32BIT)
-	{
-		ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("2D 32bit Table"));
+		if ((info.metaData.formatId == TABLE_2D_STRUCTURED))
+		{
+			if (info.xAxis.size == 16)
+			{
+				ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("2D Table"));
+			}
+			else if (info.xAxis.size == 32)
+			{
+				ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("2D 32bit Table"));
+			}
+			else if (info.xAxis.isSigned)
+			{
+				ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("2D Signed Table"));
+			}
+		}
+		else  if (info.metaData.formatId == TABLE_2D_LEGACY)
+		{
+			if (info.xAxis.size == 16)
+			{
+				ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("Legacy 2D Table"));
+			}
+			else if (info.xAxis.size == 32)
+			{
+				ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("Legacy 2D 32bit Table"));
+			}
+			else if (info.xAxis.isSigned)
+			{
+				ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("Legacy 2D Signed Table"));
+			}
+		}
+		else if (info.metaData.formatId == TABLE_3D)
+		{
+			ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("3D Table"));
+		}
+		else if (info.metaData.formatId == TABLE_1D)
+		{
+			ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("Lookup Table"));
+		}
+		else
+		{
+			ui.locationIdInfoTableWidget->setItem(foundi,2,new QTableWidgetItem("Undefined"));
+		}
 	}
 	else
 	{

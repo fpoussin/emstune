@@ -55,6 +55,9 @@
 #include <QList>
 #include <QPair>
 #include "datatype.h"
+#include "formattype.h"
+#include "tabledata.h"
+
 
 class MemoryLocationInfo
 {
@@ -68,12 +71,18 @@ public:
     bool hasParent;
     bool isReadOnly;
     DataType type;
+    FormatType formatType;
     unsigned short parent;
     unsigned char rampage;
     unsigned char flashpage;
     unsigned short ramaddress;
     unsigned short flashaddress;
     unsigned short size;
+    unsigned short descid;
+    TableMeta metaData;
+    FieldMeta xAxis;
+    FieldMeta yAxis;
+    FieldMeta zAxis;
 };
 
 #endif // MEMORYLOCATIONINFO_H

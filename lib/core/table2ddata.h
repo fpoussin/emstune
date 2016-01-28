@@ -61,7 +61,8 @@ class Table2DData : public DataBlock
 {
 	Q_OBJECT
 public:
-	virtual void setData(unsigned short locationid,bool isflashonly,QByteArray payload,Table2DMetaData metadata,bool signedData) = 0;
+	virtual void setData(unsigned short locationid,bool isflashonly,QByteArray payload) = 0;
+	virtual void setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta)=0;
 	virtual QByteArray data() = 0;
 	virtual double maxActualXAxis() = 0;
 	virtual double maxActualYAxis() = 0;

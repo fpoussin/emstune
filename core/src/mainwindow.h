@@ -167,7 +167,7 @@ private:
 	QFile *logfile;
 	QList<WizardView*> m_wizardList;
 	bool m_debugLogs;
-	void createView(unsigned short locid,DataType type);
+	void createView(unsigned short locid,FormatType type);
 	int m_interrogationFailureCount;
 	QList<int> m_locIdMsgList;
 	QList<int> m_locIdInfoMsgList;
@@ -201,7 +201,7 @@ private slots:
 	void emsCompilerVersion(QString version);
 	void checkSyncRequest();
 	void rawDataViewDestroyed(QObject *object);
-	void emsInfoDisplayLocationId(int locid,bool isram,DataType type);
+	void emsInfoDisplayLocationId(int locid,bool isram,FormatType type);
 	void menu_file_saveOfflineDataClicked();
 	void menu_file_loadOfflineDataClicked();
 	void menu_windows_GaugesClicked();

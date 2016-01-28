@@ -59,6 +59,13 @@ QByteArray ProtocolEncoder::encodePacket(unsigned short payloadid,QList<QVariant
 	{
 		m_testControl->getDatalogDescriptor();
 	}
+	else if (payloadid == GET_FIELD_DESCRIPTOR)
+	{
+	}
+	else if (payloadid == RETRIEVE_JSON_TABLE_DESCRIPTOR)
+	{
+
+	}
 	else if (payloadid == GET_LOCATION_ID_LIST)
 	{
 		m_testControl->getLocationIdList();

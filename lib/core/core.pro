@@ -28,4 +28,6 @@ HEADERS += configdata.h \
     menuitem.h \
     submenuitem.h \
     menusetup.h \
-    dialogitem.h
+    dialogitem.h \
+    paths.h \
+    formattype.h

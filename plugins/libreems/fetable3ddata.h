@@ -33,8 +33,8 @@ class FETable3DData : public Table3DData
 	Q_OBJECT
 public:
 	FETable3DData();
-	void setData(unsigned short locationid,bool isflashonly,QByteArray payload,Table3DMetaData metadata);
 	void setData(unsigned short locationid,bool isflashonly,QByteArray payload);
+	void setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta,FieldMeta zMeta);
 	QByteArray data();
 	QList<double> xAxis();
 	QList<double> yAxis();
@@ -59,8 +59,8 @@ public:
 	void setWritesEnabled(bool enabled);
 	void writeWholeLocation(bool ram);
 	bool isRam() { return !m_isFlashOnly; }
-	double calcAxis(int val,QList<QPair<QString,double> > metadata);
-	int backConvertAxis(double val,QList<QPair<QString,double> > metadata);
+	double calcAxis(int val,FieldMeta metadata);
+	int backConvertAxis(double val,FieldMeta metadata);
 private:
 	QMutex *m_acccessMutex;
 	bool m_writesEnabled;
@@ -87,7 +87,10 @@ private:
 	double m_minActualXAxis;
 	double m_minActualYAxis;
 	double m_minActualValue;
-	Table3DMetaData m_metaData;
+	TableMeta m_tableMeta;
+	FieldMeta x_metaData;
+	FieldMeta y_metaData;
+	FieldMeta z_metaData;
 signals:
 	void saveSingleDataToFlash(unsigned short locationid,unsigned short offset, unsigned short size,QByteArray data);
 	void saveSingleDataToRam(unsigned short locationid,unsigned short offset, unsigned short size,QByteArray data);
