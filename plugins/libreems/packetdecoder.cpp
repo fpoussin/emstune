@@ -87,7 +87,7 @@ Packet PacketDecoder::parseBuffer(QByteArray buffer)
 		headersize += 1;
 
 	}
-	if (buffer[iloc] & 0x16)
+	if (buffer[iloc] & 0x10)
 	{
 		//Is final packet of a partial sequence
 		iscomplete = true;
