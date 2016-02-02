@@ -3,9 +3,7 @@
 #include <QFile>
 #include <QPluginLoader>
 #include <QRadioButton>
-
-#define define2string_p(x) #x
-#define define2string(x) define2string_p(x)
+#include "paths.h"
 
 PluginManager::PluginManager(QWidget *parent) : QWidget(parent)
 {
