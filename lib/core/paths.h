@@ -2,6 +2,7 @@
 #define PATHS_H
 #include <QtWidgets/QApplication>
 #include <QString>
+#include <QDir>
 #define define2string_p(x) #x
 #define define2string(x) define2string_p(x)
 
