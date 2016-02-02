@@ -19,7 +19,7 @@ Binaries are not currently maintained. A build server is in progress and will ho
 A few packages are needed to compile EMSTune. In Ubuntu 14.04 or later:
 ```
 $ sudo apt-get update
-$ sudo apt-get install git qt5-qmake qt5-default qtscript5-dev libqt5webkit5-dev libqt5serialport5-dev libqt5svg5-dev flite1-dev libssl-dev libudev-dev
+$ sudo apt-get install git qt5-qmake qt5-default qtscript5-dev libqt5webkit5-dev libqt5serialport5-dev libqt5svg5-dev flite1-dev libssl-dev libudev-dev qtquick1-5-dev freeglut3-dev
 ```
 Once this has completed (or the equivalant packages on your own distro), you can then clone the repository and build it. 
 
