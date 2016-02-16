@@ -462,7 +462,7 @@ void FETable2DData::setCell(int row, int column,double newval)
 				}
 				else
 				{
-					emit saveSingleDataToRam(m_locationId,((column+1)*4) - ((row+1)*2),data.size(),data);
+					emit saveSingleDataToRam(m_locationId,((column)*4) + ((row)*2),data.size(),data);
 				}
 			}
 			else if (m_tableMeta.formatId == TABLE_2D_LEGACY)
