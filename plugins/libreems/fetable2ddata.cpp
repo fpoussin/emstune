@@ -194,7 +194,7 @@ void FETable2DData::setData(unsigned short locationid, bool isflashonly,QByteArr
 			//unsigned int y = (((unsigned char)payload[(payload.size()/3)+ valuecount]) << 24) + (((unsigned char)payload[(payload.size()/3)+ valuecount+1]) << 16) + (((unsigned char)payload[(payload.size()/3)+ valuecount+2]) << 8) + ((unsigned char)payload[(payload.size()/3) + valuecount+3]);
 			if (y_metaData.size == 32)
 			{
-				unsigned int y = (((unsigned char)payload[i+2]) << 24) + (((unsigned char)payload[i+3]) << 16) << (((unsigned char)payload[i+4]) << 8) << (((unsigned char)payload[i+5]));
+				unsigned int y = (((unsigned char)payload[i+2]) << 24) + (((unsigned char)payload[i+3]) << 16) + (((unsigned char)payload[i+4]) << 8) + (((unsigned char)payload[i+5]));
 				if (y_metaData.isSigned)
 				{
 					ydouble = calcAxis((short)y,y_metaData);
@@ -458,7 +458,7 @@ void FETable2DData::setCell(int row, int column,double newval)
 				}
 				else if (y_metaData.size == 32)
 				{
-					emit saveSingleDataToRam(m_locationId,(column*6) + (row*4),data.size(),data);
+					emit saveSingleDataToRam(m_locationId,(column*6) + ((1-row)*4),data.size(),data);
 				}
 				else
 				{
@@ -550,7 +550,7 @@ QByteArray FETable2DData::data()
 			data.append((char)(axis & 0xFF));
 			if (y_metaData.size == 32)
 			{
-				quint64 val = backConvertAxis(m_values[i],y_metaData);
+				quint32 val = backConvertAxis(m_values[i],y_metaData);
 				data.append((char)((val >> 24) & 0xFF));
 				data.append((char)((val >> 16) & 0xFF));
 				data.append((char)((val >> 8) & 0xFF));
