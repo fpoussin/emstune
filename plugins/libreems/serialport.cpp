@@ -57,7 +57,7 @@ void SerialPort::run()
 			return;
 		}
 		serialPort->setBaudrate(115200);
-		serialPort->setParity(serial::parity_odd);
+		serialPort->setParity(serial::parity_none);
 		serialPort->setStopbits(serial::stopbits_one);
 		serialPort->setBytesize(serial::eightbits);
 		serialPort->setFlowcontrol(serial::flowcontrol_none);
