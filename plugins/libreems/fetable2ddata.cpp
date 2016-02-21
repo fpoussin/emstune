@@ -458,7 +458,7 @@ void FETable2DData::setCell(int row, int column,double newval)
 				}
 				else if (y_metaData.size == 32)
 				{
-					emit saveSingleDataToRam(m_locationId,(column*6) + ((1-row)*4),data.size(),data);
+					emit saveSingleDataToRam(m_locationId,(column*6) + ((row)*2),data.size(),data);
 				}
 				else
 				{
@@ -580,7 +580,7 @@ quint64 FETable2DData::backConvertAxis(double val,FieldMeta metadata)
 	if (m_tableMeta.valid)
 	{
 		double newval = (val - metadata.adder) / metadata.multiplier;
-		if (m_is32Bit)
+		if (metadata.size == 32)
 		{
 			return (quint32)newval;
 		}
