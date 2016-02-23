@@ -100,7 +100,8 @@ SOURCES += src/main.cpp\
 	src/ramdiffwindow.cpp \
 	src/qcustomplot.cpp \
 	src/tableviewnew3d.cpp \
-	src/pluginmanager.cpp
+	src/pluginmanager.cpp \
+    src/firmwaredebugview.cpp
 
 
 HEADERS  += src/mainwindow.h \
@@ -123,7 +124,7 @@ HEADERS  += src/mainwindow.h \
 	src/aboutview.h \
 	src/tableview3d.h \
 	src/interrogateprogressview.h \
-	tabledata.h \
+	../lib/core/tabledata.h \
 	src/readonlyramview.h \
 	src/overviewprogressitemdelegate.h \
 	src/dataview.h \
@@ -133,10 +134,10 @@ HEADERS  += src/mainwindow.h \
 	src/configview.h \
 	../lib/core/table2ddata.h \
 	../lib/core/table3ddata.h \
-	memorymetadata.h \
+	../lib/core/memorymetadata.h \
 	src/tablewidgetdelegate.h \
-	emscomms.h \
-	datapacketdecoder.h \
+	../lib/core/emscomms.h \
+	../lib/core/datapacketdecoder.h \
 	src/parameterview.h \
 	src/parameterwidget.h \
 	src/wizardview.h \
@@ -152,7 +153,8 @@ HEADERS  += src/mainwindow.h \
 	src/qcustomplot.h \
 	src/tableviewnew3d.h \
 	src/qcustomplot.h \
-	src/pluginmanager.h
+	src/pluginmanager.h \
+    src/firmwaredebugview.h
 
 FORMS    += src/mainwindow.ui \
 	src/comsettings.ui \
@@ -176,7 +178,8 @@ FORMS    += src/mainwindow.ui \
 	src/comboparam.ui \
 	src/parameterwidget.ui \
 	src/ramdiffwindow.ui \
-	src/pluginmanager.ui
+	src/pluginmanager.ui \
+    src/firmwaredebugview.ui
 SUBDIRS += plugins
 OTHER_FILES += \
 	README.md \

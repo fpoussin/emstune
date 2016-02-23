@@ -590,6 +590,18 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 				}
 			}
 		}
+		else if (payloadid == 0x000F)
+		{
+			if (parsedPacket.isNAK)
+			{
+				//NAK
+				QLOG_ERROR() << "FIRMWARE DEBUG NAK";
+			}
+			else
+			{
+				emit firmwareDebug(QString(parsedPacket.payload));
+			}
+		}
 		else
 		{
 			emit unknownPacket(parsedPacket.header,parsedPacket.payload);

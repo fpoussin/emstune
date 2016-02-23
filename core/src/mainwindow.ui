@@ -44,7 +44,7 @@
      <x>0</x>
      <y>0</y>
      <width>1525</width>
-     <height>29</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -80,6 +80,7 @@
     <addaction name="actionInterrogation_Progress"/>
     <addaction name="actionParameter_View"/>
     <addaction name="actionFirmware_Metadata"/>
+    <addaction name="actionFirmware_Debug"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
     <property name="title">
@@ -214,6 +215,11 @@
   <action name="actionFirmware_Metadata">
    <property name="text">
     <string>Firmware Metadata</string>
+   </property>
+  </action>
+  <action name="actionFirmware_Debug">
+   <property name="text">
+    <string>Firmware Debug</string>
    </property>
   </action>
  </widget>

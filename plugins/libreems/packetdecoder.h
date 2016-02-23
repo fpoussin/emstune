@@ -48,6 +48,7 @@ signals:
 	void flashBlockUpdatePacket(QByteArray header,QByteArray payload);
 	void ramBlockUpdatePacket(QByteArray header,QByteArray payload);
 	void benchTestReply(unsigned short countRemaining,unsigned char currentEvent);
+	void firmwareDebug(QString text);
 };
 
 #endif // PACKETDECODER_H

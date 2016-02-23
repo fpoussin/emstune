@@ -54,7 +54,7 @@
 #include "parameterview.h"
 #include "ramdiffwindow.h"
 #include "wizardview.h"
-
+#include "firmwaredebugview.h"
 class RawDataBlock
 {
 public:
@@ -118,6 +118,7 @@ private:
 	AboutView *aboutView;
 	EmsStatus *statusView;
 	FirmwareMetaData *firmwareMetaData;
+	FirmwareDebugView *firmwareDebugView;
 	InterrogateProgressView *progressView;
 	QList<int> interrogationSequenceList;
 	QMap<unsigned short,QWidget*> m_rawDataView;
@@ -131,6 +132,7 @@ private:
 	QMdiSubWindow *packetStatusMdiWindow;
 	QMdiSubWindow *aboutMdiWindow;
 	QMdiSubWindow *emsStatusMdiWindow;
+	QMdiSubWindow *firmwareDebugMdiWindow;
 	RamDiffWindow *ramDiffWindow;
 	QTimer *emsSilenceTimer;
 
@@ -213,6 +215,7 @@ private slots:
 	void menu_windows_interrogateProgressViewClicked();
 	void menu_windows_ParameterViewClicked();
 	void menu_windows_firmwareMetadataClicked();
+	void menu_windows_firmwareDebugClicked();
 	void menu_settingsClicked();
 	void menu_connectClicked();
 	void menu_aboutClicked();

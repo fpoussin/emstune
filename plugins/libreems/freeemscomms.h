@@ -229,6 +229,7 @@ signals:
 	void flashLocationDirty(unsigned short locationid);
 	void ramLocationDirty(unsigned short locationid);
 	void datalogDescriptor(QString data);
+	void firmwareDebugReceived(QString text);
 public slots:
 	int updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data);
 	int updateBlockInFlash(unsigned short location,unsigned short offset, unsigned short size,QByteArray data);
@@ -273,6 +274,7 @@ private slots:
 	void saveDatalogDescriptor(QString json);
 	void fieldDescriptor(QString json);
 	void tableDescriptor(QString json);
+	void firmwareDebug(QString text);
 
 
 };

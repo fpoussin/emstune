@@ -93,6 +93,7 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),this,SLOT(saveDatalogDescriptor(QString)));
 	connect(m_packetDecoder,SIGNAL(fieldDescriptor(QString)),this,SLOT(fieldDescriptor(QString)));
 	connect(m_packetDecoder,SIGNAL(tableDescriptor(QString)),this,SLOT(tableDescriptor(QString)));
+	connect(m_packetDecoder,SIGNAL(firmwareDebug(QString)),this,SLOT(firmwareDebug(QString)));
 
 	connect(m_packetDecoder,SIGNAL(datalogDescriptor(QString)),dataPacketDecoder,SLOT(datalogDescriptor(QString)));
 
@@ -1963,4 +1964,8 @@ void FreeEmsComms::serialPortDisconnected()
 void FreeEmsComms::serialPortError(QString errorstr)
 {
 	emit error(errorstr);
+}
+void FreeEmsComms::firmwareDebug(QString text)
+{
+	emit firmwareDebugReceived(text);
 }

@@ -206,6 +206,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	connect(ui.actionDisable_Datalog_Stream,SIGNAL(triggered()),this,SLOT(menu_disableDatalogsClicked()));
 	connect(ui.actionParameter_View,SIGNAL(triggered()),this,SLOT(menu_windows_ParameterViewClicked()));
 	connect(ui.actionFirmware_Metadata,SIGNAL(triggered()),this,SLOT(menu_windows_firmwareMetadataClicked()));
+	connect(ui.actionFirmware_Debug,SIGNAL(triggered()),this,SLOT(menu_windows_firmwareDebugClicked()));
 	ui.actionInterrogation_Progress->setEnabled(false);
 
 
@@ -239,6 +240,13 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 	emsMdiWindow->setGeometry(emsInfo->geometry());
 	emsMdiWindow->hide();
 	emsMdiWindow->setWindowTitle(emsInfo->windowTitle());
+
+	firmwareDebugView = new FirmwareDebugView();
+
+	firmwareDebugMdiWindow = ui.mdiArea->addSubWindow(firmwareDebugView);
+	firmwareDebugMdiWindow->setGeometry(firmwareDebugView->geometry());
+	firmwareDebugMdiWindow->hide();
+	firmwareDebugMdiWindow->setWindowTitle(firmwareDebugView->windowTitle());
 
 	parameterView = new ParameterView();
 	connect(parameterView,SIGNAL(showTable(QString)),this,SLOT(showTable(QString)));
@@ -392,6 +400,12 @@ void MainWindow::menu_windows_firmwareMetadataClicked()
 	firmwareMetaMdiWindow->show();
 	QApplication::postEvent(firmwareMetaMdiWindow, new QEvent(QEvent::Show));
 	QApplication::postEvent(firmwareMetaMdiWindow, new QEvent(QEvent::WindowActivate));
+}
+void MainWindow::menu_windows_firmwareDebugClicked()
+{
+	firmwareDebugMdiWindow->show();
+	QApplication::postEvent(firmwareDebugMdiWindow, new QEvent(QEvent::Show));
+	QApplication::postEvent(firmwareDebugMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 
 void MainWindow::menu_file_saveOfflineDataClicked()
@@ -798,6 +812,7 @@ void MainWindow::setPlugin(QString plugin)
 	connect(emsComms,SIGNAL(datalogDescriptor(QString)),this,SLOT(datalogDescriptor(QString)));
 	connect(emsComms,SIGNAL(ramLocationDirty(unsigned short)),this,SLOT(ramLocationDirty(unsigned short)));
 	connect(emsComms,SIGNAL(flashLocationDirty(unsigned short)),this,SLOT(flashLocationDirty(unsigned short)));
+	connect(emsComms,SIGNAL(firmwareDebugReceived(QString)),firmwareDebugView,SLOT(firmwareMessage(QString)));
 	emsComms->setBaud(m_comBaud);
 	emsComms->setPort(m_comPort);
 	emsComms->setLogsEnabled(m_saveLogs);
