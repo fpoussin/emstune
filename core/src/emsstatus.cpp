@@ -39,6 +39,7 @@ EmsStatus::EmsStatus(QWidget *parent) : QDockWidget(parent)
 	QPalette pal = ui.memoryCleanLineEdit->palette();
 	pal.setColor(QPalette::Base,QColor::fromRgb(100,255,100));
 	ui.memoryCleanLineEdit->setPalette(pal);
+	ui.memoryCleanLineEdit->setVisible(false);
 }
 void EmsStatus::closeEvent(QCloseEvent *event)
 {

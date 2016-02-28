@@ -265,6 +265,10 @@ private slots:
 	void dirtyRamAcceptLocalChanges();
 	void dirtyRamRejectLocalChanges();
 	void emsCommsSilenceTimerTick();
+	void deviceRamAcceptChanges();
+	void deviceRamIgnoreChanges();
+
+	void deviceRamLocationOutOfSync(unsigned short locationid);
 public slots:
 	void setPlugin(QString plugin);
 

@@ -15,6 +15,8 @@ public:
 	explicit RamDiffWindow(QWidget *parent = 0);
 	~RamDiffWindow();
 	void setDirtyLocation(unsigned short locationid);
+	void setAcceptText(QString text);
+	void setRejectText(QString text);
 private:
 	Ui::RamDiffWindow *ui;
 signals:

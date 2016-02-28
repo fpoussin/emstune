@@ -21,3 +21,12 @@ void RamDiffWindow::setDirtyLocation(unsigned short locationid)
 	ui->tableWidget->setRowCount(ui->tableWidget->rowCount()+1);
 	ui->tableWidget->setItem(ui->tableWidget->rowCount()-1,0,new QTableWidgetItem(QString::number(locationid)));
 }
+void RamDiffWindow::setAcceptText(QString text)
+{
+	ui->pushLocalButton->setText(text);
+}
+
+void RamDiffWindow::setRejectText(QString text)
+{
+	ui->pullRemoteButton->setText(text);
+}

@@ -119,6 +119,11 @@ public:
 	QList<QPair<unsigned short,QByteArray> > getDirtyRamLocations() { return m_dirtyLocalRamMemoryList; }
 	void clearDirtyRamLocations() { m_dirtyLocalRamMemoryList.clear(); }
 	void clearDirtyFlashLocations() { m_dirtyLocalFlashMemoryList.clear(); }
+	void checkDirtyMemory();
+	void revertLocalRamBlockToDevice(unsigned short locationid);
+	void revertLocalFlashBlockToDevice(unsigned short locationid);
+	void acceptLocalRamBlockForDevice(unsigned short locationid);
+	void acceptLocalFlashBlockForDevice(unsigned short locationid);
 
 
 private:
@@ -144,6 +149,8 @@ private:
 	bool verifyMemoryBlock(unsigned short locationid,QByteArray header,QByteArray payload);
 	double calcAxis(int val,QList<QPair<QString,double> > metadata);
 	int backConvertAxis(double val,QList<QPair<QString,double> > metadata);
+	QList<unsigned short> m_dirtyRamList;
+	QList<unsigned short> m_dirtyFlashList;
 
 signals:
 	void updateRequired(unsigned short locationid);
@@ -152,6 +159,23 @@ signals:
 	void configRecieved(ConfigBlock,QVariant);
 	void localFlashLocationDirty(unsigned short locationid);
 	void localRamLocationDirty(unsigned short locationid);
+
+	//! Mark device ram as being unsynced
+	    /*!
+	      This marks the ram location on the device as being un sycned. This can happen when first connecting
+	      to the ECU during interrogation, to indicate that device FLASH has not been written with
+	      the latest changes that are in device RAM. One signal is emmited for each ram locationid that
+	      is not idential to its flash counterpart.
+	    */
+	void deviceFlashLocationNotSynced(unsigned short locationid);
+
+	//! Signal that local ram is clean
+	/*!
+	 * Marks the local ram copy as being identical or not to device ram
+	 */
+	//void localRamClean();
+	//void localRamDirty();
+
 public slots:
 	void ramBlockUpdate(unsigned short locationid, QByteArray header, QByteArray payload);
 	void flashBlockUpdate(unsigned short locationid, QByteArray header, QByteArray payload);

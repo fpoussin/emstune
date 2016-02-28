@@ -154,6 +154,8 @@ FreeEmsComms::FreeEmsComms(QObject *parent) : EmsComms(parent)
 	connect(&emsData,SIGNAL(configRecieved(ConfigBlock,QVariant)),this,SIGNAL(configRecieved(ConfigBlock,QVariant)),Qt::DirectConnection);
 	connect(&emsData,SIGNAL(localRamLocationDirty(unsigned short)),this,SLOT(ramLocationMarkedDirty(unsigned short)),Qt::DirectConnection);
 	connect(&emsData,SIGNAL(localFlashLocationDirty(unsigned short)),this,SLOT(flashLocationMarkedDirty(unsigned short)),Qt::DirectConnection);
+	//connect(&emsData,SIGNAL(deviceRamLocationDirty(unsigned short)),this,SLOT(deviceRamLocationMarkedDirty(unsigned short)),Qt::DirectConnection);
+	connect(&emsData,SIGNAL(deviceFlashLocationNotSynced(unsigned short)),this,SIGNAL(deviceFlashLocationNotSynced(unsigned short)));
 
 
 	QFile dialogFile("menuconfig.json");
@@ -614,6 +616,8 @@ int FreeEmsComms::burnBlockFromRamToFlash(unsigned short location,unsigned short
 	req.sequencenumber = m_sequenceNumber;
 	m_sequenceNumber++;
 
+	//emsData.markLocalRamLocationDirty(location,offset,size);
+
 	if (size == 0)
 	{
 		size = emsData.getLocalRamBlock(location).size();
@@ -690,7 +694,7 @@ int FreeEmsComms::updateBlockInRam(unsigned short location,unsigned short offset
 
 	emsData.markLocalRamLocationDirty(location,offset,size);
 
-	if (emsData.getLocalRamBlockInfo(location)->isFlash)
+	/*if (emsData.getLocalRamBlockInfo(location)->isFlash)
 	{
 		unsigned short ramaddress = emsData.getLocalRamBlockInfo(location)->ramAddress;
 		for (int i=ramaddress+offset;i<ramaddress+offset+size;i++)
@@ -701,7 +705,7 @@ int FreeEmsComms::updateBlockInRam(unsigned short location,unsigned short offset
 			}
 		}
 		emit memoryDirty();
-	}
+	}*/
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::updateBlockInFlash(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)
@@ -809,23 +813,6 @@ int FreeEmsComms::retrieveBlockFromFlash(unsigned short location, unsigned short
 	{
 		emsData.markLocalFlashLocationDirty(location,offset,size);
 	}
-
-	/*if (emsData.getLocalRamBlockInfo(location))
-	{
-		emsData.markLocalRamLocationClean(location,offset,size);
-
-		for (int i=emsData.getLocalRamBlockInfo(location)->ramAddress + offset;i<emsData.getLocalRamBlockInfo(location)->ramAddress+offset+size;i++)
-		{
-			if (m_dirtyRamAddresses.contains(i))
-			{
-				m_dirtyRamAddresses.removeOne(i);
-			}
-		}
-		if (m_dirtyRamAddresses.size() == 0)
-		{
-			emit memoryClean();
-		}
-	}*/
 	return m_sequenceNumber-1;
 }
 int FreeEmsComms::retrieveBlockFromRam(unsigned short location, unsigned short offset, unsigned short size,bool mark)
@@ -1151,6 +1138,8 @@ void FreeEmsComms::sendNextInterrogationPacket()
 				locationIdUpdate(emsData.getUniqueLocationIdList()[i]);
 			}
 			emit interrogationData(m_interrogationMetaDataMap);
+
+			emsData.checkDirtyMemory();
 			QString json = "";
 			json += "{";
 			/*QJson::Serializer jsonSerializer;
@@ -1215,7 +1204,8 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 		{
 			m_waitingForFlashWrite = false;
 			unsigned short locid = m_currentWaitingRequest.args[0].toUInt();
-			emsData.setLocalFlashBlock(locid,emsData.getDeviceFlashBlock(locid));
+			//emsData.setLocalFlashBlock(locid,emsData.getDeviceFlashBlock(locid));
+			emsData.revertLocalFlashBlockToDevice(locid);
 			if (m_2dTableMap.contains(locid))
 			{
 				m_2dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalFlashBlock(locid));
@@ -1247,7 +1237,8 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 		{
 			m_waitingForRamWrite = false;
 			unsigned short locid = m_currentWaitingRequest.args[0].toUInt();
-			emsData.setLocalRamBlock(locid,emsData.getDeviceRamBlock(locid));
+			//emsData.setLocalRamBlock(locid,emsData.getDeviceRamBlock(locid));
+			emsData.revertLocalRamBlockToDevice(locid);
 			if (m_2dTableMap.contains(locid))
 			{
 				m_2dTableMap[locid]->setData(locid,!emsData.hasLocalRamBlock(locid),emsData.getLocalRamBlock(locid));
@@ -1273,21 +1264,6 @@ void FreeEmsComms::packetNakedRec(unsigned short payloadid,QByteArray header,QBy
 				{
 					m_locIdToConfigListMap[locid][i]->setData(emsData.getLocalRamBlock(locid));
 				}
-			}
-
-			unsigned short offset = m_currentWaitingRequest.args[1].toUInt();
-			unsigned short size = m_currentWaitingRequest.args[2].toUInt();
-			unsigned short ramaddress = emsData.getLocalRamBlockInfo(locid)->ramAddress;
-			for (int i=ramaddress+offset;i<ramaddress+offset+size;i++)
-			{
-				if (m_dirtyRamAddresses.contains(i))
-				{
-					m_dirtyRamAddresses.removeOne(i);
-				}
-			}
-			if (m_dirtyRamAddresses.size() == 0)
-			{
-				emit memoryClean();
 			}
 
 		}
@@ -1370,7 +1346,8 @@ void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QBy
 		{
 			m_waitingForFlashWrite = false;
 			unsigned short locid = m_currentWaitingRequest.args[0].toUInt();
-			emsData.setDeviceFlashBlock(locid,emsData.getLocalFlashBlock(locid));
+			//Change is accepted, copy local flash to device flash
+			emsData.acceptLocalFlashBlockForDevice(locid);
 			emit locationIdUpdate(locid);
 		}
 		if (m_waitingForRamWrite)
@@ -1378,7 +1355,7 @@ void FreeEmsComms::packetAckedRec(unsigned short payloadid,QByteArray header,QBy
 			m_waitingForRamWrite = false;
 			unsigned short locid = m_currentWaitingRequest.args[0].toUInt();
 			//Change has been accepted, copy local ram to device ram
-			emsData.setDeviceRamBlock(locid,emsData.getLocalRamBlock(locid));
+			emsData.acceptLocalRamBlockForDevice(locid);
 			emit locationIdUpdate(locid);
 		}
 		if (payloadid == m_payloadWaitingForResponse+1)
@@ -1818,6 +1795,12 @@ void FreeEmsComms::flashLocationMarkedDirty(unsigned short locationid)
 	emit flashLocationDirty(locationid);
 
 }
+void FreeEmsComms::deviceRamLocationMarkedDirty(unsigned short locationid)
+{
+	emit deviceRamLocationDirty(locationid);
+	//emit ramLocationDirty(locationid);
+}
+
 void FreeEmsComms::acceptLocalChanges()
 {
 	for (int i=0;i<emsData.getDirtyRamLocations().size();i++)

@@ -813,6 +813,7 @@ void MainWindow::setPlugin(QString plugin)
 	connect(emsComms,SIGNAL(ramLocationDirty(unsigned short)),this,SLOT(ramLocationDirty(unsigned short)));
 	connect(emsComms,SIGNAL(flashLocationDirty(unsigned short)),this,SLOT(flashLocationDirty(unsigned short)));
 	connect(emsComms,SIGNAL(firmwareDebugReceived(QString)),firmwareDebugView,SLOT(firmwareMessage(QString)));
+	connect(emsComms,SIGNAL(deviceFlashLocationNotSynced(unsigned short)),this,SLOT(deviceRamLocationOutOfSync(unsigned short)));
 	emsComms->setBaud(m_comBaud);
 	emsComms->setPort(m_comPort);
 	emsComms->setLogsEnabled(m_saveLogs);
@@ -2165,6 +2166,38 @@ void MainWindow::ramLocationDirty(unsigned short locationid)
 	ramDiffWindow->setDirtyLocation(locationid);
 	//QMessageBox::information(0,"Error","Ram location dirty 0x" + QString::number(locationid,16));
 }
+void MainWindow::deviceRamLocationOutOfSync(unsigned short locationid)
+{
+	if (!ramDiffWindow)
+	{
+		ramDiffWindow = new RamDiffWindow();
+		ramDiffWindow->setAcceptText("Write All Changes To Flash");
+		ramDiffWindow->setRejectText("Ignore");
+		connect(ramDiffWindow,SIGNAL(acceptLocalChanges()),this,SLOT(deviceRamAcceptChanges()));
+		connect(ramDiffWindow,SIGNAL(rejectLocalChanges()),this,SLOT(deviceRamIgnoreChanges()));
+		ramDiffWindow->show();
+	}
+	ramDiffWindow->setDirtyLocation(locationid);
+	//QMessageBox::information(0,"Error","Ram location dirty 0x" + QString::number(locationid,16));
+}
+void MainWindow::deviceRamAcceptChanges()
+{
+	if (ramDiffWindow)
+	{
+		ramDiffWindow->close();
+	}
+	QMessageBox::information(0,"Error","Write All Changes is not enabled. Please manually write all locations");
+	statusView->setEmsMemoryDirty();
+}
+void MainWindow::deviceRamIgnoreChanges()
+{
+	if (ramDiffWindow)
+	{
+		ramDiffWindow->close();
+	}
+	statusView->setEmsMemoryDirty();
+}
+
 void MainWindow::dirtyRamAcceptLocalChanges()
 {
 	emsComms->acceptLocalChanges();

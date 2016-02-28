@@ -106,6 +106,39 @@ void EmsData::setLocalRamBlock(unsigned short id,QByteArray data)
 		}
 	}
 }
+void EmsData::revertLocalRamBlockToDevice(unsigned short locationid)
+{
+	setLocalRamBlock(locationid,getDeviceRamBlock(locationid));
+	if (isLocalRamDirty(locationid))
+	{
+		markLocalRamLocationClean(locationid);
+	}
+}
+void EmsData::revertLocalFlashBlockToDevice(unsigned short locationid)
+{
+	setLocalFlashBlock(locationid,getDeviceFlashBlock(locationid));
+	if (isLocalFlashDirty(locationid))
+	{
+		markLocalFlashLocationClean(locationid);
+	}
+}
+void EmsData::acceptLocalRamBlockForDevice(unsigned short locationid)
+{
+	setDeviceRamBlock(locationid,getLocalRamBlock(locationid));
+	if (isLocalRamDirty(locationid))
+	{
+		markLocalRamLocationClean(locationid);
+	}
+}
+
+void EmsData::acceptLocalFlashBlockForDevice(unsigned short locationid)
+{
+	setDeviceFlashBlock(locationid,getLocalFlashBlock(locationid));
+	if (isLocalFlashDirty(locationid))
+	{
+		markLocalFlashLocationClean(locationid);
+	}
+}
 
 void EmsData::setDeviceRamBlock(unsigned short id,QByteArray data)
 {
@@ -739,7 +772,7 @@ void EmsData::ramBlockUpdate(unsigned short locationid, QByteArray header, QByte
 							{
 								//Don't mark read only as dirty, we don't care.
 								m_dirtyLocalRamMemoryList.append(QPair<unsigned short,QByteArray>(locationid,payload));
-								emit localRamLocationDirty(locationid);
+								//emit localRamLocationDirty(locationid);
 							}
 						}
 						else
@@ -1035,9 +1068,9 @@ MemoryLocation* EmsData::getLocalFlashBlockInfo(unsigned short locationid)
 	}
 	return 0;
 }
-void EmsData::markLocalFlashLocationDirty(unsigned short location,unsigned short offset,unsigned short size)
+void EmsData::markLocalFlashLocationDirty(unsigned short locationid,unsigned short offset,unsigned short size)
 {
-	MemoryLocation *flash = getLocalFlashBlockInfo(location);
+	MemoryLocation *flash = getLocalFlashBlockInfo(locationid);
 	if (flash)
 	{
 		if (size == 0)
@@ -1048,6 +1081,13 @@ void EmsData::markLocalFlashLocationDirty(unsigned short location,unsigned short
 		{
 			flash->setByteDirty(i);
 		}
+		QLOG_DEBUG() << "Local flash dirty" << locationid;
+		if (!m_dirtyFlashList.contains(locationid))
+		{
+			m_dirtyFlashList.append(locationid);
+			QLOG_DEBUG() << "First flash dirty";
+		}
+
 	}
 }
 void EmsData::markLocalFlashLocationClean(unsigned short locationid)
@@ -1059,14 +1099,30 @@ void EmsData::markLocalFlashLocationClean(unsigned short locationid)
 		{
 			flash->setByteClean(i);
 		}
+		if (m_dirtyFlashList.contains(locationid))
+		{
+			m_dirtyFlashList.removeOne(locationid);
+		}
+		QLOG_DEBUG() << "Local Flash clean" << locationid;
+		if (m_dirtyFlashList.size() == 0)
+		{
+			//Emit signal when there are no dirty locations left.
+			//emit localRamClean();
+			QLOG_DEBUG() << "All Flash Clean";
+		}
 	}
 }
 
-void EmsData::markLocalRamLocationDirty(unsigned short location,unsigned short offset,unsigned short size)
+void EmsData::markLocalRamLocationDirty(unsigned short locationid,unsigned short offset,unsigned short size)
 {
-	MemoryLocation *ram= getLocalRamBlockInfo(location);
+	MemoryLocation *ram= getLocalRamBlockInfo(locationid);
 	if (ram)
 	{
+		if (!hasLocalFlashBlock(locationid))
+		{
+			//Don't mark it as dirty, as it doesn't have a flash counterpart.
+			return;
+		}
 		if (ram->isReadOnly)
 		{
 			//Don't mark read only as dirty, we don't care.
@@ -1080,6 +1136,18 @@ void EmsData::markLocalRamLocationDirty(unsigned short location,unsigned short o
 		{
 			ram->setByteDirty(i);
 		}
+		if (!m_dirtyRamList.contains(locationid))
+		{
+			m_dirtyRamList.append(locationid);
+		}
+		QLOG_DEBUG() << "Local ram dirty" << locationid;
+		if (m_dirtyRamList.size() == 1)
+		{
+			//Emit signal on first
+			//emit localRamDirty();
+			QLOG_DEBUG() << "First Ram Dirty";
+		}
+		//emit localRamLocationDirty(locationid);
 	}
 }
 void EmsData::markLocalRamLocationClean(unsigned short locationid)
@@ -1090,6 +1158,17 @@ void EmsData::markLocalRamLocationClean(unsigned short locationid)
 		for (int i=ram->ramAddress;i<ram->ramAddress+ram->size;i++)
 		{
 			ram->setByteClean(i);
+		}
+		if (m_dirtyRamList.contains(locationid))
+		{
+			m_dirtyRamList.removeOne(locationid);
+		}
+		QLOG_DEBUG() << "Local ram clean" << locationid;
+		if (m_dirtyRamList.size() == 0)
+		{
+			//Emit signal when there are no dirty locations left.
+			//emit localRamClean();
+			QLOG_DEBUG() << "All Ram Clean";
 		}
 	}
 }
@@ -1111,4 +1190,21 @@ bool EmsData::isLocalFlashDirty(unsigned short locationid)
 		return flash->isDirty();
 	}
 	return false;
+}
+void EmsData::checkDirtyMemory()
+{
+	QList<unsigned short> flashIdList = getTopLevelDeviceFlashLocations();
+	for (int i=0;i<flashIdList.size();i++)
+	{
+		if (hasDeviceRamBlock(flashIdList.at(i)))
+		{
+			if (getDeviceFlashBlock(flashIdList.at(i)) != getDeviceRamBlock(flashIdList.at(i)))
+			{
+				//Dirty memory
+				emit deviceFlashLocationNotSynced(flashIdList.at(i));
+				//emit localRamLocationDirty(flashIdList.at(i));
+				//emit deviceRamLocationDirty(flashIdList.at(i));
+			}
+		}
+	}
 }

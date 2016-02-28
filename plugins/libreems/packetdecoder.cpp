@@ -612,6 +612,7 @@ void PacketDecoder::parsePacket(Packet parsedPacket)
 			//m_lastDatalogTime = QDateTime::currentMSecsSinceEpoch();
 
 			//Need to pull sequence number out of here
+			//emit packetAcked(payloadid,parsedPacket.header,parsedPacket.payload);
 		}
 		else
 		{

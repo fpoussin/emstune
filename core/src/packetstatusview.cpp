@@ -90,6 +90,10 @@ void PacketStatusView::passPacketAck(unsigned short locationid,QByteArray header
 			return;
 		}
 	}
+	ui.packetCountTableWidget->setRowCount(ui.packetCountTableWidget->rowCount()+1);
+	ui.packetCountTableWidget->setItem(ui.packetCountTableWidget->rowCount()-1,0,new QTableWidgetItem(QString("0x") + QString::number(locationid,16).toUpper()));
+	ui.packetCountTableWidget->setItem(ui.packetCountTableWidget->rowCount()-1,1,new QTableWidgetItem("1"));
+	ui.packetCountTableWidget->setItem(ui.packetCountTableWidget->rowCount()-1,2,new QTableWidgetItem("0"));
 }
 
 void PacketStatusView::passPacketNak(unsigned short locationid,QByteArray header,QByteArray payload,unsigned short errornum)
@@ -119,6 +123,10 @@ void PacketStatusView::passPacketNak(unsigned short locationid,QByteArray header
 			return;
 		}
 	}
+	ui.packetCountTableWidget->setRowCount(ui.packetCountTableWidget->rowCount()+1);
+	ui.packetCountTableWidget->setItem(ui.packetCountTableWidget->rowCount()-1,0,new QTableWidgetItem(QString("0x") + QString::number(locationid,16).toUpper()));
+	ui.packetCountTableWidget->setItem(ui.packetCountTableWidget->rowCount()-1,1,new QTableWidgetItem("0"));
+	ui.packetCountTableWidget->setItem(ui.packetCountTableWidget->rowCount()-1,2,new QTableWidgetItem("1"));
 }
 void PacketStatusView::passDecoderFailure(QByteArray packet)
 {
