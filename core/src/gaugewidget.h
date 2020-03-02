@@ -25,9 +25,10 @@
 #include <QQuickView>
 
 #include "gaugeitem.h"
-class GaugeWidget : public QQuickView {
+class GaugeWidget : public QQuickView
+{
 public:
-    GaugeWidget(QWidget* parent = 0);
+    GaugeWidget(QWidget *parent = 0);
     QQmlPropertyMap propertyMap;
     QString setFile(QString file);
     const QList<QString> getPropertiesInUse() { return propertylist; }

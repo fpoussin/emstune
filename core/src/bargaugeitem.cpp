@@ -27,7 +27,7 @@
 
 #include "bargaugeitem.h"
 
-BarGaugeItem::BarGaugeItem(QWidget* parent)
+BarGaugeItem::BarGaugeItem(QWidget *parent)
 {
     Q_UNUSED(parent);
     setFlag(QQuickItem::ItemHasContents, true);
@@ -127,7 +127,7 @@ void BarGaugeItem::drawBackground()
     painter.end();
 }
 
-void BarGaugeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* style, QWidget* w)
+void BarGaugeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *style, QWidget *w)
 {
     Q_UNUSED(style);
     Q_UNUSED(w);

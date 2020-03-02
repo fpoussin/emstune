@@ -8,19 +8,21 @@
 
 class FirmwareDebugView : public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	explicit FirmwareDebugView(QWidget *parent = 0);
-	~FirmwareDebugView();
+    explicit FirmwareDebugView(QWidget *parent = 0);
+    ~FirmwareDebugView();
+
 protected:
-	void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event);
+
 private:
-	Ui::FirmwareDebugView ui;
+    Ui::FirmwareDebugView ui;
 public slots:
-	void firmwareMessage(QString text);
+    void firmwareMessage(QString text);
 private slots:
-	void clearButtonClicked();
+    void clearButtonClicked();
 };
 
 #endif // FIRMWAREDEBUGVIEW_H

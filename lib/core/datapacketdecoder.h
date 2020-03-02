@@ -59,12 +59,12 @@ class DataPacketDecoder : public QObject
 {
     Q_OBJECT
 public:
-	virtual int fieldSize()=0;
+    virtual int fieldSize() = 0;
     //virtual DataField getField(int num)=0;
-    virtual QString getFieldName(int num)=0;
-    virtual QString getFieldDescription(int num)=0;
+    virtual QString getFieldName(int num) = 0;
+    virtual QString getFieldDescription(int num) = 0;
 public slots:
-	//virtual void decodePayload(QByteArray payload)=0;
+    //virtual void decodePayload(QByteArray payload)=0;
 };
 
 #endif // DATAPACKETDECODER_H

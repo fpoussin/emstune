@@ -61,33 +61,31 @@
 class MemoryMetaData
 {
 public:
-	virtual bool loadMetaDataFromFile(QString path)=0;
-	virtual bool parseMetaData(QString json)=0;
-	virtual const QMap<unsigned short,QString> errorMap()=0;
+    virtual bool loadMetaDataFromFile(QString path) = 0;
+    virtual bool parseMetaData(QString json) = 0;
+    virtual const QMap<unsigned short, QString> errorMap() = 0;
 
-	virtual bool has2DMetaData(unsigned short locationid)=0;
-	virtual const QList<Table2DMetaData> table2DMetaData()=0;
-	virtual const Table2DMetaData get2DMetaData(unsigned short locationid)=0;
+    virtual bool has2DMetaData(unsigned short locationid) = 0;
+    virtual const QList<Table2DMetaData> table2DMetaData() = 0;
+    virtual const Table2DMetaData get2DMetaData(unsigned short locationid) = 0;
 
-	virtual bool has3DMetaData(unsigned short locationid)=0;
-	virtual const QList<Table3DMetaData> table3DMetaData()=0;
-	virtual const Table3DMetaData get3DMetaData(unsigned short locationid)=0;
+    virtual bool has3DMetaData(unsigned short locationid) = 0;
+    virtual const QList<Table3DMetaData> table3DMetaData() = 0;
+    virtual const Table3DMetaData get3DMetaData(unsigned short locationid) = 0;
 
-	virtual bool hasRORMetaData(unsigned short locationid)=0;
-	virtual const ReadOnlyRamData getRORMetaData(unsigned short locationid)=0;
+    virtual bool hasRORMetaData(unsigned short locationid) = 0;
+    virtual const ReadOnlyRamData getRORMetaData(unsigned short locationid) = 0;
 
-	virtual bool hasLookupMetaData(unsigned short locationid)=0;
-	virtual const LookupMetaData getLookupMetaData(unsigned short locationid)=0;
+    virtual bool hasLookupMetaData(unsigned short locationid) = 0;
+    virtual const LookupMetaData getLookupMetaData(unsigned short locationid) = 0;
 
-	virtual bool hasConfigMetaData(QString name)=0;
-	virtual const QMap<QString,QList<ConfigBlock> > configMetaData()=0;
-	virtual const QList<ConfigBlock> getConfigMetaData(QString name)=0;
-	virtual const MenuSetup menuMetaData()=0;
+    virtual bool hasConfigMetaData(QString name) = 0;
+    virtual const QMap<QString, QList<ConfigBlock>> configMetaData() = 0;
+    virtual const QList<ConfigBlock> getConfigMetaData(QString name) = 0;
+    virtual const MenuSetup menuMetaData() = 0;
 
-
-
-	virtual const QString getErrorString(unsigned short code)=0;
-	virtual ~MemoryMetaData() {};
+    virtual const QString getErrorString(unsigned short code) = 0;
+    virtual ~MemoryMetaData(){};
 };
 
 #endif // MEMORYMETADATA_H

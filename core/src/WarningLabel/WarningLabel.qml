@@ -1,9 +1,9 @@
-import Qt 4.7
-
+import QtQuick 2.9
+import QtQml 2.9
 
 Rectangle {
     id: warninglabel
-	color:"red"
+    color:"red"
     property bool flash: false
     property string propertyMapProperty;
     property string conditiontype;

@@ -59,35 +59,35 @@
 
 class Table2DData : public DataBlock
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	virtual void setData(unsigned short locationid,bool isflashonly,QByteArray payload) = 0;
-	virtual void setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta)=0;
-	virtual QByteArray data() = 0;
-	virtual double maxActualXAxis() = 0;
-	virtual double maxActualYAxis() = 0;
-	virtual double minActualXAxis() = 0;
-	virtual double minActualYAxis() = 0;
-	virtual double maxCalcedXAxis() = 0;
-	virtual double maxCalcedYAxis() = 0;
-	virtual double minCalcedXAxis() = 0;
-	virtual double minCalcedYAxis() = 0;
-	virtual QList<double> axis() = 0;
-	virtual QList<double> values() = 0;
-	virtual int columns() = 0;
-	virtual int rows() = 0;
-	virtual void setCell(int row, int column,double newval) = 0;
-	virtual void setWritesEnabled(bool enabled) = 0;
-	virtual void writeWholeLocation(bool ram) = 0;
-	virtual bool isRam()=0;
-	virtual QString axisLabel()=0;
-	virtual QString valueLabel()=0;
+    virtual void setData(unsigned short locationid, bool isflashonly, QByteArray payload) = 0;
+    virtual void setMetaData(TableMeta metadata, FieldMeta xMeta, FieldMeta yMeta) = 0;
+    virtual QByteArray data() = 0;
+    virtual double maxActualXAxis() = 0;
+    virtual double maxActualYAxis() = 0;
+    virtual double minActualXAxis() = 0;
+    virtual double minActualYAxis() = 0;
+    virtual double maxCalcedXAxis() = 0;
+    virtual double maxCalcedYAxis() = 0;
+    virtual double minCalcedXAxis() = 0;
+    virtual double minCalcedYAxis() = 0;
+    virtual QList<double> axis() = 0;
+    virtual QList<double> values() = 0;
+    virtual int columns() = 0;
+    virtual int rows() = 0;
+    virtual void setCell(int row, int column, double newval) = 0;
+    virtual void setWritesEnabled(bool enabled) = 0;
+    virtual void writeWholeLocation(bool ram) = 0;
+    virtual bool isRam() = 0;
+    virtual QString axisLabel() = 0;
+    virtual QString valueLabel() = 0;
 signals:
-	void saveSingleData(unsigned short locationid,QByteArray data, unsigned short offset, unsigned short size);
+    void saveSingleData(unsigned short locationid, QByteArray data, unsigned short offset, unsigned short size);
 public slots:
-	virtual void saveRamToFlash()=0;
-	virtual void updateFromFlash()=0;
-	virtual void updateFromRam()=0;
+    virtual void saveRamToFlash() = 0;
+    virtual void updateFromFlash() = 0;
+    virtual void updateFromRam() = 0;
 };
 
 #endif // TABLE2DDATA_H

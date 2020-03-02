@@ -1,5 +1,5 @@
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
-import QtQuick 1.1
+import QtQuick 2.9
 
 Item {
     width: 500
@@ -22,18 +22,18 @@ Item {
             y:130
             color: "white"
         }
-	Text {
-		x:10
-		y:150
-		color: "white"
-		text: "Configured Output Events"
-	}
-	TextEdit {
-		id: configoutputeventstext
-		x:200
-		y:150
-		color: "white"
-	}
+    Text {
+        x:10
+        y:150
+        color: "white"
+        text: "Configured Output Events"
+    }
+    TextEdit {
+        id: configoutputeventstext
+        x:200
+        y:150
+        color: "white"
+    }
     Text {
         x:10
         y:170

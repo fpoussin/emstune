@@ -8,12 +8,11 @@
 class MenuSetup
 {
 public:
-	QList<MenuItem> menulist;
-	//QList<QPair<QString,QList<QString> > > menulist;
-	//QMap<QString,QString> menunamemap;
-	//QMap<QString,QList<QPair<QString,QString> > > dialogmap;
-	QList<DialogItem> dialoglist;
+    QList<MenuItem> menulist;
+    //QList<QPair<QString,QList<QString> > > menulist;
+    //QMap<QString,QString> menunamemap;
+    //QMap<QString,QList<QPair<QString,QString> > > dialogmap;
+    QList<DialogItem> dialoglist;
 };
-
 
 #endif // MENUSETUP_H

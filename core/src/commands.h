@@ -43,10 +43,12 @@ class CharCommand : public QUndoCommand
 {
 public:
     enum { Id = 1234 };
-    enum Cmd {insert, remove, replace};
+    enum Cmd { insert,
+               remove,
+               replace };
 
-    CharCommand(XByteArray * xData, Cmd cmd, int charPos, char newChar,
-                       QUndoCommand *parent=0);
+    CharCommand(XByteArray *xData, Cmd cmd, int charPos, char newChar,
+                QUndoCommand *parent = 0);
 
     void undo();
     void redo();
@@ -54,7 +56,7 @@ public:
     int id() const { return Id; }
 
 private:
-    XByteArray * _xData;
+    XByteArray *_xData;
     int _charPos;
     bool _wasChanged;
     char _newChar;
@@ -68,15 +70,17 @@ can undo/redo insert, replace and remove binary strins (QByteArrays).
 class ArrayCommand : public QUndoCommand
 {
 public:
-    enum Cmd {insert, remove, replace};
-    ArrayCommand(XByteArray * xData, Cmd cmd, int baPos, QByteArray newBa=QByteArray(), int len=0,
-                 QUndoCommand *parent=0);
+    enum Cmd { insert,
+               remove,
+               replace };
+    ArrayCommand(XByteArray *xData, Cmd cmd, int baPos, QByteArray newBa = QByteArray(), int len = 0,
+                 QUndoCommand *parent = 0);
     void undo();
     void redo();
 
 private:
     Cmd _cmd;
-    XByteArray * _xData;
+    XByteArray *_xData;
     int _baPos;
     int _len;
     QByteArray _wasChanged;

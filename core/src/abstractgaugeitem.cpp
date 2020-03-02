@@ -27,7 +27,7 @@ const QColor AbstractGaugeItem::colorWarning = QColor::fromRgb(240, 215, 50);
 const QColor AbstractGaugeItem::colorDanger = QColor::fromRgb(220, 40, 40);
 const QColor AbstractGaugeItem::colorValue = QColor::fromRgb(50, 100, 50);
 
-AbstractGaugeItem::AbstractGaugeItem(QQuickItem* parent)
+AbstractGaugeItem::AbstractGaugeItem(QQuickItem *parent)
     : QQuickItem(parent)
 {
     m_title = "---";
@@ -205,7 +205,7 @@ QColor AbstractGaugeItem::getStatusColor()
     }
 }
 
-void AbstractGaugeItem::geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry)
+void AbstractGaugeItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     Q_UNUSED(oldGeometry);
     delete m_background;

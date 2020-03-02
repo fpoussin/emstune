@@ -27,7 +27,7 @@
 
 #include "roundgaugeitem.h"
 
-RoundGaugeItem::RoundGaugeItem(QWidget* parent)
+RoundGaugeItem::RoundGaugeItem(QWidget *parent)
 {
     Q_UNUSED(parent);
     setFlag(QQuickItem::ItemHasContents, true);
@@ -139,7 +139,7 @@ void RoundGaugeItem::drawBackground()
     painter.end();
 }
 
-void RoundGaugeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* style, QWidget* w)
+void RoundGaugeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *style, QWidget *w)
 {
     Q_UNUSED(style);
     Q_UNUSED(w);
@@ -168,8 +168,8 @@ void RoundGaugeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* st
         painter->setPen(m_penNeedle);
         float valueAmount = (float)((m_value - m_low) / m_range);
 
-        int* needlePoints1 = GaugeUtil::getPointInArc((int)m_halfsize, (int)m_halfsize, arcSize, arcStart, (int)(m_size * 0.1f), valueAmount);
-        int* needlePoints2 = GaugeUtil::getPointInArc((int)m_halfsize, (int)m_halfsize, arcSize, arcStart, (int)(m_size * 0.3f), valueAmount);
+        int *needlePoints1 = GaugeUtil::getPointInArc((int)m_halfsize, (int)m_halfsize, arcSize, arcStart, (int)(m_size * 0.1f), valueAmount);
+        int *needlePoints2 = GaugeUtil::getPointInArc((int)m_halfsize, (int)m_halfsize, arcSize, arcStart, (int)(m_size * 0.3f), valueAmount);
 
         painter->drawLine(needlePoints1[0], needlePoints1[1], needlePoints2[0], needlePoints2[1]);
     }

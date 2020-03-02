@@ -4,8 +4,8 @@
 class GaugeUtil
 {
 public:
-    static int * getPointInArc(int a, int b, int arcDegrees, int arcStart, int arcRadius, float amount);
-    static int * getAmountInArc(float from, float to);
+    static int *getPointInArc(int a, int b, int arcDegrees, int arcStart, int arcRadius, float amount);
+    static int *getAmountInArc(float from, float to);
     static double toRadians(double degrees);
 };
 

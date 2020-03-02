@@ -34,23 +34,24 @@ class EmsInfoView : public QWidget
     Q_OBJECT
 
 public:
-	explicit EmsInfoView(QWidget *parent = 0);
-	~EmsInfoView();
-	void clear();
+    explicit EmsInfoView(QWidget *parent = 0);
+    ~EmsInfoView();
+    void clear();
 
 protected:
-	void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event);
 public slots:
-	void locationInfoWidgetDoubleClicked(int row, int column);
-	void locationIdInfo(unsigned short locationid,QString title,MemoryLocationInfo info);
-	void normalViewClicked();
-	void hexViewClicked();
+    void locationInfoWidgetDoubleClicked(int row, int column);
+    void locationIdInfo(unsigned short locationid, QString title, MemoryLocationInfo info);
+    void normalViewClicked();
+    void hexViewClicked();
+
 private:
-	Ui::EmsInfo ui;
+    Ui::EmsInfo ui;
 signals:
-	void displayLocationId(int locid, bool isram,FormatType type);
-	void checkSync();
-	void windowHiding(QMdiSubWindow *parent);
+    void displayLocationId(int locid, bool isram, FormatType type);
+    void checkSync();
+    void windowHiding(QMdiSubWindow *parent);
 };
 
 #endif // EMSINFO_H

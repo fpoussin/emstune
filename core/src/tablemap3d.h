@@ -29,29 +29,30 @@
 #include <QPoint>
 class TableMap3D : public QGLWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	explicit TableMap3D(QWidget *parent = 0);
-	void passData(Table3DData *tableData);
+    explicit TableMap3D(QWidget *parent = 0);
+    void passData(Table3DData *tableData);
+
 protected:
-	float m_xrot;
-	float m_yrot;
-	float m_zrot;
-	void mouseReleaseEvent(QMouseEvent *event);
-	void mousePressEvent(QMouseEvent *event);
-	void mouseMoveEvent(QMouseEvent *event);
-	void paintEvent(QPaintEvent *evt);
-	void initializeGL();
-	void resizeGL(int w, int h);
-	void paintGL();
-	bool m_mouseDown;
-	QPoint lastPos;
+    float m_xrot;
+    float m_yrot;
+    float m_zrot;
+    void mouseReleaseEvent(QMouseEvent *event);
+    void mousePressEvent(QMouseEvent *event);
+    void mouseMoveEvent(QMouseEvent *event);
+    void paintEvent(QPaintEvent *evt);
+    void initializeGL();
+    void resizeGL(int w, int h);
+    void paintGL();
+    bool m_mouseDown;
+    QPoint lastPos;
+
 private:
-	Table3DData *m_tableData;
+    Table3DData *m_tableData;
 signals:
 
 public slots:
-	
 };
 
 #endif // TABLEMAP3D_H

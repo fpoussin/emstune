@@ -28,8 +28,8 @@
 #include <QGraphicsItem>
 #include <QMetaType>
 #include <QQmlContext>
-GaugeWidget::GaugeWidget(QWidget* parent)
-    : QQuickView((QWindow*)parent->window())
+GaugeWidget::GaugeWidget(QWidget *parent)
+    : QQuickView((QWindow *)parent->window())
 {
     qmlRegisterType<GaugeItem>("GaugeImage", 0, 1, "GaugeImage");
     qmlRegisterType<RoundGaugeItem>("AviatorGauges", 0, 1, "RoundGauge");
@@ -58,7 +58,7 @@ QString GaugeWidget::setFile(QString file)
     setSource(QUrl::fromLocalFile(file));
     if (rootObject()) {
         for (int i = 0; i < rootObject()->childItems().size(); i++) {
-            QGraphicsObject* obj = qobject_cast<QGraphicsObject*>(rootObject()->childItems()[i]);
+            QGraphicsObject *obj = qobject_cast<QGraphicsObject *>(rootObject()->childItems()[i]);
             if (obj) {
                 propertylist.append(obj->property("propertyMapProperty").toString());
             }

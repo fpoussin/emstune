@@ -58,7 +58,12 @@
 class Table2DMetaData
 {
 public:
-    Table2DMetaData() { xDp=2; yDp=2; valid=false;}
+    Table2DMetaData()
+    {
+        xDp = 2;
+        yDp = 2;
+        valid = false;
+    }
     QString tableTitle;
     bool valid;
     unsigned int size;
@@ -68,8 +73,8 @@ public:
     QString xHighlight;
     int xDp;
     int yDp;
-    QList<QPair<QString,double> > xAxisCalc;
-    QList<QPair<QString,double> > yAxisCalc;
+    QList<QPair<QString, double>> xAxisCalc;
+    QList<QPair<QString, double>> yAxisCalc;
 };
 
 #endif // TABLE2DMETADATA_H

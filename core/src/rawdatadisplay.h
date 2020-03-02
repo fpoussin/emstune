@@ -26,14 +26,14 @@
 #include "ui_rawdatadisplay.h"
 class RawDataDisplay : public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	explicit RawDataDisplay(QWidget *parent = 0);
-	~RawDataDisplay();
+    explicit RawDataDisplay(QWidget *parent = 0);
+    ~RawDataDisplay();
 
 private:
-	Ui::RawDataDisplay ui;
+    Ui::RawDataDisplay ui;
 };
 
 #endif // RAWDATADISPLAY_H

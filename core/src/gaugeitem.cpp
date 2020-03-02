@@ -34,57 +34,57 @@ GaugeItem::GaugeItem()
     m_style = 3;
     m_fadeEnabled = false;
     //	setAttribute(Qt::WA_OpaquePaintEvent,true);
-    resizeDraw = false;
-    _scaleStartAngle = 45;
-    _scaleEndAngle = 315;
-    _numLabels = 10;
-    _maxValue = 10000;
-    _minValue = 0;
+    m_resizeDraw = false;
+    m_scaleStartAngle = 45;
+    m_scaleEndAngle = 315;
+    m_numLabels = 10;
+    m_maxValue = 10000;
+    m_minValue = 0;
     _value = 1000;
-    _bgImage = new QImage(QSize(this->width(), this->height()), QImage::Format_ARGB32);
-    _reverseOrder = false;
+    m_bgImage = new QImage(QSize(this->width(), this->height()), QImage::Format_ARGB32);
+    m_reverseOrder = false;
     m_redrawBackground = true;
     //drawBackground();
-    _danger = 0.90;
-    _warning = 0.75;
-    gaugeTimer = new QTimer(this);
-    connect(gaugeTimer, SIGNAL(timeout()), this, SLOT(gaugeTimerTick()));
+    m_danger = 0.90;
+    m_warning = 0.75;
+    m_gaugeTimer = new QTimer(this);
+    connect(m_gaugeTimer, SIGNAL(timeout()), this, SLOT(gaugeTimerTick()));
 
-    fadeTimer = new QTimer(this);
-    connect(fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimerTick()));
+    m_fadeTimer = new QTimer(this);
+    connect(m_fadeTimer, SIGNAL(timeout()), this, SLOT(fadeTimerTick()));
 
-    needleCenterPen.setColor(QColor(0, 0, 0));
-    needleCenterOutlinePen.setColor(QColor(100, 100, 100));
-    needlePen.setColor(QColor(255, 165, 0));
-    needlePen.setWidth(5);
-    needleOutlinePen.setColor(QColor(255, 0, 0));
-    needleOutlinePen.setWidth(8);
+    m_needleCenterPen.setColor(QColor(0, 0, 0));
+    m_needleCenterOutlinePen.setColor(QColor(100, 100, 100));
+    m_needlePen.setColor(QColor(255, 165, 0));
+    m_needlePen.setWidth(5);
+    m_needleOutlinePen.setColor(QColor(255, 0, 0));
+    m_needleOutlinePen.setWidth(8);
 
-    outlinePen.setColor(QColor(255, 165, 0));
-    outlinePen.setWidth(3);
+    m_outlinePen.setColor(QColor(255, 165, 0));
+    m_outlinePen.setWidth(3);
 
-    normalTickPen.setColor(QColor(255, 165, 0));
-    normalTickPen.setWidth(3);
-    normalBigTickPen.setColor(QColor(255, 165, 0));
-    normalBigTickPen.setWidth(3);
+    m_normalTickPen.setColor(QColor(255, 165, 0));
+    m_normalTickPen.setWidth(3);
+    m_normalBigTickPen.setColor(QColor(255, 165, 0));
+    m_normalBigTickPen.setWidth(3);
 
-    dangerTickPen.setColor(QColor(255, 0, 0));
-    dangerTickPen.setWidth(3);
-    dangerBigTickPen.setColor(QColor(255, 0, 0));
-    dangerBigTickPen.setWidth(3);
+    m_dangerTickPen.setColor(QColor(255, 0, 0));
+    m_dangerTickPen.setWidth(3);
+    m_dangerBigTickPen.setColor(QColor(255, 0, 0));
+    m_dangerBigTickPen.setWidth(3);
 
-    warningTickPen.setColor(QColor(255, 255, 0));
-    warningTickPen.setWidth(3);
-    warningBigTickPen.setColor(QColor(255, 255, 0));
-    warningBigTickPen.setWidth(3);
+    m_warningTickPen.setColor(QColor(255, 255, 0));
+    m_warningTickPen.setWidth(3);
+    m_warningBigTickPen.setColor(QColor(255, 255, 0));
+    m_warningBigTickPen.setWidth(3);
 
-    normalFontPen.setColor(QColor(255, 165, 0));
-    dangerFontPen.setColor(QColor(255, 0, 0));
-    warningFontPen.setColor(QColor(255, 255, 0));
-    labelFont.setFamily("Ariel");
-    labelFont.setPixelSize(25);
-    labelSmallFont.setFamily("Ariel");
-    labelSmallFont.setPixelSize(18);
+    m_normalFontPen.setColor(QColor(255, 165, 0));
+    m_dangerFontPen.setColor(QColor(255, 0, 0));
+    m_warningFontPen.setColor(QColor(255, 255, 0));
+    m_labelFont.setFamily("Ariel");
+    m_labelFont.setPixelSize(25);
+    m_labelSmallFont.setFamily("Ariel");
+    m_labelSmallFont.setPixelSize(18);
 }
 /*void GaugeItem::resizeEvent (QResizeEvent *evt)
 {
@@ -93,15 +93,15 @@ GaugeItem::GaugeItem()
     _bgImage = new QImage(QSize(this->width(),this->height()),QImage::Format_ARGB32);
     drawBackground();
 }*/
-void GaugeItem::geometryChanged(const QRectF& newgeometry, const QRectF& oldgeometry)
+void GaugeItem::geometryChanged(const QRectF &newgeometry, const QRectF &oldgeometry)
 {
     Q_UNUSED(oldgeometry);
-    delete _bgImage;
-    _bgImage = new QImage(newgeometry.width(), newgeometry.height(), QImage::Format_ARGB32);
+    delete m_bgImage;
+    m_bgImage = new QImage(newgeometry.width(), newgeometry.height(), QImage::Format_ARGB32);
     m_redrawBackground = true;
     //drawBackground();
 }
-void GaugeItem::drawBackground(QPainter* painter)
+void GaugeItem::drawBackground(QPainter *painter)
 {
     Q_UNUSED(painter)
     if (m_style == 1) {
@@ -115,15 +115,15 @@ void GaugeItem::drawBackground(QPainter* painter)
         int internalHeight = height() * 0.90;
         int widthOffset = width() * 0.05;
         int heightOffset = height() * 0.05;
-        QPainter tmpPainter(_bgImage);
+        QPainter tmpPainter(m_bgImage);
         tmpPainter.setRenderHint(QPainter::Antialiasing);
         tmpPainter.setBrush(Qt::SolidPattern);
         //tmpPainter.drawRect(0,0,width(),height());
         tmpPainter.drawEllipse(widthOffset, heightOffset, internalWidth, internalHeight);
         //myGraphics.FillEllipse(_inFillPen.Brush, 0, 0, this.Size.Width - 1, this.Size.Height - 1);
-        tmpPainter.setPen(outlinePen);
+        tmpPainter.setPen(m_outlinePen);
         //tmpPainter->drawEllipse(0,0,this->width()-1,this->height()-1);
-        tmpPainter.drawArc(widthOffset, heightOffset, internalWidth, internalHeight, ((0 - _scaleStartAngle) * 16) - (16 * 90), (0 - (_scaleEndAngle - _scaleStartAngle)) * 16);
+        tmpPainter.drawArc(widthOffset, heightOffset, internalWidth, internalHeight, ((0 - m_scaleStartAngle) * 16) - (16 * 90), (0 - (m_scaleEndAngle - m_scaleStartAngle)) * 16);
         //tmpPainter->setBrush(Qt::SolidPattern);
         tmpPainter.setBrush(Qt::NoBrush);
         for (int i = internalWidth; i <= (width() - ((width() - internalWidth) / 2)); i++) {
@@ -165,75 +165,75 @@ void GaugeItem::drawBackground(QPainter* painter)
         tmpPainter.setPen(QColor(0, 0, 0));
         double x = 0;
         double y = 0;
-        for (int i = 0; i < _numLabels + ((_scaleEndAngle - _scaleStartAngle) == 360 ? 0 : 1); i++) {
-            if (_reverseOrder) {
-                x = (float)((cos((((_scaleEndAngle - _scaleStartAngle)) - (i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.0)) + ((internalWidth) / 2);
-                y = (float)((sin((((_scaleEndAngle - _scaleStartAngle)) - (i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.0)) + ((internalHeight) / 2);
+        for (int i = 0; i < m_numLabels + ((m_scaleEndAngle - m_scaleStartAngle) == 360 ? 0 : 1); i++) {
+            if (m_reverseOrder) {
+                x = (float)((cos((((m_scaleEndAngle - m_scaleStartAngle)) - (i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.0)) + ((internalWidth) / 2);
+                y = (float)((sin((((m_scaleEndAngle - m_scaleStartAngle)) - (i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.0)) + ((internalHeight) / 2);
             } else {
                 if (this->width() > 200) {
-                    x = (float)((cos(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.2)) + ((internalWidth) / 2) + widthOffset;
-                    y = (float)((sin(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.2)) + ((internalHeight) / 2) + heightOffset;
+                    x = (float)((cos(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.2)) + ((internalWidth) / 2) + widthOffset;
+                    y = (float)((sin(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.2)) + ((internalHeight) / 2) + heightOffset;
                 } else {
-                    x = (float)((cos(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (this->width() - (this->width() / 3)) / 2.9)) + ((this->width()) / 2);
-                    y = (float)((sin(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (this->height() - (this->height() / 3)) / 2.9)) + ((this->height()) / 2);
+                    x = (float)((cos(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (this->width() - (this->width() / 3)) / 2.9)) + ((this->width()) / 2);
+                    y = (float)((sin(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (this->height() - (this->height() / 3)) / 2.9)) + ((this->height()) / 2);
                 }
             }
             QString val = "";
-            val = QString::number(((int)((i * ((_maxValue - _minValue) / _numLabels)) + _minValue)));
-            if (((float)i / (float)_numLabels) > _danger) {
-                tmpPainter.setPen(dangerFontPen);
+            val = QString::number(((int)((i * ((m_maxValue - m_minValue) / m_numLabels)) + m_minValue)));
+            if (((float)i / (float)m_numLabels) > m_danger) {
+                tmpPainter.setPen(m_dangerFontPen);
                 //	myGraphics.DrawString(val, _myFont, _fontDangerPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
-            } else if (((float)i / (float)_numLabels) > _warning) {
-                tmpPainter.setPen(warningFontPen);
+            } else if (((float)i / (float)m_numLabels) > m_warning) {
+                tmpPainter.setPen(m_warningFontPen);
                 //	myGraphics.DrawString(val, _myFont, _fontWarningPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
             } else {
-                tmpPainter.setPen(normalFontPen);
+                tmpPainter.setPen(m_normalFontPen);
                 //	myGraphics.DrawString(val, _myFont, _fontPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
             }
-            QFontMetrics fm(labelFont);
-            tmpPainter.setFont(labelFont);
+            QFontMetrics fm(m_labelFont);
+            tmpPainter.setFont(m_labelFont);
             tmpPainter.drawText(QPointF(x - (fm.width(val) / 2), y + 3), val);
         }
 
-        for (int i = 0; i <= ((_numLabels)*5); i++) {
-            x = (float)(cos((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 5.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
-            y = (float)(sin((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 5.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
+        for (int i = 0; i <= ((m_numLabels)*5); i++) {
+            x = (float)(cos((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 5.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
+            y = (float)(sin((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 5.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
             if ((i % 5) != 0) {
-                if (((float)i / (float)(_numLabels * 5)) > _danger) {
-                    tmpPainter.setPen(dangerTickPen);
-                } else if (((float)i / (float)(_numLabels * 5)) > _warning) {
-                    tmpPainter.setPen(warningTickPen);
+                if (((float)i / (float)(m_numLabels * 5)) > m_danger) {
+                    tmpPainter.setPen(m_dangerTickPen);
+                } else if (((float)i / (float)(m_numLabels * 5)) > m_warning) {
+                    tmpPainter.setPen(m_warningTickPen);
                 } else {
-                    tmpPainter.setPen(normalTickPen);
+                    tmpPainter.setPen(m_normalTickPen);
                 }
 
                 tmpPainter.drawLine(x * ((internalWidth / 2) - 10) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - 10) + ((internalHeight / 2) + heightOffset), x * ((internalWidth / 2) - 20) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - 20) + ((internalHeight / 2) + heightOffset));
             } else {
 
-                if (((float)i / (float)(_numLabels * 5)) > _danger) {
-                    tmpPainter.setPen(dangerBigTickPen);
-                } else if (((float)i / (float)(_numLabels * 5)) > _warning) {
-                    tmpPainter.setPen(warningBigTickPen);
+                if (((float)i / (float)(m_numLabels * 5)) > m_danger) {
+                    tmpPainter.setPen(m_dangerBigTickPen);
+                } else if (((float)i / (float)(m_numLabels * 5)) > m_warning) {
+                    tmpPainter.setPen(m_warningBigTickPen);
                 } else {
-                    tmpPainter.setPen(normalBigTickPen);
+                    tmpPainter.setPen(m_normalBigTickPen);
                 }
                 tmpPainter.drawLine(x * ((internalWidth / 2) - 10) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - 10) + ((internalHeight / 2) + heightOffset), x * ((internalWidth / 2) - 30) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - 30) + ((internalHeight / 2) + heightOffset));
             }
         }
         tmpPainter.end();
         if (m_fadeEnabled) {
-            _fadedBgImage = new QImage(*_bgImage);
-            _fadedBgImage->detach();
+            m_fadedBgImage = new QImage(*m_bgImage);
+            m_fadedBgImage->detach();
             int lineNum = 0;
-            uchar* line = _fadedBgImage->scanLine(lineNum++);
-            while (lineNum <= _fadedBgImage->height()) {
-                QRgb* rgb = (QRgb*)(line);
-                for (int i = 0; i < _fadedBgImage->width(); i++) {
-                    rgb[i] = qRgba(qRed(rgb[i]), qGreen(rgb[i]), qBlue(rgb[i]), (fadeAmount / 100.0) * 255.0); //qBlue(*rgb) qAlpha(*rgb) * 0.50
+            uchar *line = m_fadedBgImage->scanLine(lineNum++);
+            while (lineNum <= m_fadedBgImage->height()) {
+                QRgb *rgb = (QRgb *)(line);
+                for (int i = 0; i < m_fadedBgImage->width(); i++) {
+                    rgb[i] = qRgba(qRed(rgb[i]), qGreen(rgb[i]), qBlue(rgb[i]), (m_fadeAmount / 100.0) * 255.0); //qBlue(*rgb) qAlpha(*rgb) * 0.50
                 }
-                line = _fadedBgImage->scanLine(lineNum++);
+                line = m_fadedBgImage->scanLine(lineNum++);
             }
-            resizeDraw = true;
+            m_resizeDraw = true;
         }
     } else if (m_style == 2) {
         //double ellipseA = 100;
@@ -247,7 +247,7 @@ void GaugeItem::drawBackground(QPainter* painter)
         int widthOffset = width() * 0.05;
         int heightOffset = height() * 0.05;
 
-        QPainter tmpPainter(_bgImage);
+        QPainter tmpPainter(m_bgImage);
         tmpPainter.setRenderHint(QPainter::Antialiasing);
         tmpPainter.setBrush(Qt::SolidPattern);
         tmpPainter.drawRect(0, 0, width(), height());
@@ -256,45 +256,45 @@ void GaugeItem::drawBackground(QPainter* painter)
         tmpPainter.setPen(QPen(QColor::fromRgb(100, 100, 100)));
         float x = 0;
         float y = 0;
-        for (int i = 0; i < _numLabels + ((_scaleEndAngle - _scaleStartAngle) == 360 ? 0 : 1); i++) {
-            if (_reverseOrder) {
-                x = (float)((cos((((_scaleEndAngle - _scaleStartAngle)) - (i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.0)) + ((internalWidth) / 2);
-                y = (float)((sin((((_scaleEndAngle - _scaleStartAngle)) - (i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.0)) + ((internalHeight) / 2);
+        for (int i = 0; i < m_numLabels + ((m_scaleEndAngle - m_scaleStartAngle) == 360 ? 0 : 1); i++) {
+            if (m_reverseOrder) {
+                x = (float)((cos((((m_scaleEndAngle - m_scaleStartAngle)) - (i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.0)) + ((internalWidth) / 2);
+                y = (float)((sin((((m_scaleEndAngle - m_scaleStartAngle)) - (i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.0)) + ((internalHeight) / 2);
             } else {
                 if (this->width() > 200) {
-                    x = (float)((cos(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.2)) + ((internalWidth) / 2) + widthOffset;
-                    y = (float)((sin(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.2)) + ((internalHeight) / 2) + heightOffset;
+                    x = (float)((cos(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.2)) + ((internalWidth) / 2) + widthOffset;
+                    y = (float)((sin(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.2)) + ((internalHeight) / 2) + heightOffset;
                 } else {
-                    x = (float)((cos(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (this->width() - (this->width() / 3)) / 2.9)) + ((this->width()) / 2);
-                    y = (float)((sin(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (this->height() - (this->height() / 3)) / 2.9)) + ((this->height()) / 2);
+                    x = (float)((cos(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (this->width() - (this->width() / 3)) / 2.9)) + ((this->width()) / 2);
+                    y = (float)((sin(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (this->height() - (this->height() / 3)) / 2.9)) + ((this->height()) / 2);
                 }
             }
             QString val = "";
-            val = QString::number(((int)((i * ((_maxValue - _minValue) / _numLabels)) + _minValue)));
-            if (((float)i / (float)_numLabels) > _danger) {
-                tmpPainter.setPen(dangerFontPen);
+            val = QString::number(((int)((i * ((m_maxValue - m_minValue) / m_numLabels)) + m_minValue)));
+            if (((float)i / (float)m_numLabels) > m_danger) {
+                tmpPainter.setPen(m_dangerFontPen);
                 //	myGraphics.DrawString(val, _myFont, _fontDangerPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
-            } else if (((float)i / (float)_numLabels) > _warning) {
-                tmpPainter.setPen(warningFontPen);
+            } else if (((float)i / (float)m_numLabels) > m_warning) {
+                tmpPainter.setPen(m_warningFontPen);
                 //	myGraphics.DrawString(val, _myFont, _fontWarningPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
             } else {
                 tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                 //	myGraphics.DrawString(val, _myFont, _fontPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
             }
-            QFontMetrics fm(labelFont);
-            tmpPainter.setFont(labelFont);
+            QFontMetrics fm(m_labelFont);
+            tmpPainter.setFont(m_labelFont);
             tmpPainter.drawText(QPointF(x - (fm.width(val) / 2), y + 3), val);
         }
 
         if (this->width() < 250) {
-            for (int i = 0; i <= ((_numLabels)*5); i++) {
-                x = (float)(cos((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 5.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
-                y = (float)(sin((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 5.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
+            for (int i = 0; i <= ((m_numLabels)*5); i++) {
+                x = (float)(cos((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 5.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
+                y = (float)(sin((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 5.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
                 if (((i % 5) == 0) && (!((i % 20) == 0))) {
-                    if (((float)i / (float)(_numLabels * 5)) > _danger) {
-                        tmpPainter.setPen(dangerBigTickPen);
-                    } else if (((float)i / (float)(_numLabels * 5)) > _warning) {
-                        tmpPainter.setPen(warningBigTickPen);
+                    if (((float)i / (float)(m_numLabels * 5)) > m_danger) {
+                        tmpPainter.setPen(m_dangerBigTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 5)) > m_warning) {
+                        tmpPainter.setPen(m_warningBigTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
@@ -317,10 +317,10 @@ void GaugeItem::drawBackground(QPainter* painter)
                     tmpPainter->drawLine(x * ((internalWidth / 2) - 10) + ((internalWidth / 2)+widthOffset), y * ((internalHeight / 2) - 10) + ((internalHeight / 2)+heightOffset),x * ((internalWidth  / 2) - (internalWidth * 0.1)) + ((internalWidth / 2)+widthOffset), y * ((internalHeight / 2) - (internalHeight * 0.1)) + ((internalHeight / 2)+heightOffset));
                 }*/
                 else {
-                    if (((float)i / (float)(_numLabels * 5)) > _danger) {
-                        tmpPainter.setPen(dangerTickPen);
-                    } else if (((float)i / (float)(_numLabels * 5)) > _warning) {
-                        tmpPainter.setPen(warningTickPen);
+                    if (((float)i / (float)(m_numLabels * 5)) > m_danger) {
+                        tmpPainter.setPen(m_dangerTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 5)) > m_warning) {
+                        tmpPainter.setPen(m_warningTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
@@ -331,32 +331,32 @@ void GaugeItem::drawBackground(QPainter* painter)
 
         } else {
 
-            for (int i = 0; i <= ((_numLabels)*20); i++) {
-                x = (float)(cos((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 20.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
-                y = (float)(sin((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 20.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
+            for (int i = 0; i <= ((m_numLabels)*20); i++) {
+                x = (float)(cos((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 20.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
+                y = (float)(sin((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 20.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
                 if (((i % 5) == 0) && (!((i % 20) == 0))) {
-                    if (((float)i / (float)(_numLabels * 20)) > _danger) {
-                        tmpPainter.setPen(dangerBigTickPen);
-                    } else if (((float)i / (float)(_numLabels * 20)) > _warning) {
-                        tmpPainter.setPen(warningBigTickPen);
+                    if (((float)i / (float)(m_numLabels * 20)) > m_danger) {
+                        tmpPainter.setPen(m_dangerBigTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 20)) > m_warning) {
+                        tmpPainter.setPen(m_warningBigTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
                     tmpPainter.drawLine(x * ((internalWidth / 2) - 10) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - 10) + ((internalHeight / 2) + heightOffset), x * ((internalWidth / 2) - (internalWidth * 0.08)) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - (internalHeight * 0.08)) + ((internalHeight / 2) + heightOffset));
                 } else if ((i % 20) == 0) {
-                    if (((float)i / (float)(_numLabels * 20)) > _danger) {
-                        tmpPainter.setPen(dangerBigTickPen);
-                    } else if (((float)i / (float)(_numLabels * 20)) > _warning) {
-                        tmpPainter.setPen(warningBigTickPen);
+                    if (((float)i / (float)(m_numLabels * 20)) > m_danger) {
+                        tmpPainter.setPen(m_dangerBigTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 20)) > m_warning) {
+                        tmpPainter.setPen(m_warningBigTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
                     tmpPainter.drawLine(x * ((internalWidth / 2) - 10) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - 10) + ((internalHeight / 2) + heightOffset), x * ((internalWidth / 2) - (internalWidth * 0.1)) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - (internalHeight * 0.1)) + ((internalHeight / 2) + heightOffset));
                 } else {
-                    if (((float)i / (float)(_numLabels * 20)) > _danger) {
-                        tmpPainter.setPen(dangerTickPen);
-                    } else if (((float)i / (float)(_numLabels * 20)) > _warning) {
-                        tmpPainter.setPen(warningTickPen);
+                    if (((float)i / (float)(m_numLabels * 20)) > m_danger) {
+                        tmpPainter.setPen(m_dangerTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 20)) > m_warning) {
+                        tmpPainter.setPen(m_warningTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
@@ -371,7 +371,7 @@ void GaugeItem::drawBackground(QPainter* painter)
         int internalHeight = height() * 0.90;
         int widthOffset = width() * 0.05;
         int heightOffset = height() * 0.05;
-        QPainter tmpPainter(_bgImage);
+        QPainter tmpPainter(m_bgImage);
         tmpPainter.setRenderHint(QPainter::Antialiasing);
         //tmpPainter.setBrush(Qt::SolidPattern);
         tmpPainter.setPen(QPen(QColor(255, 0, 0, 255)));
@@ -383,7 +383,7 @@ void GaugeItem::drawBackground(QPainter* painter)
             //tmpPainter.setPen(QPen(QColor(255.0 * (1.0-((float)(internalWidth - i) / (internalWidth - (width() - ((width() - internalWidth)/2))))),160.0 * (1.0-((float)(internalWidth - i) / (internalWidth - (width() - ((width() - internalWidth)/2))))),0)));
             int random = rand() % 100 + 155;
             tmpPainter.setPen(QPen(QColor(random, random, random, (int)counter % 255)));
-            tmpPainter.drawArc(widthOffset + (internalWidth - i), heightOffset + (internalWidth - i), i - (internalWidth - i), i - (internalWidth - i), (270 - _scaleStartAngle) * 16, (0 - (_scaleEndAngle - _scaleStartAngle)) * 16);
+            tmpPainter.drawArc(widthOffset + (internalWidth - i), heightOffset + (internalWidth - i), i - (internalWidth - i), i - (internalWidth - i), (270 - m_scaleStartAngle) * 16, (0 - (m_scaleEndAngle - m_scaleStartAngle)) * 16);
         }
         tmpPainter.setPen(QPen(QColor::fromRgb(255, 255, 255)));
         tmpPainter.setBrush(Qt::SolidPattern);
@@ -391,9 +391,9 @@ void GaugeItem::drawBackground(QPainter* painter)
         font.setPixelSize(30);
         tmpPainter.setFont(font);
         tmpPainter.translate(width() / 2.0, height() / 2.0);
-        tmpPainter.rotate(((_scaleStartAngle + _scaleEndAngle) / 2.0) + 180);
+        tmpPainter.rotate(((m_scaleStartAngle + m_scaleEndAngle) / 2.0) + 180);
         tmpPainter.drawText(0 - (tmpPainter.fontMetrics().width(m_text) / 2.0), 0 + (internalHeight / 4.0), m_text);
-        tmpPainter.rotate(-1 * (((_scaleStartAngle + _scaleEndAngle) / 2.0) + 180));
+        tmpPainter.rotate(-1 * (((m_scaleStartAngle + m_scaleEndAngle) / 2.0) + 180));
         tmpPainter.translate(-1 * width() / 2.0, -1 * height() / 2.0);
 
         tmpPainter.setBrush(Qt::SolidPattern);
@@ -404,56 +404,56 @@ void GaugeItem::drawBackground(QPainter* painter)
         float x = 0;
         float y = 0;
         //Draw Labels
-        for (int i = 0; i < _numLabels + ((_scaleEndAngle - _scaleStartAngle) == 360 ? 0 : 1); i++) {
-            if (_reverseOrder) {
-                x = (float)((cos((((_scaleEndAngle - _scaleStartAngle)) - (i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.0)) + ((internalWidth) / 2);
-                y = (float)((sin((((_scaleEndAngle - _scaleStartAngle)) - (i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.0)) + ((internalHeight) / 2);
+        for (int i = 0; i < m_numLabels + ((m_scaleEndAngle - m_scaleStartAngle) == 360 ? 0 : 1); i++) {
+            if (m_reverseOrder) {
+                x = (float)((cos((((m_scaleEndAngle - m_scaleStartAngle)) - (i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.0)) + ((internalWidth) / 2);
+                y = (float)((sin((((m_scaleEndAngle - m_scaleStartAngle)) - (i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.0)) + ((internalHeight) / 2);
             } else {
                 //Need a sliding scale of label offsets, due to the size of text in relation to the size of the gauge.
                 if (this->width() > 300) {
-                    x = (float)((cos(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.0)) + ((internalWidth) / 2) + widthOffset;
-                    y = (float)((sin(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.0)) + ((internalHeight) / 2) + heightOffset;
+                    x = (float)((cos(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.0)) + ((internalWidth) / 2) + widthOffset;
+                    y = (float)((sin(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.0)) + ((internalHeight) / 2) + heightOffset;
                 } else if (this->width() > 250) {
-                    x = (float)((cos(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.3)) + ((internalWidth) / 2) + widthOffset;
-                    y = (float)((sin(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.3)) + ((internalHeight) / 2) + heightOffset;
+                    x = (float)((cos(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.3)) + ((internalWidth) / 2) + widthOffset;
+                    y = (float)((sin(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.3)) + ((internalHeight) / 2) + heightOffset;
                 } else {
-                    x = (float)((cos(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.5)) + ((internalWidth) / 2) + widthOffset;
-                    y = (float)((sin(((i * ((_scaleEndAngle - _scaleStartAngle) / _numLabels)) - 270 + _scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.5)) + ((internalHeight) / 2) + heightOffset;
+                    x = (float)((cos(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalWidth - (internalWidth / 3)) / 2.5)) + ((internalWidth) / 2) + widthOffset;
+                    y = (float)((sin(((i * ((m_scaleEndAngle - m_scaleStartAngle) / m_numLabels)) - 270 + m_scaleStartAngle) * M_PI / 180) * (internalHeight - (internalHeight / 3)) / 2.5)) + ((internalHeight) / 2) + heightOffset;
                 }
             }
             QString val = "";
-            val = QString::number(((int)((i * ((_maxValue - _minValue) / _numLabels)) + _minValue)));
-            if (((float)i / (float)_numLabels) > _danger) {
-                tmpPainter.setPen(dangerFontPen);
+            val = QString::number(((int)((i * ((m_maxValue - m_minValue) / m_numLabels)) + m_minValue)));
+            if (((float)i / (float)m_numLabels) > m_danger) {
+                tmpPainter.setPen(m_dangerFontPen);
                 //	myGraphics.DrawString(val, _myFont, _fontDangerPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
-            } else if (((float)i / (float)_numLabels) > _warning) {
-                tmpPainter.setPen(warningFontPen);
+            } else if (((float)i / (float)m_numLabels) > m_warning) {
+                tmpPainter.setPen(m_warningFontPen);
                 //	myGraphics.DrawString(val, _myFont, _fontWarningPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
             } else {
                 tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                 //	myGraphics.DrawString(val, _myFont, _fontPen.Brush, x - (_myFont.Size / 2) * val.Length, y - (_myFont.Height / 2));
             }
             if (this->width() > 250) {
-                QFontMetrics fm(labelFont);
-                tmpPainter.setFont(labelFont);
+                QFontMetrics fm(m_labelFont);
+                tmpPainter.setFont(m_labelFont);
                 tmpPainter.drawText(QPointF(x - (fm.width(val) / 2), y + 3), val);
             } else {
-                QFontMetrics fm(labelSmallFont);
-                tmpPainter.setFont(labelSmallFont);
+                QFontMetrics fm(m_labelSmallFont);
+                tmpPainter.setFont(m_labelSmallFont);
                 tmpPainter.drawText(QPointF(x - (fm.width(val) / 2), y + 3), val);
             }
         }
 
         //Draw Ticks
         if (this->width() < 250) {
-            for (int i = 0; i <= ((_numLabels)*5); i++) {
-                x = (float)(cos((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 5.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
-                y = (float)(sin((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 5.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
+            for (int i = 0; i <= ((m_numLabels)*5); i++) {
+                x = (float)(cos((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 5.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
+                y = (float)(sin((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 5.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
                 if (((i % 5) == 0) && (!((i % 20) == 0))) {
-                    if (((float)i / (float)(_numLabels * 5)) > _danger) {
-                        tmpPainter.setPen(dangerBigTickPen);
-                    } else if (((float)i / (float)(_numLabels * 5)) > _warning) {
-                        tmpPainter.setPen(warningBigTickPen);
+                    if (((float)i / (float)(m_numLabels * 5)) > m_danger) {
+                        tmpPainter.setPen(m_dangerBigTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 5)) > m_warning) {
+                        tmpPainter.setPen(m_warningBigTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
@@ -476,10 +476,10 @@ void GaugeItem::drawBackground(QPainter* painter)
                     tmpPainter->drawLine(x * ((internalWidth / 2) - 10) + ((internalWidth / 2)+widthOffset), y * ((internalHeight / 2) - 10) + ((internalHeight / 2)+heightOffset),x * ((internalWidth  / 2) - (internalWidth * 0.1)) + ((internalWidth / 2)+widthOffset), y * ((internalHeight / 2) - (internalHeight * 0.1)) + ((internalHeight / 2)+heightOffset));
                 }*/
                 else {
-                    if (((float)i / (float)(_numLabels * 5)) > _danger) {
-                        tmpPainter.setPen(dangerTickPen);
-                    } else if (((float)i / (float)(_numLabels * 5)) > _warning) {
-                        tmpPainter.setPen(warningTickPen);
+                    if (((float)i / (float)(m_numLabels * 5)) > m_danger) {
+                        tmpPainter.setPen(m_dangerTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 5)) > m_warning) {
+                        tmpPainter.setPen(m_warningTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
@@ -490,32 +490,32 @@ void GaugeItem::drawBackground(QPainter* painter)
 
         } else {
 
-            for (int i = 0; i <= ((_numLabels)*20); i++) {
-                x = (float)(cos((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 20.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
-                y = (float)(sin((i * ((_scaleEndAngle - _scaleStartAngle) / (_numLabels * 20.0)) + 90.0 + _scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
+            for (int i = 0; i <= ((m_numLabels)*20); i++) {
+                x = (float)(cos((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 20.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Width / 2) + (this.Size.Width));
+                y = (float)(sin((i * ((m_scaleEndAngle - m_scaleStartAngle) / (m_numLabels * 20.0)) + 90.0 + m_scaleStartAngle) * M_PI / 180)); //* (this.Size.Height / 2) + (this.Size.Height));
                 if (((i % 5) == 0) && (!((i % 20) == 0))) {
-                    if (((float)i / (float)(_numLabels * 20)) > _danger) {
-                        tmpPainter.setPen(dangerBigTickPen);
-                    } else if (((float)i / (float)(_numLabels * 20)) > _warning) {
-                        tmpPainter.setPen(warningBigTickPen);
+                    if (((float)i / (float)(m_numLabels * 20)) > m_danger) {
+                        tmpPainter.setPen(m_dangerBigTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 20)) > m_warning) {
+                        tmpPainter.setPen(m_warningBigTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
                     tmpPainter.drawLine(x * ((internalWidth / 2) - 10) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - 10) + ((internalHeight / 2) + heightOffset), x * ((internalWidth / 2) - (internalWidth * 0.08)) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - (internalHeight * 0.08)) + ((internalHeight / 2) + heightOffset));
                 } else if ((i % 20) == 0) {
-                    if (((float)i / (float)(_numLabels * 20)) > _danger) {
-                        tmpPainter.setPen(dangerBigTickPen);
-                    } else if (((float)i / (float)(_numLabels * 20)) > _warning) {
-                        tmpPainter.setPen(warningBigTickPen);
+                    if (((float)i / (float)(m_numLabels * 20)) > m_danger) {
+                        tmpPainter.setPen(m_dangerBigTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 20)) > m_warning) {
+                        tmpPainter.setPen(m_warningBigTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
                     tmpPainter.drawLine(x * ((internalWidth / 2) - 10) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - 10) + ((internalHeight / 2) + heightOffset), x * ((internalWidth / 2) - (internalWidth * 0.1)) + ((internalWidth / 2) + widthOffset), y * ((internalHeight / 2) - (internalHeight * 0.1)) + ((internalHeight / 2) + heightOffset));
                 } else {
-                    if (((float)i / (float)(_numLabels * 20)) > _danger) {
-                        tmpPainter.setPen(dangerTickPen);
-                    } else if (((float)i / (float)(_numLabels * 20)) > _warning) {
-                        tmpPainter.setPen(warningTickPen);
+                    if (((float)i / (float)(m_numLabels * 20)) > m_danger) {
+                        tmpPainter.setPen(m_dangerTickPen);
+                    } else if (((float)i / (float)(m_numLabels * 20)) > m_warning) {
+                        tmpPainter.setPen(m_warningTickPen);
                     } else {
                         tmpPainter.setPen(QPen(QColor::fromRgb(200, 200, 200)));
                     }
@@ -528,7 +528,7 @@ void GaugeItem::drawBackground(QPainter* painter)
         tmpPainter.end();
     }
 }
-void GaugeItem::paint(QPainter* tmpPainter, const QStyleOptionGraphicsItem* style, QWidget* w)
+void GaugeItem::paint(QPainter *tmpPainter, const QStyleOptionGraphicsItem *style, QWidget *w)
 //void GaugeItem::paintEvent(QPaintEvent *evt)
 {
     Q_UNUSED(style);
@@ -544,24 +544,24 @@ void GaugeItem::paint(QPainter* tmpPainter, const QStyleOptionGraphicsItem* styl
         if (m_fake) {
             tmpPainter->setBrush(Qt::SolidPattern);
             tmpPainter->drawRect(0, 0, width(), height());
-            resizeDraw = true;
+            m_resizeDraw = true;
         }
 
         //tmpPainter->setRenderHint(QPainter::Antialiasing);
         //tmpPainter->drawLine(0,0,this->width()-1,0);
-        double _valueInRadi = (((_value * ((_scaleEndAngle - _scaleStartAngle) / (_maxValue - _minValue))) + 90 + _scaleStartAngle) * (M_PI / 180.0));
+        double _valueInRadi = (((_value * ((m_scaleEndAngle - m_scaleStartAngle) / (m_maxValue - m_minValue))) + 90 + m_scaleStartAngle) * (M_PI / 180.0));
         //tmpPainter->drawLine(this->width()-1,0,this->width()-1,this->height()-1);
         //tmpPainter->drawLine(this->width()-1,this->height()-1,0,this->height()-1);
         //tmpPainter->drawLine(0,0,0,this->height()-1);
         if (m_fadeEnabled) {
-            if (resizeDraw) {
-                tmpPainter->drawImage(0, 0, *_bgImage);
-                resizeDraw = false;
+            if (m_resizeDraw) {
+                tmpPainter->drawImage(0, 0, *m_bgImage);
+                m_resizeDraw = false;
             } else {
-                tmpPainter->drawImage(0, 0, *_fadedBgImage);
+                tmpPainter->drawImage(0, 0, *m_fadedBgImage);
             }
         } else {
-            tmpPainter->drawImage(0, 0, *_bgImage);
+            tmpPainter->drawImage(0, 0, *m_bgImage);
         }
         double x = 0;
         double y = 0;
@@ -577,7 +577,7 @@ void GaugeItem::paint(QPainter* tmpPainter, const QStyleOptionGraphicsItem* styl
         //y = (float)(0 + (((this.Height / 2) - 31) * Math.Sin(_valueInRadi) * Math.Cos(0 * Math.PI / 180)) + (((this.Height / 2) - 31) * Math.Cos(_valueInRadi) * Math.Sin(0 * Math.PI / 180)));
         //}
 
-        if (_reverseOrder) {
+        if (m_reverseOrder) {
             x = (float)(0 + (((this->width() / 2) - 31) * cos(0 - (float)_valueInRadi + (180 * M_PI / 180)) * cos((float)0)) - (((this->width() / 2) - 31) * sin(0 - (float)_valueInRadi + (180 * M_PI / 180)) * sin((float)0)));
             //x = (float)(0 + (((this.Width    / 2) - 31) * Math.Cos(0 - _valueInRadi) * Math.Cos(0)) - (((this.Width    / 2) - 31) * Math.Sin(0 - _valueInRadi) * Math.Sin(0));
             y = (float)(0 + (((this->height() / 2) - 31) * sin(((float)0) - _valueInRadi + (180 * M_PI / 180)) * cos((float)0)) + (((this->height() / 2) - 31) * cos(((float)0) - _valueInRadi + (180 * M_PI / 180)) * sin((float)0)));
@@ -586,16 +586,16 @@ void GaugeItem::paint(QPainter* tmpPainter, const QStyleOptionGraphicsItem* styl
             x = (float)(0 + (((this->width() / 2) - 31) * cos(_valueInRadi)) - (((this->width() / 2) - 31) * sin(_valueInRadi) * sin(0 * M_PI / 180)));
             y = (float)(0 + (((this->height() / 2) - 31) * sin(_valueInRadi)) + (((this->height() / 2) - 31) * cos(_valueInRadi) * sin(0 * M_PI / 180)));
         }
-        tmpPainter->setPen(needleCenterOutlinePen);
+        tmpPainter->setPen(m_needleCenterOutlinePen);
         tmpPainter->setBrush(QBrush(QColor(100, 100, 100)));
         tmpPainter->drawEllipse((this->width() / 2) - (this->width() / 10), (this->height() / 2) - (this->height() / 10), this->width() / 5, this->height() / 5);
 
-        tmpPainter->setPen(needleOutlinePen);
+        tmpPainter->setPen(m_needleOutlinePen);
         tmpPainter->drawLine(this->width() / 2, this->height() / 2, this->width() / 2 + x, this->height() / 2 + y);
-        tmpPainter->setPen(needlePen);
+        tmpPainter->setPen(m_needlePen);
         tmpPainter->drawLine(this->width() / 2, this->height() / 2, this->width() / 2 + x, this->height() / 2 + y);
 
-        tmpPainter->setPen(needleCenterPen);
+        tmpPainter->setPen(m_needleCenterPen);
         tmpPainter->setBrush(QBrush(Qt::SolidPattern));
         tmpPainter->drawEllipse((this->width() / 2) - (this->width() / 16), (this->height() / 2) - (this->height() / 16), this->width() / 8, this->height() / 8);
         //myGraphics.DrawLine(_needleOutlinePen, this.Size.Width / 2, this.Size.Height / 2, (this.Size.Width / 2) + x, (this.Size.Height / 2) + y);
@@ -603,13 +603,13 @@ void GaugeItem::paint(QPainter* tmpPainter, const QStyleOptionGraphicsItem* styl
         //tmpPainter->end();
     } else if (m_style == 2) {
         //QPainter tmpPainter(this);
-        tmpPainter->drawImage(0, 0, *_bgImage);
+        tmpPainter->drawImage(0, 0, *m_bgImage);
     } else if (m_style == 3) {
-        tmpPainter->drawImage(0, 0, *_bgImage);
-        double _valueInRadi = (((_value * ((_scaleEndAngle - _scaleStartAngle) / (_maxValue - _minValue))) + 90 + _scaleStartAngle) * (M_PI / 180.0));
+        tmpPainter->drawImage(0, 0, *m_bgImage);
+        double _valueInRadi = (((_value * ((m_scaleEndAngle - m_scaleStartAngle) / (m_maxValue - m_minValue))) + 90 + m_scaleStartAngle) * (M_PI / 180.0));
         double x = 0;
         double y = 0;
-        if (_reverseOrder) {
+        if (m_reverseOrder) {
             x = (float)(0 + (((this->width() / 2) - 31) * cos(0 - (float)_valueInRadi + (180 * M_PI / 180)) * cos((float)0)) - (((this->width() / 2) - 31) * sin(0 - (float)_valueInRadi + (180 * M_PI / 180)) * sin((float)0)));
             //x = (float)(0 + (((this.Width    / 2) - 31) * Math.Cos(0 - _valueInRadi) * Math.Cos(0)) - (((this.Width    / 2) - 31) * Math.Sin(0 - _valueInRadi) * Math.Sin(0));
             y = (float)(0 + (((this->height() / 2) - 31) * sin(((float)0) - _valueInRadi + (180 * M_PI / 180)) * cos((float)0)) + (((this->height() / 2) - 31) * cos(((float)0) - _valueInRadi + (180 * M_PI / 180)) * sin((float)0)));
@@ -618,16 +618,16 @@ void GaugeItem::paint(QPainter* tmpPainter, const QStyleOptionGraphicsItem* styl
             x = (float)(0 + (((this->width() / 2) - 31) * cos(_valueInRadi)) - (((this->width() / 2) - 31) * sin(_valueInRadi) * sin(0 * M_PI / 180)));
             y = (float)(0 + (((this->height() / 2) - 31) * sin(_valueInRadi)) + (((this->height() / 2) - 31) * cos(_valueInRadi) * sin(0 * M_PI / 180)));
         }
-        tmpPainter->setPen(needleCenterOutlinePen);
+        tmpPainter->setPen(m_needleCenterOutlinePen);
         tmpPainter->setBrush(QBrush(QColor(100, 100, 100)));
         tmpPainter->drawEllipse((this->width() / 2) - (this->width() / 10), (this->height() / 2) - (this->height() / 10), this->width() / 5, this->height() / 5);
 
-        tmpPainter->setPen(needleOutlinePen);
+        tmpPainter->setPen(m_needleOutlinePen);
         tmpPainter->drawLine(this->width() / 2, this->height() / 2, this->width() / 2 + x, this->height() / 2 + y);
-        tmpPainter->setPen(needlePen);
+        tmpPainter->setPen(m_needlePen);
         tmpPainter->drawLine(this->width() / 2, this->height() / 2, this->width() / 2 + x, this->height() / 2 + y);
 
-        tmpPainter->setPen(needleCenterPen);
+        tmpPainter->setPen(m_needleCenterPen);
         tmpPainter->setBrush(QBrush(Qt::SolidPattern));
         tmpPainter->drawEllipse((this->width() / 2) - (this->width() / 16), (this->height() / 2) - (this->height() / 16), this->width() / 8, this->height() / 8);
     }
@@ -678,22 +678,22 @@ void GaugeItem::passEvent(QStringList evt)
 }
 void GaugeItem::startDemo(int max)
 {
-    demoMax = max;
-    demoTimer = new QTimer(this);
-    connect(demoTimer, SIGNAL(timeout()), this, SLOT(timerTick()));
-    demoTimer->start(500);
+    m_demoMax = max;
+    m_demoTimer = new QTimer(this);
+    connect(m_demoTimer, SIGNAL(timeout()), this, SLOT(timerTick()));
+    m_demoTimer->start(500);
 }
 void GaugeItem::timerTick()
 {
-    setValue(rand() % demoMax);
+    setValue(rand() % m_demoMax);
 }
 void GaugeItem::fadeTimerTick()
 {
     //this->repaint();
-    fadeCount++;
-    if (fadeCount > 50) {
-        resizeDraw = true;
-        fadeCount = 0;
+    m_fadeCount++;
+    if (m_fadeCount > 50) {
+        m_resizeDraw = true;
+        m_fadeCount = 0;
         //fadeTimer->stop();
         //resizeDraw = true;
         //repaint();
@@ -701,23 +701,23 @@ void GaugeItem::fadeTimerTick()
 }
 void GaugeItem::gaugeTimerTick()
 {
-    _value = _value + ((_targetValue - _value) * 0.05);
-    if (abs(_value - _targetValue) < 10) {
-        fadeCount = 0;
-        _value = _targetValue;
-        gaugeTimer->stop();
-        fadeTimer->start(50);
+    _value = _value + ((m_targetValue - _value) * 0.05);
+    if (abs(_value - m_targetValue) < 10) {
+        m_fadeCount = 0;
+        _value = m_targetValue;
+        m_gaugeTimer->stop();
+        m_fadeTimer->start(50);
     }
     //this->repaint();
 }
 void GaugeItem::setFade(int fade)
 {
-    fadeAmount = fade;
+    m_fadeAmount = fade;
     //drawBackground();
 }
 void GaugeItem::show()
 {
-    resizeDraw = true;
+    m_resizeDraw = true;
     //fadeTimer->start(50);
     //QWidget::show();
 }

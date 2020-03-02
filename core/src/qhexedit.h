@@ -17,7 +17,6 @@
 *   <http://www.gnu.org/licenses/>.                                        *
 ****************************************************************************/
 
-
 #ifndef QHEXEDIT_H
 #define QHEXEDIT_H
 
@@ -30,7 +29,6 @@ QHexEdit is a binary editor widget for Qt.
 \version Version 0.6.3
 \image html hexedit.png
 */
-
 
 /*! QHexEdit is a hex editor widget written in C++ for the Qt (Qt4) framework.
 It is a simple editor for binary data, just like QPlainTextEdit is for text
@@ -64,7 +62,7 @@ This widget can only handle small amounts of data. The size has to be below 10
 megabytes, otherwise the scroll sliders ard not shown and you can't scroll any
 more.
 */
-        class QHexEdit : public QScrollArea
+class QHexEdit : public QScrollArea
 {
     Q_OBJECT
     /*! Property data holds the content of QHexEdit. Call setData() to set the
@@ -118,7 +116,6 @@ more.
     /*! Set the font of the widget. Please use fixed width fonts like Mono or Courier.*/
     Q_PROPERTY(QFont font READ font WRITE setFont)
 
-
 public:
     /*! Creates an instance of QHexEdit.
     \param parent Parent widget of QHexEdit.
@@ -132,7 +129,7 @@ public:
     it will be selected.
 
     */
-    int indexOf(const QByteArray & ba, int from = 0) const;
+    int indexOf(const QByteArray &ba, int from = 0) const;
 
     /*! Inserts a byte array.
     \param i Index position, where to insert
@@ -140,7 +137,7 @@ public:
     In overwrite mode, the existing data will be overwritten, in insertmode ba will be
     inserted and size of data grows.
     */
-    void insert(int i, const QByteArray & ba);
+    void insert(int i, const QByteArray &ba);
 
     /*! Inserts a char.
     \param i Index position, where to insert
@@ -157,18 +154,18 @@ public:
     it will be selected.
 
     */
-    int lastIndexOf(const QByteArray & ba, int from = 0) const;
+    int lastIndexOf(const QByteArray &ba, int from = 0) const;
 
     /*! Removes len bytes from the content.
     \param pos Index position, where to remove
     \param len Amount of bytes to remove
     In overwrite mode, the existing bytes will be overwriten with 0x00.
     */
-    void remove(int pos, int len=1);
+    void remove(int pos, int len = 1);
 
     /*! Replaces len bytes from index position pos with the byte array after.
     */
-    void replace( int pos, int len, const QByteArray & after);
+    void replace(int pos, int len, const QByteArray &after);
 
     /*! Gives back a formatted image of the content of QHexEdit
     */
@@ -253,4 +250,3 @@ private:
 };
 
 #endif
-

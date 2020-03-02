@@ -29,21 +29,22 @@
 
 class ReadOnlyRamView : public QWidget
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+
 public:
-	explicit ReadOnlyRamView(QWidget *parent = 0);
-	~ReadOnlyRamView();
-	void passData(unsigned short locationid,QByteArray data,QList<ReadOnlyRamData> metadata);
-	QTimer *readRamTimer;
-	double calcAxis(unsigned short val,QList<QPair<QString,double> > metadata);
+    explicit ReadOnlyRamView(QWidget *parent = 0);
+    ~ReadOnlyRamView();
+    void passData(unsigned short locationid, QByteArray data, QList<ReadOnlyRamData> metadata);
+    QTimer *readRamTimer;
+    double calcAxis(unsigned short val, QList<QPair<QString, double>> metadata);
+
 private:
-	unsigned short m_locationId;
-	Ui::ReadOnlyRamView ui;
+    unsigned short m_locationId;
+    Ui::ReadOnlyRamView ui;
 private slots:
-	void readRamTimerTick();
+    void readRamTimerTick();
 signals:
-	void readRamLocation(unsigned short locationid);
+    void readRamLocation(unsigned short locationid);
 };
 
 #endif // READONLYRAMVIEW_H

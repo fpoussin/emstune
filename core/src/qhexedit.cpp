@@ -21,8 +21,8 @@
 
 #include "qhexedit.h"
 
-
-QHexEdit::QHexEdit(QWidget *parent) : QScrollArea(parent)
+QHexEdit::QHexEdit(QWidget *parent)
+    : QScrollArea(parent)
 {
     qHexEdit_p = new QHexEditPrivate(this);
     setWidget(qHexEdit_p);
@@ -35,12 +35,12 @@ QHexEdit::QHexEdit(QWidget *parent) : QScrollArea(parent)
     setFocusPolicy(Qt::NoFocus);
 }
 
-int QHexEdit::indexOf(const QByteArray & ba, int from) const
+int QHexEdit::indexOf(const QByteArray &ba, int from) const
 {
     return qHexEdit_p->indexOf(ba, from);
 }
 
-void QHexEdit::insert(int i, const QByteArray & ba)
+void QHexEdit::insert(int i, const QByteArray &ba)
 {
     qHexEdit_p->insert(i, ba);
 }
@@ -50,7 +50,7 @@ void QHexEdit::insert(int i, char ch)
     qHexEdit_p->insert(i, ch);
 }
 
-int QHexEdit::lastIndexOf(const QByteArray & ba, int from) const
+int QHexEdit::lastIndexOf(const QByteArray &ba, int from) const
 {
     return qHexEdit_p->lastIndexOf(ba, from);
 }
@@ -60,7 +60,7 @@ void QHexEdit::remove(int pos, int len)
     qHexEdit_p->remove(pos, len);
 }
 
-void QHexEdit::replace( int pos, int len, const QByteArray & after)
+void QHexEdit::replace(int pos, int len, const QByteArray &after)
 {
     qHexEdit_p->replace(pos, len, after);
 }
@@ -119,14 +119,13 @@ void QHexEdit::setCursorPosition(int cursorPos)
 {
     // cursorPos in QHexEditPrivate is the position of the textcoursor without
     // blanks, means bytePos*2
-    qHexEdit_p->setCursorPos(cursorPos*2);
+    qHexEdit_p->setCursorPos(cursorPos * 2);
 }
 
 int QHexEdit::cursorPosition()
 {
     return qHexEdit_p->cursorPos() / 2;
 }
-
 
 void QHexEdit::setData(const QByteArray &data)
 {
@@ -193,7 +192,7 @@ void QHexEdit::setFont(const QFont &font)
     qHexEdit_p->setFont(font);
 }
 
-const QFont & QHexEdit::font() const
+const QFont &QHexEdit::font() const
 {
     return qHexEdit_p->font();
 }

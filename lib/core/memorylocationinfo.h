@@ -58,14 +58,13 @@
 #include "formattype.h"
 #include "tabledata.h"
 
-
 class MemoryLocationInfo
 {
 public:
     unsigned short locationid;
     unsigned short rawflags;
     QList<unsigned short> flags;
-    QList<QPair<QString,QString> > propertymap;
+    QList<QPair<QString, QString>> propertymap;
     bool isRam;
     bool isFlash;
     bool hasParent;

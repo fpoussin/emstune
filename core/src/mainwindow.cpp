@@ -38,7 +38,7 @@
 #define define2string_p(x) #x
 #define define2string(x) define2string_p(x)
 
-MainWindow::MainWindow(QWidget* parent)
+MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
     m_interrogationInProgress = false;
@@ -336,7 +336,7 @@ MainWindow::MainWindow(QWidget* parent)
     m_logfile->open(QIODevice::ReadWrite | QIODevice::Truncate);
 
     //ui.menuWizards
-    connect(ui.mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(subMdiWindowActivated(QMdiSubWindow*)));
+    connect(ui.mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow *)), this, SLOT(subMdiWindowActivated(QMdiSubWindow *)));
     QSettings windowsettings(m_settingsFile, QSettings::IniFormat);
     windowsettings.beginGroup("general");
     this->restoreGeometry(windowsettings.value("location").toByteArray());
@@ -487,7 +487,7 @@ void MainWindow::menu_file_loadOfflineDataClicked()
 
     //Load a new instance of the plugin
 
-    QPluginLoader* tmppluginLoader = new QPluginLoader(this);
+    QPluginLoader *tmppluginLoader = new QPluginLoader(this);
     tmppluginLoader->setFileName(m_pluginFileName);
     QLOG_INFO() << tmppluginLoader->metaData();
     /*for (QJsonObject::const_iterator i = pluginLoader->metaData().constBegin();i!=pluginLoader->metaData().constEnd();i++)
@@ -501,7 +501,7 @@ void MainWindow::menu_file_loadOfflineDataClicked()
         QLOG_ERROR() << "Unable to load plugin. error:" << tmppluginLoader->errorString();
         exit(-1);
     }
-    m_emsCommsOffline = qobject_cast<EmsComms*>(tmppluginLoader->instance());
+    m_emsCommsOffline = qobject_cast<EmsComms *>(tmppluginLoader->instance());
     if (!m_emsCommsOffline) {
         QLOG_ERROR() << "Unable to load plugin!!!";
         QLOG_ERROR() << tmppluginLoader->errorString();
@@ -513,11 +513,11 @@ void MainWindow::menu_file_loadOfflineDataClicked()
     QJsonObject top = doc.object();
     QJsonObject datatable2d = top.value("2D").toObject();
     for (QJsonObject::const_iterator i = datatable2d.constBegin(); i != datatable2d.constEnd(); i++) {
-        int locid = i.key().toInt();
-        QJsonObject data = i.value().toObject();
-        QJsonArray axislist = data["axis"].toArray();
-        QJsonArray datalist = data["data"].toArray();
-        Table2DData* datar = m_emsCommsOffline->get2DTableData(locid);
+        //        int locid = i.key().toInt();
+        //        QJsonObject data = i.value().toObject();
+        //        QJsonArray axislist = data["axis"].toArray();
+        //        QJsonArray datalist = data["data"].toArray();
+        //        Table2DData* datar = m_emsCommsOffline->get2DTableData(locid);
     }
 
     /*	QJson::Parser parser;
@@ -698,7 +698,7 @@ void MainWindow::setPlugin(QString plugin)
         QLOG_ERROR() << "Unable to load plugin. error:" << m_pluginLoader->errorString();
         exit(-1);
     }
-    m_emsComms = qobject_cast<EmsComms*>(m_pluginLoader->instance());
+    m_emsComms = qobject_cast<EmsComms *>(m_pluginLoader->instance());
     if (!m_emsComms) {
         QLOG_ERROR() << "Unable to load plugin!!!";
         QLOG_ERROR() << m_pluginLoader->errorString();
@@ -813,22 +813,22 @@ void MainWindow::menu_windows_PacketStatusClicked()
 }
 void MainWindow::showTable(QString table)
 {
-    Table2DData* data2d = m_emsComms->get2DTableData(table);
-    Table3DData* data3d = m_emsComms->get3DTableData(table);
+    Table2DData *data2d = m_emsComms->get2DTableData(table);
+    Table3DData *data3d = m_emsComms->get3DTableData(table);
     if (data2d) {
-        TableView2D* view = new TableView2D();
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        TableView2D *view = new TableView2D();
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
         QString title;
         //Table2DMetaData metadata = m_memoryMetaData->get2DMetaData(locid);
         //view->setMetaData(metadata);
-        DataBlock* block = dynamic_cast<DataBlock*>(data2d);
+        DataBlock *block = dynamic_cast<DataBlock *>(data2d);
         if (!view->setData(table, block)) {
             return;
         }
         //title = metadata.tableTitle;
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
 
-        QMdiSubWindow* win = ui.mdiArea->addSubWindow(view);
+        QMdiSubWindow *win = ui.mdiArea->addSubWindow(view);
         //win->setWindowTitle("Ram Location 0x" + QString::number(locid,16).toUpper() + " " + title);
         win->setWindowTitle("Ram Location " + table);
         win->setGeometry(0, 0, ((view->width() < this->width() - 160) ? view->width() : this->width() - 160), ((view->height() < this->height() - 100) ? view->height() : this->height() - 100));
@@ -837,19 +837,19 @@ void MainWindow::showTable(QString table)
         QApplication::postEvent(win, new QEvent(QEvent::Show));
         QApplication::postEvent(win, new QEvent(QEvent::WindowActivate));
     } else if (data3d) {
-        TableView3D* view = new TableView3D();
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        TableView3D *view = new TableView3D();
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
         QString title;
         //Table2DMetaData metadata = m_memoryMetaData->get2DMetaData(locid);
         //view->setMetaData(metadata);
-        DataBlock* block = dynamic_cast<DataBlock*>(data3d);
+        DataBlock *block = dynamic_cast<DataBlock *>(data3d);
         if (!view->setData(table, block)) {
             return;
         }
         //title = metadata.tableTitle;
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
 
-        QMdiSubWindow* win = ui.mdiArea->addSubWindow(view);
+        QMdiSubWindow *win = ui.mdiArea->addSubWindow(view);
         //win->setWindowTitle("Ram Location 0x" + QString::number(locid,16).toUpper() + " " + title);
         win->setWindowTitle("Ram Location " + table);
         win->setGeometry(0, 0, ((view->width() < this->width() - 160) ? view->width() : this->width() - 160), ((view->height() < this->height() - 100) ? view->height() : this->height() - 100));
@@ -863,23 +863,23 @@ void MainWindow::showTable(QString table)
 void MainWindow::createView(unsigned short locid, FormatType type)
 {
     if (type == TABLE_3D) {
-        Table3DData* data = m_emsComms->get3DTableData(locid);
-        TableView3D* view = new TableView3D();
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
-        connect(view, SIGNAL(show3DTable(unsigned short, Table3DData*)), this, SLOT(tableview3d_show3DTable(unsigned short, Table3DData*)));
+        Table3DData *data = m_emsComms->get3DTableData(locid);
+        TableView3D *view = new TableView3D();
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
+        connect(view, SIGNAL(show3DTable(unsigned short, Table3DData *)), this, SLOT(tableview3d_show3DTable(unsigned short, Table3DData *)));
         QString title;
         Table3DMetaData metadata = m_memoryMetaData->get3DMetaData(locid);
         view->setMetaData(metadata);
-        DataBlock* block = dynamic_cast<DataBlock*>(data);
+        DataBlock *block = dynamic_cast<DataBlock *>(data);
         if (!view->setData(locid, block)) {
             QMessageBox::information(0, "Error", "Table view contains invalid data! Please check your firmware");
             view->deleteLater();
             return;
         }
         title = metadata.tableTitle;
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
 
-        QMdiSubWindow* win = ui.mdiArea->addSubWindow(view);
+        QMdiSubWindow *win = ui.mdiArea->addSubWindow(view);
         win->setWindowTitle("Ram Location 0x" + QString::number(locid, 16).toUpper() + " " + title);
         win->setGeometry(0, 0, ((view->width() < this->width() - 160) ? view->width() : this->width() - 160), ((view->height() < this->height() - 100) ? view->height() : this->height() - 100));
         m_rawDataView[locid] = view;
@@ -887,20 +887,20 @@ void MainWindow::createView(unsigned short locid, FormatType type)
         QApplication::postEvent(win, new QEvent(QEvent::Show));
         QApplication::postEvent(win, new QEvent(QEvent::WindowActivate));
     } else if (type == TABLE_2D_STRUCTURED || type == TABLE_2D_STRUCTURED || type == TABLE_2D_STRUCTURED) {
-        Table2DData* data = m_emsComms->get2DTableData(locid);
-        TableView2D* view = new TableView2D();
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        Table2DData *data = m_emsComms->get2DTableData(locid);
+        TableView2D *view = new TableView2D();
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
         QString title;
         Table2DMetaData metadata = m_memoryMetaData->get2DMetaData(locid);
         view->setMetaData(metadata);
-        DataBlock* block = dynamic_cast<DataBlock*>(data);
+        DataBlock *block = dynamic_cast<DataBlock *>(data);
         if (!view->setData(locid, block)) {
             return;
         }
         title = metadata.tableTitle;
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
 
-        QMdiSubWindow* win = ui.mdiArea->addSubWindow(view);
+        QMdiSubWindow *win = ui.mdiArea->addSubWindow(view);
         win->setWindowTitle("Ram Location 0x" + QString::number(locid, 16).toUpper() + " " + title);
         win->setGeometry(0, 0, ((view->width() < this->width() - 160) ? view->width() : this->width() - 160), ((view->height() < this->height() - 100) ? view->height() : this->height() - 100));
         m_rawDataView[locid] = view;
@@ -909,13 +909,13 @@ void MainWindow::createView(unsigned short locid, FormatType type)
         QApplication::postEvent(win, new QEvent(QEvent::WindowActivate));
     } else {
         //Unhandled data type. Show it as a hex view.
-        RawData* data = m_emsComms->getRawData(locid);
-        RawDataView* view = new RawDataView(!data->isFlashOnly(), true);
-        connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        RawData *data = m_emsComms->getRawData(locid);
+        RawDataView *view = new RawDataView(!data->isFlashOnly(), true);
+        connect(view, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
         view->setData(locid, data);
 
-        QMdiSubWindow* win = ui.mdiArea->addSubWindow(view);
-        connect(win, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
+        QMdiSubWindow *win = ui.mdiArea->addSubWindow(view);
+        connect(win, SIGNAL(destroyed(QObject *)), this, SLOT(rawDataViewDestroyed(QObject *)));
         win->setWindowTitle("Ram Location 0x" + QString::number(locid, 16).toUpper());
         win->setGeometry(0, 0, ((view->width() < this->width() - 160) ? view->width() : this->width() - 160), ((view->height() < this->height() - 100) ? view->height() : this->height() - 100));
         m_rawDataView[locid] = view;
@@ -936,30 +936,30 @@ void MainWindow::emsInfoDisplayLocationId(int locid, bool isram, FormatType type
     }
 }
 
-void MainWindow::interrogateProgressViewDestroyed(QObject* object)
+void MainWindow::interrogateProgressViewDestroyed(QObject *object)
 {
     Q_UNUSED(object);
     if (m_interrogationInProgress) {
         m_interrogationInProgress = false;
         interrogateProgressViewCancelClicked();
     }
-    QMdiSubWindow* win = qobject_cast<QMdiSubWindow*>(object->parent());
+    QMdiSubWindow *win = qobject_cast<QMdiSubWindow *>(object->parent());
     if (!win) {
         return;
     }
     win->hide();
 }
 
-void MainWindow::rawDataViewDestroyed(QObject* object)
+void MainWindow::rawDataViewDestroyed(QObject *object)
 {
-    QMap<unsigned short, QWidget*>::const_iterator i = m_rawDataView.constBegin();
+    QMap<unsigned short, QWidget *>::const_iterator i = m_rawDataView.constBegin();
     while (i != m_rawDataView.constEnd()) {
         if (i.value() == object) {
             //This is the one that needs to be removed.
             m_rawDataView.remove(i.key());
-            QMdiSubWindow* win = qobject_cast<QMdiSubWindow*>(object->parent());
+            QMdiSubWindow *win = qobject_cast<QMdiSubWindow *>(object->parent());
             if (!win) {
-                win = qobject_cast<QMdiSubWindow*>(object);
+                win = qobject_cast<QMdiSubWindow *>(object);
                 if (!win) {
                     return;
                 }
@@ -980,7 +980,7 @@ void MainWindow::ui_saveDataButtonClicked()
 
 void MainWindow::menu_settingsClicked()
 {
-    ComSettings* settings = new ComSettings();
+    ComSettings *settings = new ComSettings();
     //connect(settings,SIGNAL(windowHiding(QMdiSubWindow*)),this,SLOT(windowHidden(QMdiSubWindow*)));
     settings->setComPort(m_comPort);
     settings->setBaud(m_comBaud);
@@ -991,7 +991,7 @@ void MainWindow::menu_settingsClicked()
     settings->setInterByteDelay(m_comInterByte);
     connect(settings, SIGNAL(saveClicked()), this, SLOT(settingsSaveClicked()));
     connect(settings, SIGNAL(cancelClicked()), this, SLOT(settingsCancelClicked()));
-    QMdiSubWindow* win = ui.mdiArea->addSubWindow(settings);
+    QMdiSubWindow *win = ui.mdiArea->addSubWindow(settings);
     win->setWindowTitle(settings->windowTitle());
     win->setGeometry(settings->geometry());
     win->show();
@@ -1020,8 +1020,8 @@ void MainWindow::menu_connectClicked()
     m_locIdMsgList.clear();
     m_locIdInfoMsgList.clear();
     m_emsMdiWindow->hide();
-    QList<QWidget*> toDeleteList;
-    for (QMap<unsigned short, QWidget*>::const_iterator i = m_rawDataView.constBegin(); i != m_rawDataView.constEnd(); i++) {
+    QList<QWidget *> toDeleteList;
+    for (QMap<unsigned short, QWidget *>::const_iterator i = m_rawDataView.constBegin(); i != m_rawDataView.constEnd(); i++) {
         toDeleteList.append(i.value());
         //delete (*i);
     }
@@ -1050,7 +1050,7 @@ void MainWindow::timerTick()
 }
 void MainWindow::settingsSaveClicked()
 {
-    ComSettings* comSettingsWidget = qobject_cast<ComSettings*>(sender());
+    ComSettings *comSettingsWidget = qobject_cast<ComSettings *>(sender());
     m_comBaud = comSettingsWidget->getBaud();
     m_comPort = comSettingsWidget->getComPort();
     m_comInterByte = comSettingsWidget->getInterByteDelay();
@@ -1071,7 +1071,7 @@ void MainWindow::settingsSaveClicked()
     settings.setValue("logdir", m_logDirectory);
     settings.setValue("debuglogs", m_debugLogs);
     settings.endGroup();
-    QMdiSubWindow* subwin = qobject_cast<QMdiSubWindow*>(comSettingsWidget->parent());
+    QMdiSubWindow *subwin = qobject_cast<QMdiSubWindow *>(comSettingsWidget->parent());
     ui.mdiArea->removeSubWindow(subwin);
     comSettingsWidget->close();
     comSettingsWidget->deleteLater();
@@ -1135,9 +1135,9 @@ void MainWindow::locationIdInfo(unsigned short locationid, MemoryLocationInfo in
 void MainWindow::settingsCancelClicked()
 {
     //comSettings->hide();
-    ComSettings* comSettingsWidget = qobject_cast<ComSettings*>(sender());
+    ComSettings *comSettingsWidget = qobject_cast<ComSettings *>(sender());
     comSettingsWidget->hide();
-    QMdiSubWindow* subwin = qobject_cast<QMdiSubWindow*>(comSettingsWidget->parent());
+    QMdiSubWindow *subwin = qobject_cast<QMdiSubWindow *>(comSettingsWidget->parent());
     ui.mdiArea->removeSubWindow(subwin);
     comSettingsWidget->close();
     comSettingsWidget->deleteLater();
@@ -1293,20 +1293,20 @@ void MainWindow::loadDashboards(QString dir)
     QDir dashboards(dir);
     foreach (QString file, dashboards.entryList(QDir::Files | QDir::NoDotAndDotDot)) {
         if (file.endsWith(".qml")) {
-            GaugeView* view = new GaugeView();
-            QMdiSubWindow* mdiView = ui.mdiArea->addSubWindow(view);
+            GaugeView *view = new GaugeView();
+            QMdiSubWindow *mdiView = ui.mdiArea->addSubWindow(view);
             mdiView->setGeometry(view->geometry());
             mdiView->hide();
             mdiView->setWindowTitle(view->windowTitle());
             QString plugincompat = view->setFile(dashboards.absoluteFilePath(file));
-            QAction* action = new QAction(this);
+            QAction *action = new QAction(this);
             action->setText(file.mid(0, file.lastIndexOf(".")));
             action->setCheckable(true);
             ui.menuDashboards->addAction(action);
             connect(action, SIGNAL(triggered(bool)), mdiView, SLOT(setVisible(bool)));
             m_dashboardList.append(view);
             if (!m_gaugeActionMap.contains(plugincompat)) {
-                m_gaugeActionMap[plugincompat] = QList<QAction*>();
+                m_gaugeActionMap[plugincompat] = QList<QAction *>();
             }
             m_gaugeActionMap[plugincompat].append(action);
         }
@@ -1317,7 +1317,7 @@ void MainWindow::loadWizards(QString dir)
     QDir wizards(dir);
     foreach (QString file, wizards.entryList(QDir::Files | QDir::NoDotAndDotDot)) {
         if (file.endsWith(".qml")) {
-            WizardView* view = new WizardView();
+            WizardView *view = new WizardView();
             connect(m_emsComms, SIGNAL(configRecieved(ConfigBlock, QVariant)), view, SLOT(configRecieved(ConfigBlock, QVariant)), Qt::QueuedConnection);
             m_wizardList.append(view);
             for (int i = 0; i < m_emsComms->getConfigList().size(); i++) {
@@ -1326,7 +1326,7 @@ void MainWindow::loadWizards(QString dir)
             view->setFile(m_emsComms, wizards.absoluteFilePath(file));
             view->passConfig(m_memoryMetaData->configMetaData());
             //view->setGeometry(0,0,800,600);
-            QAction* action = new QAction(this);
+            QAction *action = new QAction(this);
             action->setText(file.mid(0, file.lastIndexOf(".")));
             action->setCheckable(true);
             ui.menuWizards->addAction(action);
@@ -1344,7 +1344,7 @@ void MainWindow::emsCommsConnected()
     ui.actionSave_Offline_Data->setEnabled(true);
     ui.actionLoad_Offline_Data->setEnabled(true);
     while (ui.menuWizards->actions().size() > 0) {
-        QAction* action = ui.menuWizards->actions().takeFirst();
+        QAction *action = ui.menuWizards->actions().takeFirst();
         ui.menuWizards->removeAction(action);
         delete action;
     }
@@ -1397,7 +1397,7 @@ void MainWindow::emsCommsConnected()
     } else {
         ui.actionInterrogation_Progress->setEnabled(true);
         m_progressView = new InterrogateProgressView();
-        connect(m_progressView, SIGNAL(destroyed(QObject*)), this, SLOT(interrogateProgressViewDestroyed(QObject*)));
+        connect(m_progressView, SIGNAL(destroyed(QObject *)), this, SLOT(interrogateProgressViewDestroyed(QObject *)));
         m_interrogateProgressMdiWindow = ui.mdiArea->addSubWindow(m_progressView);
         m_interrogateProgressMdiWindow->setWindowTitle(m_progressView->windowTitle());
         m_interrogateProgressMdiWindow->setGeometry(m_progressView->geometry());
@@ -1421,7 +1421,7 @@ void MainWindow::interrogationComplete()
     m_interrogationInProgress = false;
     if (m_progressView) {
         //progressView->hide();
-        QMdiSubWindow* win = qobject_cast<QMdiSubWindow*>(m_progressView->parent());
+        QMdiSubWindow *win = qobject_cast<QMdiSubWindow *>(m_progressView->parent());
         if (win && m_interrogationFailureCount == 0) {
             win->hide();
         }
@@ -1452,11 +1452,11 @@ void MainWindow::interrogationComplete()
             QString type = windowsettings.value("type").toString();
             if (type == "TableView2D") {
                 createView(locid, TABLE_2D_STRUCTURED);
-                QWidget* parent = (QWidget*)m_rawDataView[locid]->parent();
+                QWidget *parent = (QWidget *)m_rawDataView[locid]->parent();
                 parent->restoreGeometry(windowsettings.value("location").toByteArray());
             } else if (type == "TableView3D") {
                 createView(locid, TABLE_3D);
-                QWidget* parent = (QWidget*)m_rawDataView[locid]->parent();
+                QWidget *parent = (QWidget *)m_rawDataView[locid]->parent();
                 parent->restoreGeometry(windowsettings.value("location").toByteArray());
             } else if (type == "tablesMdiWindow") {
                 m_tablesMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
@@ -1572,7 +1572,7 @@ void MainWindow::checkSyncRequest()
 {
     m_emsComms->getLocationIdList(0, 0);
 }
-void MainWindow::tableview3d_show3DTable(unsigned short locationid, Table3DData* data)
+void MainWindow::tableview3d_show3DTable(unsigned short locationid, Table3DData *data)
 {
     if (m_table3DMapViewMap.contains(locationid)) {
         m_table3DMapViewMap[locationid]->show();
@@ -1581,12 +1581,12 @@ void MainWindow::tableview3d_show3DTable(unsigned short locationid, Table3DData*
         return;
     }
 
-    TableMap3D* m_tableMap = new TableMap3D();
+    TableMap3D *m_tableMap = new TableMap3D();
 
     m_table3DMapViewWidgetMap[locationid] = m_tableMap;
     m_tableMap->passData(data);
-    QMdiSubWindow* win = ui.mdiArea->addSubWindow(m_tableMap);
-    connect(win, SIGNAL(destroyed(QObject*)), this, SLOT(tableMap3DDestroyed(QObject*)));
+    QMdiSubWindow *win = ui.mdiArea->addSubWindow(m_tableMap);
+    connect(win, SIGNAL(destroyed(QObject *)), this, SLOT(tableMap3DDestroyed(QObject *)));
     win->setGeometry(m_tableMap->geometry());
     win->setWindowTitle("0x" + QString::number(locationid, 16).toUpper());
     win->show();
@@ -1594,10 +1594,10 @@ void MainWindow::tableview3d_show3DTable(unsigned short locationid, Table3DData*
     QApplication::postEvent(win, new QEvent(QEvent::WindowActivate));
     m_table3DMapViewMap[locationid] = win;
 }
-void MainWindow::tableMap3DDestroyed(QObject* object)
+void MainWindow::tableMap3DDestroyed(QObject *object)
 {
     Q_UNUSED(object)
-    for (QMap<unsigned short, QMdiSubWindow*>::const_iterator i = m_table3DMapViewMap.constBegin(); i != m_table3DMapViewMap.constEnd(); i++) {
+    for (QMap<unsigned short, QMdiSubWindow *>::const_iterator i = m_table3DMapViewMap.constBegin(); i != m_table3DMapViewMap.constEnd(); i++) {
         if (i.value() == sender()) {
             m_table3DMapViewWidgetMap.remove(i.key());
             m_table3DMapViewMap.remove(i.key());
@@ -1708,7 +1708,7 @@ void MainWindow::checkMessageCounters(int sequencenumber)
             m_interrogationInProgress = false;
             if (m_progressView) {
                 //progressView->hide();
-                QMdiSubWindow* win = qobject_cast<QMdiSubWindow*>(m_progressView->parent());
+                QMdiSubWindow *win = qobject_cast<QMdiSubWindow *>(m_progressView->parent());
                 if (win) {
                     win->hide();
                 }
@@ -1827,8 +1827,8 @@ void MainWindow::dataLogDecoded(QVariantMap data)
     if (m_statusView) {
         m_statusView->passData(data);
     }
-    for (QMap<unsigned short, QWidget*>::const_iterator i = m_rawDataView.constBegin(); i != m_rawDataView.constEnd(); i++) {
-        DataView* dview = dynamic_cast<DataView*>(i.value());
+    for (QMap<unsigned short, QWidget *>::const_iterator i = m_rawDataView.constBegin(); i != m_rawDataView.constEnd(); i++) {
+        DataView *dview = dynamic_cast<DataView *>(i.value());
         if (dview) {
             dview->passDatalog(data);
         }
@@ -1844,24 +1844,24 @@ void MainWindow::logPayloadReceived(QByteArray header, QByteArray payload)
     Q_UNUSED(payload)
     m_pidcount++;
 }
-void MainWindow::windowHidden(QMdiSubWindow* window)
+void MainWindow::windowHidden(QMdiSubWindow *window)
 {
     if (window && m_mdiSubWindowToActionMap.contains(window)) {
         ui.menuOpen_Windows->removeAction(m_mdiSubWindowToActionMap[window]);
         m_mdiSubWindowToActionMap.remove(window);
     }
 }
-void MainWindow::windowDestroyed(QObject* window)
+void MainWindow::windowDestroyed(QObject *window)
 {
-    if (window && m_mdiSubWindowToActionMap.contains((QMdiSubWindow*)window)) {
-        ui.menuOpen_Windows->removeAction(m_mdiSubWindowToActionMap[(QMdiSubWindow*)window]);
-        m_mdiSubWindowToActionMap.remove((QMdiSubWindow*)window);
+    if (window && m_mdiSubWindowToActionMap.contains((QMdiSubWindow *)window)) {
+        ui.menuOpen_Windows->removeAction(m_mdiSubWindowToActionMap[(QMdiSubWindow *)window]);
+        m_mdiSubWindowToActionMap.remove((QMdiSubWindow *)window);
     }
 }
 
 void MainWindow::bringToFrontAndShow()
 {
-    for (QMap<QMdiSubWindow*, QAction*>::const_iterator i = m_mdiSubWindowToActionMap.constBegin(); i != m_mdiSubWindowToActionMap.constEnd(); i++) {
+    for (QMap<QMdiSubWindow *, QAction *>::const_iterator i = m_mdiSubWindowToActionMap.constBegin(); i != m_mdiSubWindowToActionMap.constEnd(); i++) {
         if (i.value() == sender()) {
             i.key()->show();
             QApplication::postEvent(i.key(), new QEvent(QEvent::Show));
@@ -1870,15 +1870,15 @@ void MainWindow::bringToFrontAndShow()
     }
 }
 
-void MainWindow::subMdiWindowActivated(QMdiSubWindow* window)
+void MainWindow::subMdiWindowActivated(QMdiSubWindow *window)
 {
     if (window && !m_mdiSubWindowToActionMap.contains(window)) {
         if (window->isVisible()) {
             //connect(window,SIGNAL(windowStateChanged(Qt::WindowStates,Qt::WindowStates))
-            QAction* action = ui.menuOpen_Windows->addAction(window->windowTitle());
+            QAction *action = ui.menuOpen_Windows->addAction(window->windowTitle());
             connect(action, SIGNAL(triggered()), this, SLOT(bringToFrontAndShow()));
-            connect(window->widget(), SIGNAL(windowHiding(QMdiSubWindow*)), this, SLOT(windowHidden(QMdiSubWindow*)));
-            connect(window, SIGNAL(destroyed(QObject*)), this, SLOT(windowDestroyed(QObject*)));
+            connect(window->widget(), SIGNAL(windowHiding(QMdiSubWindow *)), this, SLOT(windowHidden(QMdiSubWindow *)));
+            connect(window, SIGNAL(destroyed(QObject *)), this, SLOT(windowDestroyed(QObject *)));
             m_mdiSubWindowToActionMap[window] = action;
         }
         //connect(action,SIGNAL(triggered(bool)),window,SLOT(setVisible(bool)));
@@ -1967,8 +1967,9 @@ void MainWindow::flashLocationDirty(unsigned short locationid)
 {
     QMessageBox::information(0, "Error", "Flash location dirty 0x" + QString::number(locationid, 16));
 }
-void MainWindow::closeEvent(QCloseEvent* evt)
+void MainWindow::closeEvent(QCloseEvent *evt)
 {
+    Q_UNUSED(evt);
     //Save the window state.
     /*	QMap<unsigned short,QWidget*> m_rawDataView;
     QMap<unsigned short,ConfigView*> m_configDataView;
@@ -1987,10 +1988,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     QSettings windowsettings(m_settingsFile, QSettings::IniFormat);
     windowsettings.beginWriteArray("rawwindows");
     int val = 0;
-    for (QMap<unsigned short, QWidget*>::const_iterator i = m_rawDataView.constBegin(); i != m_rawDataView.constEnd(); i++) {
+    for (QMap<unsigned short, QWidget *>::const_iterator i = m_rawDataView.constBegin(); i != m_rawDataView.constEnd(); i++) {
         windowsettings.setArrayIndex(val++);
         windowsettings.setValue("window", i.key());
-        QMdiSubWindow* subwin = qobject_cast<QMdiSubWindow*>(i.value()->parent());
+        QMdiSubWindow *subwin = qobject_cast<QMdiSubWindow *>(i.value()->parent());
         windowsettings.setValue("location", subwin->saveGeometry());
         windowsettings.setValue("hidden", subwin->isHidden());
         windowsettings.setValue("type", i.value()->metaObject()->className());

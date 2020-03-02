@@ -26,76 +26,77 @@
 
 class TestControl : public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	TestControl();
-	void setMessage(QString message);
-	void firmwareMessage();
-	void getInterfaceVersion();
-	void getCompilerVersion();
-	void getDecoderName();
-	void getFirmwareBuildDate();
-	void getMaxPacketSize();
-	void getOperatingSystem();
-	void getDatalogDescriptor();
-	void getFieldDescriptor();
-	void getTableDescriptor();
-	void getLocationIdList();
-	void getLocationIdInfo(unsigned short locid);
-	void getBlockInRam(unsigned short locid,unsigned short offset,unsigned short size);
-	void updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data);
+    TestControl();
+    void setMessage(QString message);
+    void firmwareMessage();
+    void getInterfaceVersion();
+    void getCompilerVersion();
+    void getDecoderName();
+    void getFirmwareBuildDate();
+    void getMaxPacketSize();
+    void getOperatingSystem();
+    void getDatalogDescriptor();
+    void getFieldDescriptor();
+    void getTableDescriptor();
+    void getLocationIdList();
+    void getLocationIdInfo(unsigned short locid);
+    void getBlockInRam(unsigned short locid, unsigned short offset, unsigned short size);
+    void updateBlockInRam(unsigned short location, unsigned short offset, unsigned short size, QByteArray data);
+
 private:
-	FreeEmsComms *m_comms;
-	QList<QString> jsonList;
-	int m_datalogDescriptorCount;
-	QString datalogDescriptor;
-	QList<unsigned short> m_2dlocationIdList;
-	QList<unsigned short> m_3dlocationIdList;
-	unsigned short m_locationIdInfoReq;
-	unsigned short m_locationIdOffset;
-	unsigned short m_locationIdSize;
-	QList<QPair<QString,bool> > m_testResults;
-	QList<QString> m_testList;
-	void nextTest();
-	void succeedTest(QString testname);
-	void failTest(QString testname);
-	QMap<QString,QString> m_interrogationDataMap;
-	QByteArray m_locationIdData;
-	bool m_ramFailNextUpdate;
+    FreeEmsComms *m_comms;
+    QList<QString> jsonList;
+    int m_datalogDescriptorCount;
+    QString datalogDescriptor;
+    QList<unsigned short> m_2dlocationIdList;
+    QList<unsigned short> m_3dlocationIdList;
+    unsigned short m_locationIdInfoReq;
+    unsigned short m_locationIdOffset;
+    unsigned short m_locationIdSize;
+    QList<QPair<QString, bool>> m_testResults;
+    QList<QString> m_testList;
+    void nextTest();
+    void succeedTest(QString testname);
+    void failTest(QString testname);
+    QMap<QString, QString> m_interrogationDataMap;
+    QByteArray m_locationIdData;
+    bool m_ramFailNextUpdate;
 private slots:
-	void interrogationData(QMap<QString,QString> datamap);
-	void reportResults();
-	void TEST_interrogationComplete();
-	void TEST_table3ddata_setData();
-	void TEST_table2ddata_setData();
-	void TEST_interrogationData();
-	//void TEST_table2dData_ramWrite();
-	void TEST_table3dData_ramWrite();
-	void TEST_table3dData_flashWrite();
-	void TEST_table2dData_flashWrite();
+    void interrogationData(QMap<QString, QString> datamap);
+    void reportResults();
+    void TEST_interrogationComplete();
+    void TEST_table3ddata_setData();
+    void TEST_table2ddata_setData();
+    void TEST_interrogationData();
+    //void TEST_table2dData_ramWrite();
+    void TEST_table3dData_ramWrite();
+    void TEST_table3dData_flashWrite();
+    void TEST_table2dData_flashWrite();
 
-	void TEST_table2dData_ramPreWrite();
-	void TEST_table2dData_ramWrite();
-	void TEST_table2dData_ramPostWrite();
-	void TEST_table2dData_ramFailWrite();
-	void TEST_table2dData_ramFailPostWrite();
+    void TEST_table2dData_ramPreWrite();
+    void TEST_table2dData_ramWrite();
+    void TEST_table2dData_ramPostWrite();
+    void TEST_table2dData_ramFailWrite();
+    void TEST_table2dData_ramFailPostWrite();
 
-	void sendBlockInRam();
-	void sendLocationIdInfo();
-	void sendLocationIdList();
-	void sendDatalogDescriptor();
-	void sendFieldDescriptor();
-	void sendTableDescriptor();
-	void sendOperatingSystem();
-	void sendMaxPacketSize();
-	void sendFirmwareBuildDate();
-	void sendDecoderName();
-	void firmwareTimerTick();
-	void sendInterfaceVersion();
-	void updateBlockInRamTimerTick();
-	void sendCompilerVersion();
-	void start();
-	void connected();
+    void sendBlockInRam();
+    void sendLocationIdInfo();
+    void sendLocationIdList();
+    void sendDatalogDescriptor();
+    void sendFieldDescriptor();
+    void sendTableDescriptor();
+    void sendOperatingSystem();
+    void sendMaxPacketSize();
+    void sendFirmwareBuildDate();
+    void sendDecoderName();
+    void firmwareTimerTick();
+    void sendInterfaceVersion();
+    void updateBlockInRamTimerTick();
+    void sendCompilerVersion();
+    void start();
+    void connected();
 };
 
 #endif // TESTCONTROL_H

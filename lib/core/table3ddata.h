@@ -57,42 +57,42 @@
 
 class Table3DData : public DataBlock
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	//Table3DData(unsigned short locationid,bool isflashonly, QByteArray data,Table3DMetaData metadata);
-	virtual void setData(unsigned short locationid,bool isflashonly,QByteArray payload)=0;
-	virtual void setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta,FieldMeta zMeta)=0;
-	virtual QByteArray data()=0;
-	virtual QList<double> xAxis()=0;
-	virtual QList<double> yAxis()=0;
-	virtual QList<QList<double> > values()=0;
-	virtual int columns()=0;
-	virtual int rows()=0;
-	virtual void setCell(int row, int column,double val)=0;
-	virtual void setXAxis(int column,double val)=0;
-	virtual void setYAxis(int row,double val)=0;
-	virtual double maxActualXAxis() = 0;
-	virtual double maxActualYAxis() = 0;
-	virtual double maxActualValue() = 0;
-	virtual double minActualYAxis() = 0;
-	virtual double minActualXAxis() = 0;
-	virtual double minActualValue() = 0;
-	virtual double maxCalcedXAxis() = 0;
-	virtual double maxCalcedYAxis() = 0;
-	virtual double maxCalcedValue() = 0;
-	virtual double minCalcedXAxis() = 0;
-	virtual double minCalcedYAxis() = 0;
-	virtual double minCalcedValue() = 0;
-	virtual void setWritesEnabled(bool enabled)=0;
-	virtual void writeWholeLocation(bool ram)=0;
-	virtual bool isRam()=0;
+    //Table3DData(unsigned short locationid,bool isflashonly, QByteArray data,Table3DMetaData metadata);
+    virtual void setData(unsigned short locationid, bool isflashonly, QByteArray payload) = 0;
+    virtual void setMetaData(TableMeta metadata, FieldMeta xMeta, FieldMeta yMeta, FieldMeta zMeta) = 0;
+    virtual QByteArray data() = 0;
+    virtual QList<double> xAxis() = 0;
+    virtual QList<double> yAxis() = 0;
+    virtual QList<QList<double>> values() = 0;
+    virtual int columns() = 0;
+    virtual int rows() = 0;
+    virtual void setCell(int row, int column, double val) = 0;
+    virtual void setXAxis(int column, double val) = 0;
+    virtual void setYAxis(int row, double val) = 0;
+    virtual double maxActualXAxis() = 0;
+    virtual double maxActualYAxis() = 0;
+    virtual double maxActualValue() = 0;
+    virtual double minActualYAxis() = 0;
+    virtual double minActualXAxis() = 0;
+    virtual double minActualValue() = 0;
+    virtual double maxCalcedXAxis() = 0;
+    virtual double maxCalcedYAxis() = 0;
+    virtual double maxCalcedValue() = 0;
+    virtual double minCalcedXAxis() = 0;
+    virtual double minCalcedYAxis() = 0;
+    virtual double minCalcedValue() = 0;
+    virtual void setWritesEnabled(bool enabled) = 0;
+    virtual void writeWholeLocation(bool ram) = 0;
+    virtual bool isRam() = 0;
 signals:
-//	void saveSingleDataToRam(unsigned short locationid,unsigned short offset, unsigned short size,QByteArray data);
-//	void saveSingleDataToFlash(unsigned short locationid,unsigned short offset, unsigned short size,QByteArray data);
+    //	void saveSingleDataToRam(unsigned short locationid,unsigned short offset, unsigned short size,QByteArray data);
+    //	void saveSingleDataToFlash(unsigned short locationid,unsigned short offset, unsigned short size,QByteArray data);
 public slots:
-	virtual void saveRamToFlash()=0;
-	virtual void updateFromFlash()=0;
-	virtual void updateFromRam()=0;
+    virtual void saveRamToFlash() = 0;
+    virtual void updateFromFlash() = 0;
+    virtual void updateFromRam() = 0;
 };
 
 #endif // TABLE3DDATA_H

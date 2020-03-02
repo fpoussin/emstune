@@ -55,14 +55,16 @@
 #include "tablemap3d.h"
 #include "wizardview.h"
 #include <QPluginLoader>
-class RawDataBlock {
+class RawDataBlock
+{
 public:
     unsigned short locationid;
     QByteArray header;
     QByteArray data;
 };
 
-class Interrogation {
+class Interrogation
+{
 public:
     QString firmwareVersion;
     QString interfaceVersion;
@@ -76,17 +78,18 @@ public:
     QString emstudioHash;
 };
 
-class MainWindow : public QMainWindow {
+class MainWindow : public QMainWindow
+{
     Q_OBJECT
 
 public:
-    MainWindow(QWidget* parent = 0);
+    MainWindow(QWidget *parent = 0);
     ~MainWindow();
     void setDevice(QString dev);
     void connectToEms();
 
 private:
-    void closeEvent(QCloseEvent* evt);
+    void closeEvent(QCloseEvent *evt);
     void loadWizards(QString dir);
     void loadDashboards(QString dir);
     void checkRamFlashSync();
@@ -94,7 +97,7 @@ private:
     void checkMessageCounters(int sequencenumber);
     void createView(unsigned short locid, FormatType type);
 
-    QList<GaugeView*> m_dashboardList;
+    QList<GaugeView *> m_dashboardList;
     QList<unsigned short> m_locationIdList;
     bool m_checkEmsDataInUse;
     bool m_offlineMode;
@@ -106,53 +109,53 @@ private:
     bool m_waitingForFlashWriteConfirmation;
     //	QList<MemoryLocation*> m_tempMemoryList;
     QMap<unsigned short, QList<ConfigBlock>> m_configBlockMap;
-    QMap<unsigned short, QMdiSubWindow*> m_table3DMapViewMap;
-    QMap<unsigned short, TableMap3D*> m_table3DMapViewWidgetMap;
+    QMap<unsigned short, QMdiSubWindow *> m_table3DMapViewMap;
+    QMap<unsigned short, TableMap3D *> m_table3DMapViewWidgetMap;
     //	QList<ConfigData> m_configMetaData;
-    MemoryMetaData* m_memoryMetaData;
-    TableView* m_dataTables;
-    GaugeView* m_dataGauges;
-    EmsInfoView* m_emsInfo;
-    FlagView* m_dataFlags;
+    MemoryMetaData *m_memoryMetaData;
+    TableView *m_dataTables;
+    GaugeView *m_dataGauges;
+    EmsInfoView *m_emsInfo;
+    FlagView *m_dataFlags;
     QString m_logFileName;
-    PacketStatusView* m_packetStatus;
-    AboutView* m_aboutView;
-    EmsStatus* m_statusView;
-    FirmwareMetaData* m_firmwareMetaData;
-    FirmwareDebugView* m_firmwareDebugView;
-    InterrogateProgressView* m_progressView;
+    PacketStatusView *m_packetStatus;
+    AboutView *m_aboutView;
+    EmsStatus *m_statusView;
+    FirmwareMetaData *m_firmwareMetaData;
+    FirmwareDebugView *m_firmwareDebugView;
+    InterrogateProgressView *m_progressView;
     QList<int> m_interrogationSequenceList;
-    QMap<unsigned short, QWidget*> m_rawDataView;
-    QMap<unsigned short, ConfigView*> m_configDataView;
-    QMdiSubWindow* m_tablesMdiWindow;
-    QMdiSubWindow* m_firmwareMetaMdiWindow;
-    QMdiSubWindow* m_interrogateProgressMdiWindow;
-    QMdiSubWindow* m_emsMdiWindow;
-    QMdiSubWindow* m_flagsMdiWindow;
-    QMdiSubWindow* m_gaugesMdiWindow;
-    QMdiSubWindow* m_packetStatusMdiWindow;
-    QMdiSubWindow* m_aboutMdiWindow;
-    QMdiSubWindow* m_emsStatusMdiWindow;
-    QMdiSubWindow* m_firmwareDebugMdiWindow;
-    RamDiffWindow* m_ramDiffWindow;
-    QTimer* m_emsSilenceTimer;
+    QMap<unsigned short, QWidget *> m_rawDataView;
+    QMap<unsigned short, ConfigView *> m_configDataView;
+    QMdiSubWindow *m_tablesMdiWindow;
+    QMdiSubWindow *m_firmwareMetaMdiWindow;
+    QMdiSubWindow *m_interrogateProgressMdiWindow;
+    QMdiSubWindow *m_emsMdiWindow;
+    QMdiSubWindow *m_flagsMdiWindow;
+    QMdiSubWindow *m_gaugesMdiWindow;
+    QMdiSubWindow *m_packetStatusMdiWindow;
+    QMdiSubWindow *m_aboutMdiWindow;
+    QMdiSubWindow *m_emsStatusMdiWindow;
+    QMdiSubWindow *m_firmwareDebugMdiWindow;
+    RamDiffWindow *m_ramDiffWindow;
+    QTimer *m_emsSilenceTimer;
 
-    ParameterView* m_parameterView;
-    QMdiSubWindow* m_parameterMdiWindow;
+    ParameterView *m_parameterView;
+    QMdiSubWindow *m_parameterMdiWindow;
 
     //QFile *settingsFile;
-    DataPacketDecoder* m_dataPacketDecoder;
+    DataPacketDecoder *m_dataPacketDecoder;
 
     bool m_emsSilenceLabelIsRed;
 
     Ui::MainWindow ui;
     QString m_pluginFileName;
-    QPluginLoader* m_pluginLoader;
-    EmsComms* m_emsComms;
-    EmsComms* m_emsCommsOffline;
+    QPluginLoader *m_pluginLoader;
+    EmsComms *m_emsComms;
+    EmsComms *m_emsCommsOffline;
     int m_pidcount;
-    QTimer* m_timer;
-    QTimer* m_guiUpdateTimer;
+    QTimer *m_timer;
+    QTimer *m_guiUpdateTimer;
     QString m_comPort;
     int m_comBaud;
     int m_comInterByte;
@@ -166,8 +169,8 @@ private:
     QString m_logDirectory;
     QString m_firmwareVersion;
     QString m_interfaceVersion;
-    QFile* m_logfile;
-    QList<WizardView*> m_wizardList;
+    QFile *m_logfile;
+    QList<WizardView *> m_wizardList;
     bool m_debugLogs;
     int m_interrogationFailureCount;
     QList<int> m_locIdMsgList;
@@ -176,32 +179,32 @@ private:
     //EmsData *emsData;
     //EmsData *checkEmsData;
     int m_currentEcuClock;
-    QMap<QMdiSubWindow*, QAction*> m_mdiSubWindowToActionMap;
+    QMap<QMdiSubWindow *, QAction *> m_mdiSubWindowToActionMap;
     bool m_EcuResetPopup;
-    QMap<QString, QList<QAction*>> m_gaugeActionMap;
+    QMap<QString, QList<QAction *>> m_gaugeActionMap;
     qint64 m_emsSilentLastTime;
 
 private slots:
     void showTable(QString table);
-    void windowHidden(QMdiSubWindow* window);
+    void windowHidden(QMdiSubWindow *window);
     void bringToFrontAndShow();
-    void windowDestroyed(QObject* window);
+    void windowDestroyed(QObject *window);
     void interrogationData(QMap<QString, QString> datamap);
     void emsCommsSilence(qint64 lasttime);
     void emsCommsSilenceBroken();
     void locationIdInfo(unsigned short locationid, MemoryLocationInfo info);
-    void tableview3d_show3DTable(unsigned short locationid, Table3DData* data);
+    void tableview3d_show3DTable(unsigned short locationid, Table3DData *data);
     void emsStatusHardResetRequested();
     void emsStatusSoftResetRequested();
-    void tableMap3DDestroyed(QObject* object);
-    void interrogateProgressViewDestroyed(QObject* object);
+    void tableMap3DDestroyed(QObject *object);
+    void interrogateProgressViewDestroyed(QObject *object);
     void emsOperatingSystem(QString os);
     void emsDecoderName(QString name);
     void emsFirmwareBuildDate(QString date);
     void emsCommsDisconnected();
     void emsCompilerVersion(QString version);
     void checkSyncRequest();
-    void rawDataViewDestroyed(QObject* object);
+    void rawDataViewDestroyed(QObject *object);
     void emsInfoDisplayLocationId(int locid, bool isram, FormatType type);
     void menu_file_saveOfflineDataClicked();
     void menu_file_loadOfflineDataClicked();
@@ -255,7 +258,7 @@ private slots:
     void interrogateTaskSucceed(int sequence);
     void interrogateTaskFail(int sequence);
     void locationIdList(QList<unsigned short> idlist);
-    void subMdiWindowActivated(QMdiSubWindow* window);
+    void subMdiWindowActivated(QMdiSubWindow *window);
     void emsMemoryDirty();
     void emsMemoryClean();
     void datalogDescriptor(QString data);

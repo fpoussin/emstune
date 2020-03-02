@@ -1,9 +1,9 @@
 // import QtQuick 1.0 // to target S60 5th Edition or Maemo 5
-import QtQuick 1.1
+import QtQuick 2.9
 
 Item {
-	width:800
-	height:600
+    width:800
+    height:600
     function benchTestReplyFunc(remaining,current) {
         currentEvent.text = current;
         eventsRemaining.text = remaining;

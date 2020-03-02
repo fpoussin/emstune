@@ -28,31 +28,32 @@
 #include <QCloseEvent>
 #include <QMdiSubWindow>
 #include <QWidget>
-class GaugeView : public QWidget {
+class GaugeView : public QWidget
+{
     Q_OBJECT
 
 public:
-    explicit GaugeView(QWidget* parent = 0);
+    explicit GaugeView(QWidget *parent = 0);
     ~GaugeView();
     void passData(QVariantMap data);
-    void passDecoder(DataPacketDecoder* decoder);
+    void passDecoder(DataPacketDecoder *decoder);
     QString setFile(QString file);
 
 private:
-    QList<QString> propertiesInUse;
-    QString file;
-    QTimer* guiUpdateTimer;
-    DataPacketDecoder* dataPacketDecoder;
+    QList<QString> m_propertiesInUse;
+    QString m_file;
+    QTimer *m_guiUpdateTimer;
+    DataPacketDecoder *m_dataPacketDecoder;
     QVariantMap m_valueMap;
     Ui::DataGauges ui;
-    GaugeWidget* widget;
+    GaugeWidget *m_widget;
 
 protected:
-    void closeEvent(QCloseEvent* event);
+    void closeEvent(QCloseEvent *event);
 private slots:
     void guiUpdateTimerTick();
 signals:
-    void windowHiding(QMdiSubWindow* parent);
+    void windowHiding(QMdiSubWindow *parent);
 };
 
 #endif // GAUGEVIEW_H

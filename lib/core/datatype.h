@@ -51,12 +51,11 @@
 #ifndef DATATYPE_H
 #define DATATYPE_H
 
-enum DataType
-{
-    DATA_UNDEFINED=1,
-    DATA_TABLE=2,
-    DATA_TABLE_LOOKUP=4,
-    DATA_CONFIG=5,
+enum DataType {
+    DATA_UNDEFINED = 1,
+    DATA_TABLE = 2,
+    DATA_TABLE_LOOKUP = 4,
+    DATA_CONFIG = 5,
 };
 
 #endif // DATATYPE_H

@@ -27,15 +27,15 @@
 
 class TableWidgetDelegate : public QItemDelegate
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	explicit TableWidgetDelegate(QObject *parent = 0);
+    explicit TableWidgetDelegate(QObject *parent = 0);
+
 protected:
-	void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
 signals:
-	
+
 public slots:
-	
 };
 
 #endif // TABLEWIDGETDELEGATE_H

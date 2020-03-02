@@ -26,7 +26,8 @@
 #include <QQuickView>
 #include <QStyleOptionGraphicsItem>
 #include <QTimer>
-class GaugeItem : public QQuickView {
+class GaugeItem : public QQuickView
+{
     Q_OBJECT
 public:
     Q_PROPERTY(double m_value READ getValue WRITE setRaw)
@@ -43,36 +44,36 @@ public:
     void setValue(double value);
     void setRaw(double value);
     void passEvent(QStringList evt);
-    void setMinimum(double min) { _minValue = min; }
-    double getMinimum() { return _minValue; }
-    double getMaximum() { return _maxValue; }
-    double getStartAngle() { return _scaleStartAngle; }
-    double getEndAngle() { return _scaleEndAngle; }
-    double smoothing() { return _smoothValue; }
-    double getNumLabels() { return _numLabels; }
+    void setMinimum(double min) { m_minValue = min; }
+    double getMinimum() { return m_minValue; }
+    double getMaximum() { return m_maxValue; }
+    double getStartAngle() { return m_scaleStartAngle; }
+    double getEndAngle() { return m_scaleEndAngle; }
+    double smoothing() { return m_smoothValue; }
+    double getNumLabels() { return m_numLabels; }
     int getStyle() { return m_style; }
     void setStyle(int style)
     {
         m_style = style;
         m_redrawBackground = true;
     }
-    int fade() { return fadeAmount; }
+    int fade() { return m_fadeAmount; }
     void setFadingOn(bool fade);
-    void setMaximum(double max) { _maxValue = max; }
+    void setMaximum(double max) { m_maxValue = max; }
     void setStartAngle(double ang)
     {
-        _scaleStartAngle = ang;
+        m_scaleStartAngle = ang;
         m_redrawBackground = true;
     }
     void setEndAngle(double ang)
     {
-        _scaleEndAngle = ang;
+        m_scaleEndAngle = ang;
         m_redrawBackground = true;
     }
-    void setSmoothing(double smooth) { _smoothValue = smooth; }
+    void setSmoothing(double smooth) { m_smoothValue = smooth; }
     void setNumLabels(int num)
     {
-        _numLabels = num;
+        m_numLabels = num;
         m_redrawBackground = true;
     }
     void setColor(QColor outlinecolor, QColor centercolor, QColor topreflectioncolor, QColor bottomreflectioncolor);
@@ -91,53 +92,54 @@ public:
     }
 
 private:
+    void geometryChanged(const QRectF &newgeometry, const QRectF &oldgeometry);
+    void drawBackground(QPainter *tmpPainter);
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *style, QWidget *w);
+    //void paintEvent(QPaintEvent *evt);
+    //void resizeEvent (QResizeEvent *evt);
     QString m_text;
     bool m_redrawBackground;
     double m_value;
-    void geometryChanged(const QRectF& newgeometry, const QRectF& oldgeometry);
     int m_style;
     bool m_fake;
     bool m_fadeEnabled;
-    int demoMax;
-    int fadeAmount;
-    //void paintEvent(QPaintEvent *evt);
-    //void resizeEvent (QResizeEvent *evt);
-    void paint(QPainter* painter, const QStyleOptionGraphicsItem* style, QWidget* w);
-    bool resizeDraw;
-    void drawBackground(QPainter* tmpPainter);
-    QImage* _bgImage;
-    QImage* _fadedBgImage;
-    QTimer* demoTimer;
-    QTimer* gaugeTimer;
-    QTimer* fadeTimer;
-    double _scaleEndAngle;
-    double _scaleStartAngle;
-    double _maxValue;
-    double _minValue;
+    int m_demoMax;
+    int m_fadeAmount;
+    bool m_resizeDraw;
+    QImage *m_bgImage;
+    QImage *m_fadedBgImage;
+    QTimer *m_demoTimer;
+    QTimer *m_gaugeTimer;
+    QTimer *m_fadeTimer;
+    double m_scaleEndAngle;
+    double m_scaleStartAngle;
+    double m_maxValue;
+    double m_minValue;
     double _value;
-    double _targetValue;
-    double _danger;
-    double _warning;
-    double _smoothValue;
-    bool _reverseOrder;
-    int _numLabels;
-    QPen outlinePen;
-    QPen needleCenterPen;
-    QPen needleCenterOutlinePen;
-    QPen needlePen;
-    QPen needleOutlinePen;
-    QPen normalTickPen;
-    QPen normalBigTickPen;
-    QPen normalFontPen;
-    QPen dangerFontPen;
-    QPen warningFontPen;
-    QPen dangerTickPen;
-    QPen dangerBigTickPen;
-    QPen warningTickPen;
-    QPen warningBigTickPen;
-    QFont labelFont;
-    QFont labelSmallFont;
-    int fadeCount;
+    double m_targetValue;
+    double m_danger;
+    double m_warning;
+    double m_smoothValue;
+    bool m_reverseOrder;
+    int m_numLabels;
+    QPen m_outlinePen;
+    QPen m_needleCenterPen;
+    QPen m_needleCenterOutlinePen;
+    QPen m_needlePen;
+    QPen m_needleOutlinePen;
+    QPen m_normalTickPen;
+    QPen m_normalBigTickPen;
+    QPen m_normalFontPen;
+    QPen m_dangerFontPen;
+    QPen m_warningFontPen;
+    QPen m_dangerTickPen;
+    QPen m_dangerBigTickPen;
+    QPen m_warningTickPen;
+    QPen m_warningBigTickPen;
+    QFont m_labelFont;
+    QFont m_labelSmallFont;
+    int m_fadeCount;
+
 private slots:
     void timerTick();
     void gaugeTimerTick();

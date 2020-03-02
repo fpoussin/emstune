@@ -33,23 +33,25 @@ class TableView : public QWidget
     Q_OBJECT
 
 public:
-	explicit TableView(QWidget *parent = 0);
-	~TableView();
-	void passData(QVariantMap data);
-	void passDecoder(DataPacketDecoder *decoder);
+    explicit TableView(QWidget *parent = 0);
+    ~TableView();
+    void passData(QVariantMap data);
+    void passDecoder(DataPacketDecoder *decoder);
+
 private:
-	QTimer *guiUpdateTimer;
-	DataPacketDecoder *dataPacketDecoder;
-	Ui::DataTables ui;
-	QVariantMap m_valueMap;
-	QMap<QString,int> m_nameToIndexMap;
+    QTimer *guiUpdateTimer;
+    DataPacketDecoder *dataPacketDecoder;
+    Ui::DataTables ui;
+    QVariantMap m_valueMap;
+    QMap<QString, int> m_nameToIndexMap;
+
 protected:
-	void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event);
 private slots:
-	void guiUpdateTimerTick();
-	void dataFormatChanged();
+    void guiUpdateTimerTick();
+    void dataFormatChanged();
 signals:
-	void windowHiding(QMdiSubWindow *parent);
+    void windowHiding(QMdiSubWindow *parent);
 };
 
 #endif // DATATABLES_H

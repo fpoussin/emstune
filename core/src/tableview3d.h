@@ -32,69 +32,70 @@
 #include <QTimer>
 class TableView3D : public DataView
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+
 public:
-	explicit TableView3D(QWidget *parent = 0);
-	~TableView3D();
-	void setMetaData(Table3DMetaData metadata);
-	bool setData(unsigned short locationid,DataBlock *data);
-	bool setData(QString name,DataBlock *data);
-	void passDatalog(QVariantMap data);
+    explicit TableView3D(QWidget *parent = 0);
+    ~TableView3D();
+    void setMetaData(Table3DMetaData metadata);
+    bool setData(unsigned short locationid, DataBlock *data);
+    bool setData(QString name, DataBlock *data);
+    void passDatalog(QVariantMap data);
+
 private:
-	bool m_firstKeypress;
-	QTimer *m_inputTimer;
-	QList<QPair<int,int> > m_highlightItemList;
-	int m_oldXLoc;
-	int m_oldYLoc;
-	TableMap3D *m_tableMap;
-	bool m_isFlashOnly;
-	bool metaDataValid;
-	Table3DData *tableData;
-	unsigned short m_locationId;
-	QString m_currentValue;
-	Ui::TableView3D ui;
-	unsigned short m_xAxisSize;
-	unsigned short m_yAxisSize;
-	Table3DMetaData m_metaData;
-	void setSilentValue(int row,int column,QString value);
-	QString formatNumber(double num,int prec=2);
-	int m_currRow;
-	int m_currCol;
-	void setValue(int row, int column,double value,bool ignoreselection = true);
-	void setRange(QList<QPair<QPair<int,int>,double> > data);
-	bool m_tracingEnabled;
-	void writeTable(bool ram);
-	QString verifyValue(int row,int column,QString item);
-	QList<QPair<QPair<int,int>,double> > m_queuedValList;
+    bool m_firstKeypress;
+    QTimer *m_inputTimer;
+    QList<QPair<int, int>> m_highlightItemList;
+    int m_oldXLoc;
+    int m_oldYLoc;
+    TableMap3D *m_tableMap;
+    bool m_isFlashOnly;
+    bool metaDataValid;
+    Table3DData *tableData;
+    unsigned short m_locationId;
+    QString m_currentValue;
+    Ui::TableView3D ui;
+    unsigned short m_xAxisSize;
+    unsigned short m_yAxisSize;
+    Table3DMetaData m_metaData;
+    void setSilentValue(int row, int column, QString value);
+    QString formatNumber(double num, int prec = 2);
+    int m_currRow;
+    int m_currCol;
+    void setValue(int row, int column, double value, bool ignoreselection = true);
+    void setRange(QList<QPair<QPair<int, int>, double>> data);
+    bool m_tracingEnabled;
+    void writeTable(bool ram);
+    QString verifyValue(int row, int column, QString item);
+    QList<QPair<QPair<int, int>, double>> m_queuedValList;
+
 protected:
-	void contextMenuEvent(QContextMenuEvent *evt);
-	void keyPressEvent(QKeyEvent *event);
+    void contextMenuEvent(QContextMenuEvent *evt);
+    void keyPressEvent(QKeyEvent *event);
 public slots:
-	bool updateTable();
+    bool updateTable();
 private slots:
-	void currentSelectionChanged(QList<QPair<int,int> > selectionList);
-	void itemChangeRequest(int row,int column,QString text);
-	void itemChangeRequest(int minrow,int maxrow, int mincolumn, int maxcolumn,QString text);
-	void tracingCheckBoxStateChanged(int newstate);
-	void tableCurrentCellChanged(int currentrow,int currentcolumn,int prevrow,int prevcolumn);
-	void saveClicked();
-	void loadClicked();
-	void loadRamClicked();
-	void exportClicked();
-	void importClicked();
-	void exportJson(QString filename);
-	void showMapClicked();
-	void hotKeyPressed(int key,Qt::KeyboardModifier modifier);
-	void regularKeyPressed(int key);
-	void inputTimerTimeout();
+    void currentSelectionChanged(QList<QPair<int, int>> selectionList);
+    void itemChangeRequest(int row, int column, QString text);
+    void itemChangeRequest(int minrow, int maxrow, int mincolumn, int maxcolumn, QString text);
+    void tracingCheckBoxStateChanged(int newstate);
+    void tableCurrentCellChanged(int currentrow, int currentcolumn, int prevrow, int prevcolumn);
+    void saveClicked();
+    void loadClicked();
+    void loadRamClicked();
+    void exportClicked();
+    void importClicked();
+    void exportJson(QString filename);
+    void showMapClicked();
+    void hotKeyPressed(int key, Qt::KeyboardModifier modifier);
+    void regularKeyPressed(int key);
+    void inputTimerTimeout();
 
 signals:
-	void show3DTable(unsigned short locationid,Table3DData *data);
-	void saveToFlash(unsigned short locationid);
-	void reloadTableData(unsigned short locationid,bool ram);
-	void saveSingleData(unsigned short locationid,QByteArray data, unsigned short offset, unsigned short size);
-
+    void show3DTable(unsigned short locationid, Table3DData *data);
+    void saveToFlash(unsigned short locationid);
+    void reloadTableData(unsigned short locationid, bool ram);
+    void saveSingleData(unsigned short locationid, QByteArray data, unsigned short offset, unsigned short size);
 };
 
 #endif // TABLEVIEW3D_H

@@ -2,8 +2,8 @@
 #include <QDebug>
 #include <QWidget>
 
-WizardView::WizardView(QWidget* parent)
-    : QQuickView((QWindow*)parent->window())
+WizardView::WizardView(QWidget *parent)
+    : QQuickView((QWindow *)parent->window())
 {
 }
 void WizardView::addConfigRequest(QString name)
@@ -11,7 +11,7 @@ void WizardView::addConfigRequest(QString name)
     m_configRequestList.append(name);
 }
 
-void WizardView::setFile(EmsComms* comms, QString filename)
+void WizardView::setFile(EmsComms *comms, QString filename)
 {
     updateTimer = new QTimer(this);
     connect(updateTimer, SIGNAL(timeout()), this, SLOT(updateTimerTick()));
@@ -34,7 +34,7 @@ void WizardView::passConfig(QMap<QString, QList<ConfigBlock>> config)
         }
     }
 }
-void WizardView::addConfig(QString name, ConfigData* config)
+void WizardView::addConfig(QString name, ConfigData *config)
 {
     if (!m_configRequestList.contains(name)) {
         //Throw away, we don't care
@@ -49,7 +49,7 @@ void WizardView::addConfig(QString name, ConfigData* config)
 }
 void WizardView::configUpdate()
 {
-    for (QMap<QString, ConfigBlock*>::const_iterator i = m_configBlockMap.constBegin(); i != m_configBlockMap.constEnd(); i++) {
+    for (QMap<QString, ConfigBlock *>::const_iterator i = m_configBlockMap.constBegin(); i != m_configBlockMap.constEnd(); i++) {
     }
     //Config block got updated.
     //ConfigData *data = qobject_cast<ConfigData*>(sender());
@@ -83,13 +83,13 @@ void WizardView::setMemory(unsigned short locationid, unsigned short offset, uns
     }
     emscomms->updateBlockInFlash(locationid, offset, length, data);
 }
-void WizardView::showEvent(QShowEvent* event)
+void WizardView::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event)
     emit visibilityChanged(true);
 }
 
-void WizardView::hideEvent(QHideEvent* event)
+void WizardView::hideEvent(QHideEvent *event)
 {
     Q_UNUSED(event)
     emit visibilityChanged(false);

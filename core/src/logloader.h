@@ -26,23 +26,24 @@
 //#include "datafield.h"
 class LogLoader : public QThread
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	LogLoader(QObject *parent = 0);
-	void loadFile(QString filename);
+    LogLoader(QObject *parent = 0);
+    void loadFile(QString filename);
+
 private:
-	QString m_filename;
-//	QList<DataField> *m_dataFieldList;
+    QString m_filename;
+    //	QList<DataField> *m_dataFieldList;
     void parseBuffer(QByteArray buffer);
+
 protected:
-	void run();
+    void run();
 signals:
 
-	void payloadReceived(QByteArray header,QByteArray payload);
-	void logProgress(qlonglong current,qlonglong total);
-	void endOfLog();
+    void payloadReceived(QByteArray header, QByteArray payload);
+    void logProgress(qlonglong current, qlonglong total);
+    void endOfLog();
 public slots:
-
 };
 
 #endif // LOGLOADER_H

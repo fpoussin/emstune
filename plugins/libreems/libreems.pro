@@ -4,8 +4,7 @@
 
 TEMPLATE = lib
 
-QT += serialport core
-QT -= gui
+QT = serialport core
 
 DEPENDPATH += .
 INCLUDEPATH += . ../../core/src
@@ -21,77 +20,77 @@ DEPENDPATH += $$PWD/../../lib/core
 include (../../core/QsLog/QsLog.pri)
 include (serial/serial.pri)
 win32 { #Windows based mingw build
-	TARGET = ../../../core/plugins/libreemsplugin
-	win32:QMAKE_LFLAGS += -shared
-	message("Building for win32")
-	DEFINES += GIT_COMMIT=$$system(\"c:/program files (x86)/git/bin/git.exe\" describe --dirty=-DEV --always)
-	DEFINES += GIT_HASH=$$system(\"c:/program files (x86)/git/bin/git.exe\" log -n 1 --pretty=format:%H)
+  TARGET = ../../../core/plugins/libreemsplugin
+  win32:QMAKE_LFLAGS += -shared
+  message("Building for win32")
+  DEFINES += GIT_COMMIT=$$system(\"c:/program files (x86)/git/bin/git.exe\" describe --dirty=-DEV --always)
+  DEFINES += GIT_HASH=$$system(\"c:/program files (x86)/git/bin/git.exe\" log -n 1 --pretty=format:%H)
 } else:mac {
-	TARGET = ../../core/plugins/libreemsplugin
-	INCLUDEPATH += /opt/local/include
-	LIBS += -L/opt/local/lib
-	DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
-	DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
-	DEFINES += GIT_DATE=\""$$system(date)"\"
+  TARGET = ../../core/plugins/libreemsplugin
+  INCLUDEPATH += /opt/local/include
+  LIBS += -L/opt/local/lib
+  DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
+  DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
+  DEFINES += GIT_DATE=\""$$system(date)"\"
 } else:unix {
-	message("Building libreems for *nix")
-	isEmpty($$PREFIX) {
-	PREFIX = /usr/local
-		message("LibreEMS Plugin using default install prefix " $$PREFIX)
-	} else {
-		message("LibreEMS Plugin using custom install prefix " $$PREFIX)
-	}
-	DEFINES += INSTALL_PREFIX=$$PREFIX
-	TARGET = ../../core/plugins/libreemsplugin
-	target.path = $$PREFIX/share/emstudio/plugins
-	INSTALLS += target
-	DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
-	DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
-	DEFINES += GIT_DATE=\""$$system(date)"\"
+  message("Building libreems for *nix")
+  isEmpty($$PREFIX) {
+  PREFIX = /usr/local
+    message("LibreEMS Plugin using default install prefix " $$PREFIX)
+  } else {
+    message("LibreEMS Plugin using custom install prefix " $$PREFIX)
+  }
+  DEFINES += INSTALL_PREFIX=$$PREFIX
+  TARGET = ../../core/plugins/libreemsplugin
+  target.path = $$PREFIX/share/emstudio/plugins
+  INSTALLS += target
+  DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
+  DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
+  DEFINES += GIT_DATE=\""$$system(date)"\"
 }
 
 # Input
 HEADERS += datapacketdecoder.h \
-	table2ddata.h \
-	table3ddata.h \
-	../../lib/core/configdata.h \
-	../../lib/core/datapacketdecoder.h \
-	../../lib/core/table2ddata.h \
-	../../lib/core/table3ddata.h \
-	../../lib/core/emscomms.h \
-	../../lib/core/rawdata.h \
-	tabledata.h \
-	emscomms.h \
-	memorymetadata.h \
-	fedatapacketdecoder.h \
-	fetable2ddata.h \
-	datafield.h \
-	fetable3ddata.h \
-	freeemscomms.h \
-	serialport.h \
-	fememorymetadata.h \
-	datafield.h \
-	memorylocation.h \
-	emsdata.h \
-	rawdata.h \
-	ferawdata.h \
-	packetdecoder.h \
-	packet.h \
-	feconfigdata.h \
-	protocoldecoder.h \
-	protocolencoder.h
+  table2ddata.h \
+  table3ddata.h \
+  ../../lib/core/configdata.h \
+  ../../lib/core/datapacketdecoder.h \
+  ../../lib/core/table2ddata.h \
+  ../../lib/core/table3ddata.h \
+  ../../lib/core/emscomms.h \
+  ../../lib/core/rawdata.h \
+  tabledata.h \
+  emscomms.h \
+  memorymetadata.h \
+  fedatapacketdecoder.h \
+  fetable2ddata.h \
+  datafield.h \
+  fetable3ddata.h \
+  freeemscomms.h \
+  serialport.h \
+  fememorymetadata.h \
+  datafield.h \
+  memorylocation.h \
+  emsdata.h \
+  rawdata.h \
+  ferawdata.h \
+  packetdecoder.h \
+  packet.h \
+  feconfigdata.h \
+  protocoldecoder.h \
+  protocolencoder.h
 
 SOURCES += fedatapacketdecoder.cpp \
-	fetable2ddata.cpp \
-	fetable3ddata.cpp \
-	freeemscomms.cpp \
-	serialport.cpp \
-	fememorymetadata.cpp \
-	datafield.cpp \
-	memorylocation.cpp \
-	emsdata.cpp \
-	ferawdata.cpp \
-	packetdecoder.cpp \
-	feconfigdata.cpp \
-	protocoldecoder.cpp \
-	protocolencoder.cpp
+  fetable2ddata.cpp \
+  fetable3ddata.cpp \
+  freeemscomms.cpp \
+  serialport.cpp \
+  fememorymetadata.cpp \
+  datafield.cpp \
+  memorylocation.cpp \
+  emsdata.cpp \
+  ferawdata.cpp \
+  packetdecoder.cpp \
+  feconfigdata.cpp \
+  protocoldecoder.cpp \
+  protocolencoder.cpp

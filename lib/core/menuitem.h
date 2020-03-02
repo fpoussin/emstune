@@ -7,10 +7,9 @@
 class MenuItem
 {
 public:
-	QString title;
-	QString condition;
-	QList<SubMenuItem> subMenuList;
+    QString title;
+    QString condition;
+    QList<SubMenuItem> subMenuList;
 };
-
 
 #endif // MENUITEM_H

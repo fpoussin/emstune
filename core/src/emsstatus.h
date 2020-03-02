@@ -32,27 +32,29 @@ class QTimer;
 
 class EmsStatus : public QDockWidget
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+
 public:
-	explicit EmsStatus(QWidget *parent = 0);
-	~EmsStatus();
-	void passData(QVariantMap data);
-	void setFlag(QLineEdit *edit,bool green);
+    explicit EmsStatus(QWidget *parent = 0);
+    ~EmsStatus();
+    void passData(QVariantMap data);
+    void setFlag(QLineEdit *edit, bool green);
 public slots:
-	void setEmsMemoryDirty();
-	void setEmsMemoryClean();
+    void setEmsMemoryDirty();
+    void setEmsMemoryClean();
 private slots:
-	void emsMemoryTimerTick();
+    void emsMemoryTimerTick();
+
 protected:
-	void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event);
 signals:
-	void hardResetRequest();
-	void softResetRequest();
-	void windowHiding(QMdiSubWindow *parent);
+    void hardResetRequest();
+    void softResetRequest();
+    void windowHiding(QMdiSubWindow *parent);
+
 private:
-	Ui::EmsStatus ui;
-	QTimer *emsMemoryTimer;
+    Ui::EmsStatus ui;
+    QTimer *emsMemoryTimer;
 };
 
 #endif // EMSSTATUS_H

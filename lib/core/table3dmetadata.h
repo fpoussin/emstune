@@ -58,7 +58,13 @@
 class Table3DMetaData
 {
 public:
-    Table3DMetaData() { xDp=2; yDp=2; zDp=2; valid=false;}
+    Table3DMetaData()
+    {
+        xDp = 2;
+        yDp = 2;
+        zDp = 2;
+        valid = false;
+    }
     QString tableTitle;
     bool valid;
     unsigned int size;
@@ -71,9 +77,9 @@ public:
     int xDp;
     int yDp;
     int zDp;
-    QList<QPair<QString,double> > xAxisCalc;
-    QList<QPair<QString,double> > yAxisCalc;
-    QList<QPair<QString,double> > zAxisCalc;
+    QList<QPair<QString, double>> xAxisCalc;
+    QList<QPair<QString, double>> yAxisCalc;
+    QList<QPair<QString, double>> zAxisCalc;
 };
 
 #endif // TABLE3DMETADATA_H

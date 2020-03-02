@@ -29,32 +29,34 @@
 #include "overviewprogressitemdelegate.h"
 class InterrogateProgressView : public QWidget
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+
 public:
-	explicit InterrogateProgressView(QWidget *parent = 0);
-	~InterrogateProgressView();
-	void setProgress(int progress);
-	void setMaximum(int maximum);
-	void addOutput(QString output);
-	void reset();
-	void done();
-	void addTask(QString task, int sequencenumber,int type);
-	void taskFail(int sequencenumber);
-	void taskSucceed(int sequencenumber);
-	int maximum() { return ui.progressBar->maximum(); }
-	int progress() { return ui.progressBar->value(); }
+    explicit InterrogateProgressView(QWidget *parent = 0);
+    ~InterrogateProgressView();
+    void setProgress(int progress);
+    void setMaximum(int maximum);
+    void addOutput(QString output);
+    void reset();
+    void done();
+    void addTask(QString task, int sequencenumber, int type);
+    void taskFail(int sequencenumber);
+    void taskSucceed(int sequencenumber);
+    int maximum() { return ui.progressBar->maximum(); }
+    int progress() { return ui.progressBar->value(); }
+
 protected:
-	void closeEvent(QCloseEvent *event);
-	void hideEvent(QHideEvent *event);
+    void closeEvent(QCloseEvent *event);
+    void hideEvent(QHideEvent *event);
+
 private:
-	Ui::InterrogateProgressView ui;
-	QMap<int,int> m_typeToOverviewListMap;
+    Ui::InterrogateProgressView ui;
+    QMap<int, int> m_typeToOverviewListMap;
 private slots:
-	void cancelClickedSlot();
+    void cancelClickedSlot();
 signals:
-	void cancelClicked();
-	void windowHiding(QMdiSubWindow *parent);
+    void cancelClicked();
+    void windowHiding(QMdiSubWindow *parent);
 };
 
 #endif // INTERROGATEPROGRESSVIEW_H

@@ -63,7 +63,7 @@ public:
     unsigned short locationId;
     unsigned char offset;
     unsigned char size;
-    QList<QPair<QString,double> > calc;
+    QList<QPair<QString, double>> calc;
 };
 
 #endif // READONLYRAMDATA_H

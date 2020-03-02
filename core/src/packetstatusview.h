@@ -27,24 +27,26 @@
 #include "ui_packetstatusview.h"
 class PacketStatusView : public QWidget
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+
 public:
-	explicit PacketStatusView(QWidget *parent = 0);
-	~PacketStatusView();
-	void clear();
+    explicit PacketStatusView(QWidget *parent = 0);
+    ~PacketStatusView();
+    void clear();
 public slots:
-	void passPacketSent(unsigned short locationid,QByteArray header,QByteArray payload);
-	void passPacketAck(unsigned short locationid,QByteArray header,QByteArray payload);
-	void passPacketNak(unsigned short locationid,QByteArray header,QByteArray payload,unsigned short errornum);
-	void passDecoderFailure(QByteArray packet);
+    void passPacketSent(unsigned short locationid, QByteArray header, QByteArray payload);
+    void passPacketAck(unsigned short locationid, QByteArray header, QByteArray payload);
+    void passPacketNak(unsigned short locationid, QByteArray header, QByteArray payload, unsigned short errornum);
+    void passDecoderFailure(QByteArray packet);
+
 protected:
-	void closeEvent(QCloseEvent *event);
-	void hideEvent(QHideEvent *event);
+    void closeEvent(QCloseEvent *event);
+    void hideEvent(QHideEvent *event);
+
 private:
-	Ui::PacketStatusView ui;
+    Ui::PacketStatusView ui;
 signals:
-	void windowHiding(QMdiSubWindow *parent);
+    void windowHiding(QMdiSubWindow *parent);
 };
 
 #endif // PACKETSTATUSVIEW_H

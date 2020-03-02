@@ -29,29 +29,30 @@
 
 class RawDataView : public DataView
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+
 public:
-	explicit RawDataView(bool isram, bool isflash,QWidget *parent = 0);
-	~RawDataView();
-	bool setData(unsigned short locationid,DataBlock *tdata);
-	//void verifyData(unsigned short locationid,QByteArray data);
-	void passDatalog(QVariantMap data);
+    explicit RawDataView(bool isram, bool isflash, QWidget *parent = 0);
+    ~RawDataView();
+    bool setData(unsigned short locationid, DataBlock *tdata);
+    //void verifyData(unsigned short locationid,QByteArray data);
+    void passDatalog(QVariantMap data);
+
 private:
-	bool m_isRam;
-	Ui::RawDataView ui;
-	unsigned short m_locationId;
-	RawData *m_data;
+    bool m_isRam;
+    Ui::RawDataView ui;
+    unsigned short m_locationId;
+    RawData *m_data;
 
 private slots:
-	void saveFlashButtonClicked();
-	void saveRamButtonClicked();
-	void loadRamButtonClicked();
-	void loadFlashButtonClicked();
-	void update();
+    void saveFlashButtonClicked();
+    void saveRamButtonClicked();
+    void loadRamButtonClicked();
+    void loadFlashButtonClicked();
+    void update();
 signals:
-	void saveData(unsigned short locationid,QByteArray data,int physicallocation);
-	void reloadData(unsigned short locationid,bool isram);
+    void saveData(unsigned short locationid, QByteArray data, int physicallocation);
+    void reloadData(unsigned short locationid, bool isram);
 };
 
 #endif // RAWDATAVIEW_H

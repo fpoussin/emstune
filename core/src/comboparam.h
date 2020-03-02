@@ -10,20 +10,21 @@ class ComboParam;
 
 class ComboParam : public QWidget
 {
-	Q_OBJECT
-	
+    Q_OBJECT
+
 public:
-	explicit ComboParam(QWidget *parent = 0);
-	~ComboParam();
-	void setName(QString name);
-	void setConfig(ConfigData *data);
-	void saveValue();
+    explicit ComboParam(QWidget *parent = 0);
+    ~ComboParam();
+    void setName(QString name);
+    void setConfig(ConfigData *data);
+    void saveValue();
 private slots:
-	void dataUpdate();
-	void currentIndexChanged(int index);
+    void dataUpdate();
+    void currentIndexChanged(int index);
+
 private:
-	Ui::ComboParam *ui;
-	ConfigData *m_data;
+    Ui::ComboParam *ui;
+    ConfigData *m_data;
 };
 
 #endif // COMBOPARAM_H

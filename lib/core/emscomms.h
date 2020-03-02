@@ -65,70 +65,70 @@
 #include "configdata.h"
 //#include "QsLog.h"
 
-namespace QsLogging
-{
-	class Logger;
+namespace QsLogging {
+class Logger;
 }
 
 class EmsComms : public QObject
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-	EmsComms(QObject *parent) : QObject(parent) {}
-	virtual QString getPluginCompat()=0;
-	virtual void passLogger(QsLogging::Logger *log)=0;
-	virtual void stop()=0;
-	virtual void setLogsEnabled(bool enabled)=0;
-	virtual DataPacketDecoder *getDecoder()=0;
-	virtual MemoryMetaData *getMetaParser()=0;
-	virtual Table3DData *getNew3DTableData()=0;
-	virtual Table2DData *getNew2DTableData()=0;
-	virtual void setLogDirectory(QString dir)=0;
-	virtual void setPort(QString portname)=0;
-	virtual void setBaud(int baudrate)=0;
-	virtual void setLogFileName(QString filename)=0;
-	virtual bool sendPacket(unsigned short payloadid,QList<QVariant> arglist=QList<QVariant>(),QList<int> argsizelist=QList<int>(),bool haslength=false)=0;
-	virtual int getLocationIdInfo(unsigned short locationid)=0;
-	virtual int getInterfaceVersion()=0;
-	virtual int getFirmwareVersion()=0;
-	virtual int getMaxPacketSize()=0;
-	virtual int getDecoderName()=0;
-	virtual int getFirmwareBuildDate()=0;
-	virtual int getCompilerVersion()=0;
-	virtual int getOperatingSystem()=0;
-	virtual int echoPacket(QByteArray packet)=0;
-	virtual int getLocationIdList(unsigned char listtype, unsigned short listmask)=0;
-	virtual int softReset()=0;
-	virtual int hardReset()=0;
-	virtual int Q_INVOKABLE startBenchTest(unsigned char eventspercycle,unsigned short numcycles,unsigned short ticksperevent,QVariantList pineventmask,QVariantList pinmode)=0;
-	virtual int Q_INVOKABLE stopBenchTest()=0;
-	virtual int Q_INVOKABLE bumpBenchTest(unsigned char cyclenum)=0;
-	virtual bool sendSimplePacket(unsigned short payload)=0;
-	virtual void connectSerial(QString port,int baud)=0;
-	virtual void disconnectSerial()=0;
-	virtual void loadLog(QString filename)=0;
-	virtual void playLog()=0;
-	virtual void startInterrogation()=0;
-	virtual Table2DData* get2DTableData(unsigned short locationid)=0;
-	virtual Table3DData* get3DTableData(unsigned short locationid)=0;
-	virtual Table2DData* get2DTableData(QString locationname)=0;
-	virtual Table3DData* get3DTableData(QString locationname)=0;
-	virtual RawData* getRawData(unsigned short locationid)=0;
-	virtual ConfigData* getConfigData(QString name) = 0;
-	virtual QList<QString> getConfigList()=0;
-	//virtual void populateDataFields()=0;
-	virtual int updateBlockInRam(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)=0;
-	virtual int updateBlockInFlash(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)=0;
-	virtual int retrieveBlockFromRam(unsigned short location, unsigned short offset, unsigned short size,bool mark=true)=0;
-	virtual int retrieveBlockFromFlash(unsigned short location, unsigned short offset, unsigned short size,bool mark=true)=0;
-	virtual int burnBlockFromRamToFlash(unsigned short location,unsigned short offset, unsigned short size)=0;
-	virtual void setInterByteSendDelay(int milliseconds)=0;
-	virtual void setlogsDebugEnabled(bool enabled)=0;
-	virtual int enableDatalogStream()=0;
-	virtual int disableDatalogStream()=0;
-	virtual void writeAllRamToRam()=0;
-	virtual void acceptLocalChanges()=0;
-	virtual void rejectLocalChanges()=0;
+    EmsComms(QObject *parent)
+        : QObject(parent) {}
+    virtual QString getPluginCompat() = 0;
+    virtual void passLogger(QsLogging::Logger *log) = 0;
+    virtual void stop() = 0;
+    virtual void setLogsEnabled(bool enabled) = 0;
+    virtual DataPacketDecoder *getDecoder() = 0;
+    virtual MemoryMetaData *getMetaParser() = 0;
+    virtual Table3DData *getNew3DTableData() = 0;
+    virtual Table2DData *getNew2DTableData() = 0;
+    virtual void setLogDirectory(QString dir) = 0;
+    virtual void setPort(QString portname) = 0;
+    virtual void setBaud(int baudrate) = 0;
+    virtual void setLogFileName(QString filename) = 0;
+    virtual bool sendPacket(unsigned short payloadid, QList<QVariant> arglist = QList<QVariant>(), QList<int> argsizelist = QList<int>(), bool haslength = false) = 0;
+    virtual int getLocationIdInfo(unsigned short locationid) = 0;
+    virtual int getInterfaceVersion() = 0;
+    virtual int getFirmwareVersion() = 0;
+    virtual int getMaxPacketSize() = 0;
+    virtual int getDecoderName() = 0;
+    virtual int getFirmwareBuildDate() = 0;
+    virtual int getCompilerVersion() = 0;
+    virtual int getOperatingSystem() = 0;
+    virtual int echoPacket(QByteArray packet) = 0;
+    virtual int getLocationIdList(unsigned char listtype, unsigned short listmask) = 0;
+    virtual int softReset() = 0;
+    virtual int hardReset() = 0;
+    virtual int Q_INVOKABLE startBenchTest(unsigned char eventspercycle, unsigned short numcycles, unsigned short ticksperevent, QVariantList pineventmask, QVariantList pinmode) = 0;
+    virtual int Q_INVOKABLE stopBenchTest() = 0;
+    virtual int Q_INVOKABLE bumpBenchTest(unsigned char cyclenum) = 0;
+    virtual bool sendSimplePacket(unsigned short payload) = 0;
+    virtual void connectSerial(QString port, int baud) = 0;
+    virtual void disconnectSerial() = 0;
+    virtual void loadLog(QString filename) = 0;
+    virtual void playLog() = 0;
+    virtual void startInterrogation() = 0;
+    virtual Table2DData *get2DTableData(unsigned short locationid) = 0;
+    virtual Table3DData *get3DTableData(unsigned short locationid) = 0;
+    virtual Table2DData *get2DTableData(QString locationname) = 0;
+    virtual Table3DData *get3DTableData(QString locationname) = 0;
+    virtual RawData *getRawData(unsigned short locationid) = 0;
+    virtual ConfigData *getConfigData(QString name) = 0;
+    virtual QList<QString> getConfigList() = 0;
+    //virtual void populateDataFields()=0;
+    virtual int updateBlockInRam(unsigned short location, unsigned short offset, unsigned short size, QByteArray data) = 0;
+    virtual int updateBlockInFlash(unsigned short location, unsigned short offset, unsigned short size, QByteArray data) = 0;
+    virtual int retrieveBlockFromRam(unsigned short location, unsigned short offset, unsigned short size, bool mark = true) = 0;
+    virtual int retrieveBlockFromFlash(unsigned short location, unsigned short offset, unsigned short size, bool mark = true) = 0;
+    virtual int burnBlockFromRamToFlash(unsigned short location, unsigned short offset, unsigned short size) = 0;
+    virtual void setInterByteSendDelay(int milliseconds) = 0;
+    virtual void setlogsDebugEnabled(bool enabled) = 0;
+    virtual int enableDatalogStream() = 0;
+    virtual int disableDatalogStream() = 0;
+    virtual void writeAllRamToRam() = 0;
+    virtual void acceptLocalChanges() = 0;
+    virtual void rejectLocalChanges() = 0;
 };
-Q_DECLARE_INTERFACE(EmsComms,"EmsComms/1.0")
+Q_DECLARE_INTERFACE(EmsComms, "EmsComms/1.0")
 #endif // EMSCOMMS_H

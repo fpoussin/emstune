@@ -51,16 +51,15 @@
 #ifndef SERIALPORTSTATUS_H
 #define SERIALPORTSTATUS_H
 
-enum SerialPortStatus
-{
-    UNABLE_TO_CONNECT,  // Unable to open the com port
-    UNABLE_TO_LOCK,     // Unable to aquire a lock on the com port
-    UNABLE_TO_READ,    //Wee
-    UNABLE_TO_WRITE,    //weee2
-    NO_DAT,            // Opened com port, but no respose to messages/no data?
-    INVALID_DATA,       // Opened com port, garbage data
-    SM_MODE,            // Opened com port, in serial monitor mode
-    NONE                // No error
+enum SerialPortStatus {
+    UNABLE_TO_CONNECT, // Unable to open the com port
+    UNABLE_TO_LOCK, // Unable to aquire a lock on the com port
+    UNABLE_TO_READ, //Wee
+    UNABLE_TO_WRITE, //weee2
+    NO_DAT, // Opened com port, but no respose to messages/no data?
+    INVALID_DATA, // Opened com port, garbage data
+    SM_MODE, // Opened com port, in serial monitor mode
+    NONE // No error
 };
 
 #endif // SERIALPORTSTATUS_H

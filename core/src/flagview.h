@@ -29,19 +29,21 @@
 #include "ui_dataflags.h"
 class FlagView : public QWidget
 {
-	Q_OBJECT
+    Q_OBJECT
 
 public:
-	explicit FlagView(QWidget *parent = 0);
-	~FlagView();
-	void passData(QVariantMap data);
-	void passDecoder(DataPacketDecoder *decoder);
+    explicit FlagView(QWidget *parent = 0);
+    ~FlagView();
+    void passData(QVariantMap data);
+    void passDecoder(DataPacketDecoder *decoder);
+
 protected:
-	void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event);
+
 private:
-	Ui::DataFlags ui;
+    Ui::DataFlags ui;
 signals:
-	void windowHiding(QMdiSubWindow *parent);
+    void windowHiding(QMdiSubWindow *parent);
 };
 
 #endif // DATAFLAGS_H

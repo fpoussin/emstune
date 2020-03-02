@@ -25,20 +25,18 @@ TestControl *m_testControl;
 PacketDecoder *m_packetDecoder;
 int main(int argc, char *argv[])
 {
-	QCoreApplication a(argc, argv);
+    QCoreApplication a(argc, argv);
 
-	QsLogging::Logger& logger = QsLogging::Logger::instance();
-	logger.setLoggingLevel(QsLogging::TraceLevel);
-//	const QString sLogPath(QDir(appDataDir + "/EMStudio/applogs").filePath("log.txt"));
+    QsLogging::Logger &logger = QsLogging::Logger::instance();
+    logger.setLoggingLevel(QsLogging::TraceLevel);
+    //	const QString sLogPath(QDir(appDataDir + "/EMStudio/applogs").filePath("log.txt"));
 
-//	QsLogging::DestinationPtr fileDestination(QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, 0, 100));
-	QsLogging::DestinationPtr debugDestination(QsLogging::DestinationFactory::MakeDebugOutputDestination());
-	logger.addDestination(debugDestination);
-//	logger.addDestination(fileDestination);
+    //	QsLogging::DestinationPtr fileDestination(QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, 0, 100));
+    QsLogging::DestinationPtr debugDestination(QsLogging::DestinationFactory::MakeDebugOutputDestination());
+    logger.addDestination(debugDestination);
+    //	logger.addDestination(fileDestination);
 
-
-
-	m_testControl = new TestControl();
-	QTimer::singleShot(10,m_testControl,SLOT(start()));
-	return a.exec();
+    m_testControl = new TestControl();
+    QTimer::singleShot(10, m_testControl, SLOT(start()));
+    return a.exec();
 }
