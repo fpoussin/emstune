@@ -25,50 +25,16 @@
 #include <QString>
 #include "QsLog.h"
 #include "pluginmanager.h"
-QList<QPair<QString, QString>> getArgs(int argc, char **argv)
-{
-    bool nextisarg = false;
-    QString current = "";
-    QString currentarg;
-    QList<QPair<QString, QString>> retval;
-    for (int i = 1; i < argc; i++) {
-        QString arg = QString(argv[i]);
-        if (arg.startsWith("-") || arg.startsWith("--")) {
-            if (nextisarg) {
-                //qDebug() << "Param with no arg" << current << currentarg;
-                retval.append(QPair<QString, QString>(current, currentarg.trimmed()));
-                currentarg = "";
-            }
-            nextisarg = true;
-            current = arg;
-        } else {
-            if (nextisarg) {
-                //qDebug() << "Param:" << current << "Arg:" << arg;
-                currentarg += arg + " ";
-            } else {
-                //Invalid
-                qDebug() << "Invalid arg";
-            }
-        }
-    }
-    if (nextisarg) {
-        //qDebug() << "Param with no arg" << current << currentarg;
-        retval.append(QPair<QString, QString>(current, currentarg.trimmed()));
-    }
-    return retval;
-}
-void printHelp()
-{
-    qDebug() << "Help";
-    qDebug() << "Available Commands:";
-    qDebug() << "-h\t\t--help\t\tShow this help";
-    qDebug() << "-d <dev>\t--dev <dev>\tOpen EMStudio, connecting to device <dev>";
-    qDebug() << "-a <true/false>\t--autoconnect <true/false>\tEnable/Disable autoconnect. Default enabled";
-}
+#include <QCommandLineParser>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
+    QCommandLineParser parser;
+
+    parser.setApplicationDescription("EMSTune");
+    parser.addHelpOption();
+    parser.addVersionOption();
 
     //Init the logger
     QsLogging::Logger &logger = QsLogging::Logger::instance();
@@ -96,26 +62,30 @@ int main(int argc, char *argv[])
     logger.addDestination(fileDestination);
 
     QString port = "";
-    bool autoconnect = true;
     QString plugin = "";
-    QList<QPair<QString, QString>> args = getArgs(argc, argv);
-    for (int i = 0; i < args.size(); i++) {
-        if (args[i].first == "--dev" || args[i].first == "-d") {
-            port = args[i].second;
-        } else if (args[i].first == "--help" || args[i].first == "-h") {
-            printHelp();
-            return 0;
-        } else if (args[i].first == "--autoconnect" || args[i].first == "-a") {
-            if (args[i].second.toLower() == "false") {
-                autoconnect = false;
-            }
-        } else if (args[i].first == "--plugin" || args[i].first == "-p") {
-            plugin = args[i].second;
-        } else {
-            qDebug() << "Unknown command" << args[i].first;
-            printHelp();
-            return 0;
-        }
+    bool autoconnect = true;
+
+    QCommandLineOption devOption(QStringList() << "d"
+                                               << "dev",
+                                 "Serial device", "file");
+
+    QCommandLineOption pluginOption(QStringList() << "p"
+                                                  << "plugin",
+                                    "Extra plugin", "file");
+
+    QCommandLineOption autoconnectOption(QStringList() << "a"
+                                                       << "autoconnect",
+                                         "Autoconnect", "file");
+
+    parser.addOptions({ devOption, pluginOption, autoconnectOption });
+
+    parser.process(a);
+    autoconnect = parser.isSet(autoconnectOption);
+    if (parser.isSet(devOption)) {
+        port = parser.value(devOption);
+    }
+    if (parser.isSet(pluginOption)) {
+        plugin = parser.value(pluginOption);
     }
 
     MainWindow *w = new MainWindow();
@@ -125,11 +95,10 @@ int main(int argc, char *argv[])
     if (plugin == "") {
         //A specific plugin is specified, override the plugin manager's choice.
     }
-    //w->setPlugin(plugin);
-    //if (autoconnect)
-    //{
-    //	w->connectToEms();
-    //}
+    w->setPlugin(plugin);
+    if (autoconnect) {
+        w->connectToEms();
+    }
     w->show();
     PluginManager *manager = new PluginManager();
     manager->show();
