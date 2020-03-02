@@ -9,20 +9,18 @@ QT = core gui opengl printsupport widgets quick qml
 TARGET = emstudio
 TEMPLATE = app
 INCLUDEPATH += src
-OBJECTS_DIR = obj
-MOC_DIR = obj
-UI_DIR = obj
-CONFIG += console
+CONFIG += console c++11
 
-INCLUDEPATH += $$PWD/../lib/core
-DEPENDPATH += $$PWD/../lib/core
-
+include(../lib/core/core.pri)
 include(QsLog/QsLog.pri)
 
 win32 {
   message("Building for win32")
-        DEFINES += GIT_COMMIT=$$system(\"c:/program files/git/bin/git.exe\" describe --dirty=-DEV --always)
-        DEFINES += GIT_HASH=$$system(\"c:/program files/git/bin/git.exe\" log -n 1 --pretty=format:%H)
+  DEFINES += GIT_COMMIT=$$system(\"c:/program files/git/bin/git.exe\" describe --dirty=-DEV --always)
+  DEFINES += GIT_HASH=$$system(\"c:/program files/git/bin/git.exe\" log -n 1 --pretty=format:%H)
+  DEFINES += GIT_DATE=\""$$system(date /T)"\"
+  LIBS += opengl32.lib glu32.lib
+
 } else:mac {
   QMAKE_CXXFLAGS += -Werror
   INCLUDEPATH += /opt/local/include
@@ -126,7 +124,6 @@ HEADERS  += \
   src/aboutview.h \
   src/tableview3d.h \
   src/interrogateprogressview.h \
-  ../lib/core/tabledata.h \
   src/readonlyramview.h \
   src/overviewprogressitemdelegate.h \
   src/dataview.h \
@@ -134,12 +131,7 @@ HEADERS  += \
   src/tablemap3d.h \
   src/tablewidget.h \
   src/configview.h \
-  ../lib/core/table2ddata.h \
-  ../lib/core/table3ddata.h \
-  ../lib/core/memorymetadata.h \
   src/tablewidgetdelegate.h \
-  ../lib/core/emscomms.h \
-  ../lib/core/datapacketdecoder.h \
   src/parameterview.h \
   src/parameterwidget.h \
   src/wizardview.h \

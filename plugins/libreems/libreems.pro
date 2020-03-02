@@ -6,16 +6,13 @@ TEMPLATE = lib
 
 QT = serialport core
 
-DEPENDPATH += .
-INCLUDEPATH += . $$PWD/../../core/src
-CONFIG += plugin rtti exceptions
-OBJECTS_DIR = obj
-MOC_DIR = obj
-UI_DIR = obj
-INCLUDEPATH += $$PWD/../../lib/core
-DEPENDPATH += $$PWD/../../lib/core
+DEPENDPATH += $$PWD
+INCLUDEPATH += $$PWD
+CONFIG += plugin rtti exceptions c++11
 
-include (../../core/QsLog/QsLog.pri)
+include(../../lib/core/core.pri)
+include(../../core/QsLog/QsLog.pri)
+
 win32 { #Windows based mingw build
   TARGET = ../../../core/plugins/libreemsplugin
   win32:QMAKE_LFLAGS += -shared
@@ -47,15 +44,10 @@ win32 { #Windows based mingw build
 }
 
 # Input
-HEADERS += datapacketdecoder.h \
+HEADERS += \
+  datapacketdecoder.h \
   table2ddata.h \
   table3ddata.h \
-  ../../lib/core/configdata.h \
-  ../../lib/core/datapacketdecoder.h \
-  ../../lib/core/table2ddata.h \
-  ../../lib/core/table3ddata.h \
-  ../../lib/core/emscomms.h \
-  ../../lib/core/rawdata.h \
   tabledata.h \
   emscomms.h \
   memorymetadata.h \
@@ -77,7 +69,8 @@ HEADERS += datapacketdecoder.h \
   protocoldecoder.h \
   protocolencoder.h
 
-SOURCES += fedatapacketdecoder.cpp \
+SOURCES += \
+  fedatapacketdecoder.cpp \
   fetable2ddata.cpp \
   fetable3ddata.cpp \
   freeemscomms.cpp \

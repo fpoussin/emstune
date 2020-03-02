@@ -26,11 +26,13 @@
 #include "QsLog.h"
 #include "pluginmanager.h"
 #include <QCommandLineParser>
+#include <QProcessEnvironment>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
     QCommandLineParser parser;
+    const QProcessEnvironment env(QProcessEnvironment::systemEnvironment());
 
     parser.setApplicationDescription("EMSTune");
     parser.addHelpOption();
@@ -40,9 +42,9 @@ int main(int argc, char *argv[])
     QsLogging::Logger &logger = QsLogging::Logger::instance();
     logger.setLoggingLevel(QsLogging::TraceLevel);
 #ifdef Q_OS_WIN
-    QString appDataDir = QString(getenv("%USERPROFILE%")).replace("\\", "/");
+    QString appDataDir(env.value("USERPROFILE").replace("\\", "/"));
 #else
-    QString appDataDir = getenv("HOME");
+    QString appDataDir(env.value("HOME"));
 #endif
     QDir appDir(appDataDir);
     if (appDir.exists()) {

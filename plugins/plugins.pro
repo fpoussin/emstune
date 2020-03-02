@@ -4,6 +4,6 @@
 
 TEMPLATE = subdirs
 isEmpty(SUBDIR_LIST) {
-SUBDIR_LIST = libreems
+  SUBDIR_LIST = libreems
 }
 SUBDIRS += $$SUBDIR_LIST
