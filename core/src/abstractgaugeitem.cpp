@@ -27,8 +27,8 @@ const QColor AbstractGaugeItem::colorWarning = QColor::fromRgb(240, 215, 50);
 const QColor AbstractGaugeItem::colorDanger = QColor::fromRgb(220, 40, 40);
 const QColor AbstractGaugeItem::colorValue = QColor::fromRgb(50, 100, 50);
 
-AbstractGaugeItem::AbstractGaugeItem(QDeclarativeItem *parent) :
-    QDeclarativeItem(parent)
+AbstractGaugeItem::AbstractGaugeItem(QQuickItem* parent)
+    : QQuickItem(parent)
 {
     m_title = "---";
     m_unit = "";
@@ -41,93 +41,113 @@ AbstractGaugeItem::AbstractGaugeItem(QDeclarativeItem *parent) :
     m_highWarningSet = false;
 }
 
-double AbstractGaugeItem::getLow() {
+double AbstractGaugeItem::getLow()
+{
     return m_low;
 }
 
-void AbstractGaugeItem::setLow(double low) {
+void AbstractGaugeItem::setLow(double low)
+{
     m_low = low;
 }
 
-double AbstractGaugeItem::getHigh() {
+double AbstractGaugeItem::getHigh()
+{
     return m_high;
 }
 
-void AbstractGaugeItem::setHigh(double high) {
+void AbstractGaugeItem::setHigh(double high)
+{
     m_high = high;
 }
 
-double AbstractGaugeItem::getLowWarning() {
+double AbstractGaugeItem::getLowWarning()
+{
     return m_lowWarning;
 }
 
-void AbstractGaugeItem::setLowWarning(double lowWarning) {
+void AbstractGaugeItem::setLowWarning(double lowWarning)
+{
     m_lowWarning = lowWarning;
     m_lowWarningSet = true;
 }
 
-double AbstractGaugeItem::getLowDanger() {
+double AbstractGaugeItem::getLowDanger()
+{
     return m_lowDanger;
 }
 
-void AbstractGaugeItem::setLowDanger(double lowDanger) {
+void AbstractGaugeItem::setLowDanger(double lowDanger)
+{
     m_lowDanger = lowDanger;
     m_lowDangerSet = true;
-
 }
 
-double AbstractGaugeItem::getHighWarning() {
+double AbstractGaugeItem::getHighWarning()
+{
     return m_highWarning;
 }
 
-void AbstractGaugeItem::setHighWarning(double highWarning) {
+void AbstractGaugeItem::setHighWarning(double highWarning)
+{
     m_highWarning = highWarning;
     m_highWarningSet = true;
 }
 
-double AbstractGaugeItem::getHighDanger() {
+double AbstractGaugeItem::getHighDanger()
+{
     return m_highDanger;
 }
 
-void AbstractGaugeItem::setHighDanger(double highDanger) {
+void AbstractGaugeItem::setHighDanger(double highDanger)
+{
     m_highDanger = highDanger;
     m_highDangerSet = true;
 }
 
-QString AbstractGaugeItem::getTitle() {
+QString AbstractGaugeItem::getTitle()
+{
     return m_title;
 }
 
-void AbstractGaugeItem::setTitle(QString title) {
+void AbstractGaugeItem::setTitle(QString title)
+{
     m_title = title;
 }
 
-QString AbstractGaugeItem::getUnit() {
+QString AbstractGaugeItem::getUnit()
+{
     return m_unit;
 }
 
-void AbstractGaugeItem::setUnit(QString unit) {
+void AbstractGaugeItem::setUnit(QString unit)
+{
     m_unit = unit;
 }
 
-int AbstractGaugeItem::getDecimal() {
+int AbstractGaugeItem::getDecimal()
+{
     return m_decimal;
 }
 
-void AbstractGaugeItem::setDecimal(int decimal) {
+void AbstractGaugeItem::setDecimal(int decimal)
+{
     m_decimal = decimal;
 }
 
-void AbstractGaugeItem::setValue(double value) {
+void AbstractGaugeItem::setValue(double value)
+{
     m_value = value;
     update();
 }
 
-double AbstractGaugeItem::getValue() {
+double AbstractGaugeItem::getValue()
+{
     return m_value;
 }
 
-bool AbstractGaugeItem::isRangeSet() {
+bool AbstractGaugeItem::isRangeSet()
+{
     if (m_low == m_high) {
         return false;
     } else if (m_value < m_low || m_value > m_high) {
@@ -137,25 +157,26 @@ bool AbstractGaugeItem::isRangeSet() {
     return true;
 }
 
-int AbstractGaugeItem::getStatus() {
+int AbstractGaugeItem::getStatus()
+{
     if (isRangeSet()) {
         if (m_lowDanger) {
-	    if (m_value <= m_lowDanger) {
+            if (m_value <= m_lowDanger) {
                 return STATUS_DANGER;
             }
         }
         if (m_highDanger) {
-	    if (m_value >= m_highDanger) {
+            if (m_value >= m_highDanger) {
                 return STATUS_DANGER;
             }
         }
         if (m_lowWarning) {
-	    if (m_value <= m_lowWarning) {
+            if (m_value <= m_lowWarning) {
                 return STATUS_WARNING;
             }
         }
         if (m_highWarning) {
-	    if (m_value >= m_highWarning) {
+            if (m_value >= m_highWarning) {
                 return STATUS_WARNING;
             }
         }
@@ -164,7 +185,8 @@ int AbstractGaugeItem::getStatus() {
     return STATUS_OK;
 }
 
-bool AbstractGaugeItem::isHighlighted() {
+bool AbstractGaugeItem::isHighlighted()
+{
     if (getStatus() == STATUS_WARNING || getStatus() == STATUS_DANGER) {
         return true;
     } else {
@@ -172,7 +194,8 @@ bool AbstractGaugeItem::isHighlighted() {
     }
 }
 
-QColor AbstractGaugeItem::getStatusColor() {
+QColor AbstractGaugeItem::getStatusColor()
+{
     if (getStatus() == STATUS_DANGER) {
         return colorDanger;
     } else if (getStatus() == STATUS_WARNING) {
@@ -182,11 +205,11 @@ QColor AbstractGaugeItem::getStatusColor() {
     }
 }
 
-void AbstractGaugeItem::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
+void AbstractGaugeItem::geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry)
 {
     Q_UNUSED(oldGeometry);
     delete m_background;
-    m_background = new QImage(newGeometry.width(),newGeometry.height(),QImage::Format_ARGB32);
+    m_background = new QImage(newGeometry.width(), newGeometry.height(), QImage::Format_ARGB32);
     this->init();
     m_redrawBackground = true;
 }

@@ -20,20 +20,22 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA   *
  ************************************************************************************/
 
-#include <math.h>
-#include <QString>
 #include <QDebug>
+#include <QGraphicsItem>
+#include <QString>
+#include <math.h>
 
 #include "bargaugeitem.h"
 
-BarGaugeItem::BarGaugeItem(QWidget *parent)
+BarGaugeItem::BarGaugeItem(QWidget* parent)
 {
     Q_UNUSED(parent);
-    setFlag(QGraphicsItem::ItemHasNoContents, false);
+    setFlag(QQuickItem::ItemHasContents, true);
     m_redrawBackground = true;
 }
 
-void BarGaugeItem::init() {
+void BarGaugeItem::init()
+{
     m_size = this->width();
     m_barSize = m_size * 0.95f;
     m_range = m_high - m_low;
@@ -41,15 +43,16 @@ void BarGaugeItem::init() {
 
     m_padding = (m_size - m_barSize) / 2;
 
-    m_penBar = QPen(colorOk, (int) (m_size * 0.06f), Qt::SolidLine, Qt::FlatCap);
-    m_penNeedle = QPen(colorOk, (int) (m_size * 0.04f), Qt::SolidLine, Qt::RoundCap);
+    m_penBar = QPen(colorOk, (int)(m_size * 0.06f), Qt::SolidLine, Qt::FlatCap);
+    m_penNeedle = QPen(colorOk, (int)(m_size * 0.04f), Qt::SolidLine, Qt::RoundCap);
 
-    m_fontValue = QFont("helvetica", (int) (m_size * 0.12f), QFont::Bold);
-    m_fontTitle = QFont("helvetica", (int) (m_size * 0.07f), QFont::Bold);
-    m_fontUnit = QFont("helvetica", (int) (m_size * 0.05f), QFont::Bold);
+    m_fontValue = QFont("helvetica", (int)(m_size * 0.12f), QFont::Bold);
+    m_fontTitle = QFont("helvetica", (int)(m_size * 0.07f), QFont::Bold);
+    m_fontUnit = QFont("helvetica", (int)(m_size * 0.05f), QFont::Bold);
 }
 
-void BarGaugeItem::drawBackground() {
+void BarGaugeItem::drawBackground()
+{
     QPainter painter(m_background);
     painter.setRenderHint(QPainter::Antialiasing);
 
@@ -72,13 +75,13 @@ void BarGaugeItem::drawBackground() {
     painter.setPen(m_penBar);
 
     if (m_lowDangerSet) {
-	lengthLowDanger = ((m_lowDanger - m_low) / m_range) * m_barSize;
+        lengthLowDanger = ((m_lowDanger - m_low) / m_range) * m_barSize;
         painter.drawLine(m_padding, locationY, lengthLowDanger + m_padding - m_gap, locationY);
         barNormalStart += lengthLowDanger;
     }
 
     if (m_highDangerSet) {
-	lengthHighDanger = ((m_high - m_highDanger) / m_range) * m_barSize;
+        lengthHighDanger = ((m_high - m_highDanger) / m_range) * m_barSize;
         painter.drawLine(m_padding + m_barSize - lengthHighDanger + m_gap, locationY, m_padding + m_barSize, locationY);
         barNormalEnd -= lengthHighDanger;
     }
@@ -88,13 +91,13 @@ void BarGaugeItem::drawBackground() {
     painter.setPen(m_penBar);
 
     if (m_lowWarningSet) {
-	int lengthLowWarning = ((m_lowWarning - m_low) / m_range) * m_barSize;
+        int lengthLowWarning = ((m_lowWarning - m_low) / m_range) * m_barSize;
         painter.drawLine(m_padding + lengthLowDanger, locationY, lengthLowWarning + m_padding - m_gap, locationY);
         barNormalStart += (lengthLowWarning - lengthLowDanger);
     }
 
     if (m_highWarningSet) {
-	int lengthHighWarning = ((m_high - m_highWarning) / m_range) * m_barSize;
+        int lengthHighWarning = ((m_high - m_highWarning) / m_range) * m_barSize;
         painter.drawLine(m_padding + m_barSize - lengthHighWarning + m_gap, locationY, m_padding + m_barSize - lengthHighDanger, locationY);
         barNormalEnd -= (lengthHighWarning - lengthHighDanger);
     }
@@ -110,7 +113,7 @@ void BarGaugeItem::drawBackground() {
 
     // Title
     painter.setFont(m_fontTitle);
-    int valueY = (int (this->height() * 0.65f));
+    int valueY = (int(this->height() * 0.65f));
     painter.drawText(m_padding, valueY, m_title);
 
     // Unit
@@ -118,13 +121,13 @@ void BarGaugeItem::drawBackground() {
     QFontMetrics metrics(m_fontUnit);
     QRect bbox = metrics.boundingRect(m_unit);
     int valueX = m_size - bbox.width() - m_padding;
-    valueY = (int (this->height() * 0.85f));
+    valueY = (int(this->height() * 0.85f));
     painter.drawText(valueX, valueY, m_unit);
 
     painter.end();
 }
 
-void BarGaugeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *style , QWidget *w)
+void BarGaugeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* style, QWidget* w)
 {
     Q_UNUSED(style);
     Q_UNUSED(w);
@@ -164,7 +167,7 @@ void BarGaugeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *styl
     QRect bbox = metrics.boundingRect(valueText);
 
     int valueX = m_size - bbox.width() - m_padding;
-    int valueY = (int (this->height() * 0.70f));
+    int valueY = (int(this->height() * 0.70f));
 
     painter->drawText(valueX, valueY, valueText);
 }

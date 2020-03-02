@@ -23,22 +23,22 @@
 #ifndef BARGAUGEITEM_H
 #define BARGAUGEITEM_H
 
-#include <QPen>
 #include <QPainter>
+#include <QPen>
+#include <QStyleOptionGraphicsItem>
 #include <QTimer>
 
-#include "gaugeutil.h"
 #include "abstractgaugeitem.h"
+#include "gaugeutil.h"
 
-class BarGaugeItem : public AbstractGaugeItem
-{
+class BarGaugeItem : public AbstractGaugeItem {
 public:
-    explicit BarGaugeItem(QWidget *parent = 0);
+    explicit BarGaugeItem(QWidget* parent = 0);
 
 private:
     void init();
     void drawBackground();
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *style , QWidget *w);
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* style, QWidget* w);
 
     int m_size;
     int m_barSize;
@@ -51,7 +51,6 @@ private:
     QFont m_fontValue;
     QFont m_fontTitle;
     QFont m_fontUnit;
-
 };
 
 #endif // BARGAUGEITEM_H

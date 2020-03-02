@@ -20,56 +20,54 @@
  ************************************************************************************/
 
 #include "gaugewidget.h"
-#include "roundgaugeitem.h"
-#include "bargaugeitem.h"
 #include "QsLog.h"
-#include <QMetaType>
-#include <QDeclarativeContext>
-#include <QFile>
+#include "bargaugeitem.h"
+#include "roundgaugeitem.h"
 #include <QDir>
-GaugeWidget::GaugeWidget(QWidget *parent) : QDeclarativeView(parent)
+#include <QFile>
+#include <QGraphicsItem>
+#include <QMetaType>
+#include <QQmlContext>
+GaugeWidget::GaugeWidget(QWidget* parent)
+    : QQuickView((QWindow*)parent)
 {
-	qmlRegisterType<GaugeItem>("GaugeImage",0,1,"GaugeImage");
-	qmlRegisterType<RoundGaugeItem>("AviatorGauges", 0, 1, "RoundGauge");
-	qmlRegisterType<BarGaugeItem>("AviatorGauges", 0, 1, "BarGauge");
-	this->rootContext()->setContextProperty("propertyMap",&propertyMap);
-	/*if (QFile::exists("gauges.qml"))
-	{
-		setSource(QUrl("gauges.qml"));
-	}
-	else if (QFile::exists("src/gauges.qml"))
-	{
-		setSource(QUrl("src/gauges.qml"));
-	}
-	else if (QFile::exists("/etc/emstudio/gauges.qml"))
-	{
-		setSource(QUrl("/etc/emstudio/gauges.qml"));
-	}
-	else
-	{
-	}*/
+    qmlRegisterType<GaugeItem>("GaugeImage", 0, 1, "GaugeImage");
+    qmlRegisterType<RoundGaugeItem>("AviatorGauges", 0, 1, "RoundGauge");
+    qmlRegisterType<BarGaugeItem>("AviatorGauges", 0, 1, "BarGauge");
+    this->rootContext()->setContextProperty("propertyMap", &propertyMap);
+    /*if (QFile::exists("gauges.qml"))
+    {
+        setSource(QUrl("gauges.qml"));
+    }
+    else if (QFile::exists("src/gauges.qml"))
+    {
+        setSource(QUrl("src/gauges.qml"));
+    }
+    else if (QFile::exists("/etc/emstudio/gauges.qml"))
+    {
+        setSource(QUrl("/etc/emstudio/gauges.qml"));
+    }
+    else
+    {
+    }*/
 }
 
 QString GaugeWidget::setFile(QString file)
 {
-	QLOG_DEBUG() << "GaugeWidget loading " << file;
-	setSource(QUrl::fromLocalFile(file));
-	if (rootObject())
-	{
-		for (int i=0;i<rootObject()->childItems().size();i++)
-		{
-			QGraphicsObject *obj = qobject_cast<QGraphicsObject*>(rootObject()->childItems()[i]);
-			if (obj)
-			{
-				propertylist.append(obj->property("propertyMapProperty").toString());
-			}
-		}
-		if (rootObject()->property("plugincompat").isValid())
-		{
-			QString plugincompat = rootObject()->property("plugincompat").toString();
-			QLOG_DEBUG() << "Plugin compatability:" << plugincompat;
-			return plugincompat;
-		}
-	}
-	return "";
+    QLOG_DEBUG() << "GaugeWidget loading " << file;
+    setSource(QUrl::fromLocalFile(file));
+    if (rootObject()) {
+        for (int i = 0; i < rootObject()->childItems().size(); i++) {
+            QGraphicsObject* obj = qobject_cast<QGraphicsObject*>(rootObject()->childItems()[i]);
+            if (obj) {
+                propertylist.append(obj->property("propertyMapProperty").toString());
+            }
+        }
+        if (rootObject()->property("plugincompat").isValid()) {
+            QString plugincompat = rootObject()->property("plugincompat").toString();
+            QLOG_DEBUG() << "Plugin compatability:" << plugincompat;
+            return plugincompat;
+        }
+    }
+    return "";
 }

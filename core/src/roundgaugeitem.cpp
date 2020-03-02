@@ -20,40 +20,43 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA   *
  ************************************************************************************/
 
-#include <math.h>
-#include <QString>
 #include <QDebug>
+#include <QGraphicsItem>
+#include <QString>
+#include <math.h>
 
 #include "roundgaugeitem.h"
 
-RoundGaugeItem::RoundGaugeItem(QWidget *parent)
+RoundGaugeItem::RoundGaugeItem(QWidget* parent)
 {
     Q_UNUSED(parent);
-    setFlag(QGraphicsItem::ItemHasNoContents, false);
+    setFlag(QQuickItem::ItemHasContents, true);
     m_redrawBackground = true;
 }
 
-void RoundGaugeItem::init() {
+void RoundGaugeItem::init()
+{
     m_size = this->width();
     m_halfsize = m_size / 2;
     m_gap = 25;
 
     m_range = m_high - m_low;
 
-    m_locationXY = (int (m_size * 0.05f));
+    m_locationXY = (int(m_size * 0.05f));
     m_locationHighlightXY = (m_size * 0.12f);
-    m_sizeXY = (int (m_size * 0.9f));
+    m_sizeXY = (int(m_size * 0.9f));
     m_sizeHighlightXY = (m_size * 0.77f);
 
-    m_penArc = QPen(colorOk, (int) (m_size * 0.05f), Qt::SolidLine, Qt::FlatCap);
-    m_penNeedle = QPen(colorOk, (int) (m_size * 0.04f), Qt::SolidLine, Qt::RoundCap);
+    m_penArc = QPen(colorOk, (int)(m_size * 0.05f), Qt::SolidLine, Qt::FlatCap);
+    m_penNeedle = QPen(colorOk, (int)(m_size * 0.04f), Qt::SolidLine, Qt::RoundCap);
 
-    m_fontValue = QFont("helvetica", (int) (m_size * 0.12f), QFont::Bold);
-    m_fontTitle = QFont("helvetica", (int) (m_size * 0.07f), QFont::Bold);
-    m_fontUnit = QFont("helvetica", (int) (m_size * 0.05f), QFont::Bold);
+    m_fontValue = QFont("helvetica", (int)(m_size * 0.12f), QFont::Bold);
+    m_fontTitle = QFont("helvetica", (int)(m_size * 0.07f), QFont::Bold);
+    m_fontUnit = QFont("helvetica", (int)(m_size * 0.05f), QFont::Bold);
 }
 
-void RoundGaugeItem::drawBackground() {
+void RoundGaugeItem::drawBackground()
+{
     QPainter painter(m_background);
     painter.setRenderHint(QPainter::Antialiasing);
 
@@ -75,13 +78,13 @@ void RoundGaugeItem::drawBackground() {
     painter.setPen(m_penArc);
 
     if (m_lowDangerSet) {
-	degreesLowDanger = (int ((m_lowDanger - m_low) * arcSize / m_range));
+        degreesLowDanger = (int((m_lowDanger - m_low) * arcSize / m_range));
         painter.drawArc(m_locationXY, m_locationXY, m_sizeXY, m_sizeXY, (arcSize - degreesLowDanger + m_gap), (degreesLowDanger - m_gap));
         degreesNormalSize -= degreesLowDanger;
     }
 
     if (m_highDangerSet) {
-	degreesHighDanger = (int ((m_high - m_highDanger - m_low) * arcSize / m_range));
+        degreesHighDanger = (int((m_high - m_highDanger - m_low) * arcSize / m_range));
         painter.drawArc(m_locationXY, m_locationXY, m_sizeXY, m_sizeXY, 0, degreesHighDanger - m_gap);
         degreesNormalSize -= degreesHighDanger;
         degreesNormalStart += degreesHighDanger;
@@ -92,13 +95,13 @@ void RoundGaugeItem::drawBackground() {
     painter.setPen(m_penArc);
 
     if (m_lowWarningSet) {
-	int degreesLowWarning = (int ((m_lowWarning - m_low) * arcSize / m_range));
+        int degreesLowWarning = (int((m_lowWarning - m_low) * arcSize / m_range));
         painter.drawArc(m_locationXY, m_locationXY, m_sizeXY, m_sizeXY, (arcSize - degreesLowWarning + m_gap), (degreesLowWarning - degreesLowDanger - m_gap));
         degreesNormalSize -= (degreesLowWarning - degreesLowDanger);
     }
 
     if (m_highWarningSet) {
-	int degreesHighWarning = (int ((m_high - m_highWarning - m_low) * arcSize / m_range));
+        int degreesHighWarning = (int((m_high - m_highWarning - m_low) * arcSize / m_range));
         painter.drawArc(m_locationXY, m_locationXY, m_sizeXY, m_sizeXY, degreesHighDanger, (degreesHighWarning - degreesHighDanger - m_gap));
         degreesNormalSize -= (degreesHighWarning - degreesHighDanger);
         degreesNormalStart += (degreesHighWarning - degreesHighDanger);
@@ -118,8 +121,8 @@ void RoundGaugeItem::drawBackground() {
     QFontMetrics metrics2(m_fontTitle);
     QRect bbox = metrics2.boundingRect(m_title);
 
-    int valueX = (int (this->width() * 0.90f - bbox.width()));
-    int valueY = (int (this->height() * 0.90f));
+    int valueX = (int(this->width() * 0.90f - bbox.width()));
+    int valueY = (int(this->height() * 0.90f));
 
     painter.drawText(valueX, valueY, m_title);
 
@@ -128,15 +131,15 @@ void RoundGaugeItem::drawBackground() {
     QFontMetrics metrics3(m_fontUnit);
     bbox = metrics3.boundingRect(m_unit);
 
-    valueX = (int (this->width() / 2 - (bbox.width() / 2)));
-    valueY = (int (this->height() * 0.35f));
+    valueX = (int(this->width() / 2 - (bbox.width() / 2)));
+    valueY = (int(this->height() * 0.35f));
 
     painter.drawText(valueX, valueY, m_unit);
 
     painter.end();
 }
 
-void RoundGaugeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *style , QWidget *w)
+void RoundGaugeItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* style, QWidget* w)
 {
     Q_UNUSED(style);
     Q_UNUSED(w);
@@ -163,10 +166,10 @@ void RoundGaugeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *st
     if (isRangeSet()) {
         m_penNeedle.setColor(Qt::white);
         painter->setPen(m_penNeedle);
-        float valueAmount = (float) ((m_value - m_low) / m_range);
+        float valueAmount = (float)((m_value - m_low) / m_range);
 
-        int *needlePoints1 = GaugeUtil::getPointInArc((int) m_halfsize, (int) m_halfsize, arcSize, arcStart, (int) (m_size * 0.1f), valueAmount);
-        int *needlePoints2 = GaugeUtil::getPointInArc((int) m_halfsize, (int) m_halfsize, arcSize, arcStart, (int) (m_size * 0.3f), valueAmount);
+        int* needlePoints1 = GaugeUtil::getPointInArc((int)m_halfsize, (int)m_halfsize, arcSize, arcStart, (int)(m_size * 0.1f), valueAmount);
+        int* needlePoints2 = GaugeUtil::getPointInArc((int)m_halfsize, (int)m_halfsize, arcSize, arcStart, (int)(m_size * 0.3f), valueAmount);
 
         painter->drawLine(needlePoints1[0], needlePoints1[1], needlePoints2[0], needlePoints2[1]);
     }
@@ -185,8 +188,8 @@ void RoundGaugeItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *st
     QFontMetrics metrics(m_fontValue);
     QRect bbox = metrics.boundingRect(valueText);
 
-    int valueX = (int (this->width() * 0.90f - (float) bbox.width()));
-    int valueY = (int (this->height() * 0.80f));
+    int valueX = (int(this->width() * 0.90f - (float)bbox.width()));
+    int valueY = (int(this->height() * 0.80f));
 
     painter->drawText(valueX, valueY, valueText);
 }

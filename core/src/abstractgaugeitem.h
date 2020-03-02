@@ -23,9 +23,9 @@
 #ifndef ABSTRACTGAUGEITEM_H
 #define ABSTRACTGAUGEITEM_H
 
-#include <QPen>
-#include <QDeclarativeItem>
 #include <QPainter>
+#include <QPen>
+#include <QQuickItem>
 #include <QTimer>
 
 enum GaugeStatus {
@@ -34,11 +34,10 @@ enum GaugeStatus {
     STATUS_DANGER = 3
 };
 
-class AbstractGaugeItem : public QDeclarativeItem
-{
+class AbstractGaugeItem : public QQuickItem {
     Q_OBJECT
 public:
-    explicit AbstractGaugeItem(QDeclarativeItem *parent = 0);
+    explicit AbstractGaugeItem(QQuickItem* parent = 0);
     Q_PROPERTY(QString title READ getTitle WRITE setTitle)
     Q_PROPERTY(QString unit READ getUnit WRITE setUnit)
     Q_PROPERTY(double low READ getLow WRITE setLow)
@@ -51,11 +50,11 @@ public:
     Q_PROPERTY(double value READ getValue WRITE setValue)
 
 protected:
-    void geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry);
+    void geometryChanged(const QRectF& newGeometry, const QRectF& oldGeometry);
     virtual void init() = 0;
     virtual void drawBackground() = 0;
 
-    QImage *m_background;
+    QImage* m_background;
     bool m_redrawBackground;
     QString m_title;
     QString m_unit;

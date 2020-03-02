@@ -21,17 +21,17 @@
 
 #ifndef GAUGEWIDGET_H
 #define GAUGEWIDGET_H
-#include <QDeclarativeView>
-#include <QDeclarativePropertyMap>
+#include <QQmlPropertyMap>
+#include <QQuickView>
 
 #include "gaugeitem.h"
-class GaugeWidget : public QDeclarativeView
-{
+class GaugeWidget : public QQuickView {
 public:
-    GaugeWidget(QWidget *parent=0);
-    QDeclarativePropertyMap propertyMap;
+    GaugeWidget(QWidget* parent = 0);
+    QQmlPropertyMap propertyMap;
     QString setFile(QString file);
     const QList<QString> getPropertiesInUse() { return propertylist; }
+
 private:
     QList<QString> propertylist;
 };
