@@ -46,20 +46,21 @@ MainWindow::MainWindow(QWidget* parent)
     m_checkEmsDataInUse = false;
     m_currentEcuClock = -1;
     m_EcuResetPopup = false;
-    interrogateProgressMdiWindow = 0;
+    m_interrogateProgressMdiWindow = 0;
     qRegisterMetaType<MemoryLocationInfo>("MemoryLocationInfo");
     qRegisterMetaType<DataType>("DataType");
     qRegisterMetaType<SerialPortStatus>("SerialPortStatus");
     QLOG_INFO() << "EMStudio commit:" << define2string(GIT_COMMIT);
     QLOG_INFO() << "Full hash:" << define2string(GIT_HASH);
-    progressView = 0;
-    emsComms = 0;
-    ramDiffWindow = 0;
+    QLOG_INFO() << "Build date:" << define2string(GIT_DATE);
+    m_progressView = 0;
+    m_emsComms = 0;
+    m_ramDiffWindow = 0;
     m_interrogationInProgress = false;
     m_debugLogs = false;
-    emsSilenceTimer = new QTimer(this);
-    connect(emsSilenceTimer, SIGNAL(timeout()), this, SLOT(emsCommsSilenceTimerTick()));
-    emsSilenceTimer->start();
+    m_emsSilenceTimer = new QTimer(this);
+    connect(m_emsSilenceTimer, SIGNAL(timeout()), this, SLOT(emsCommsSilenceTimerTick()));
+    m_emsSilenceTimer->start();
 
     //	emsData = new EmsData();
     //	connect(emsData,SIGNAL(updateRequired(unsigned short)),this,SLOT(updateDataWindows(unsigned short)));
@@ -171,8 +172,8 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui.actionEMS_Status, SIGNAL(triggered()), this, SLOT(menu_windows_EmsStatusClicked()));
     connect(ui.actionLoad_Offline_Data, SIGNAL(triggered()), this, SLOT(menu_file_loadOfflineDataClicked()));
     this->setWindowTitle(QString("EMStudio ") + QString(define2string(GIT_COMMIT)));
-    emsinfo.emstudioCommit = define2string(GIT_COMMIT);
-    emsinfo.emstudioHash = define2string(GIT_HASH);
+    m_emsinfo.emstudioCommit = define2string(GIT_COMMIT);
+    m_emsinfo.emstudioHash = define2string(GIT_HASH);
     ui.actionDisconnect->setEnabled(false);
     connect(ui.actionSettings, SIGNAL(triggered()), this, SLOT(menu_settingsClicked()));
     connect(ui.actionConnect, SIGNAL(triggered()), this, SLOT(menu_connectClicked()));
@@ -192,11 +193,11 @@ MainWindow::MainWindow(QWidget* parent)
     connect(ui.actionFirmware_Debug, SIGNAL(triggered()), this, SLOT(menu_windows_firmwareDebugClicked()));
     ui.actionInterrogation_Progress->setEnabled(false);
 
-    emsInfo = 0;
-    dataTables = 0;
-    dataFlags = 0;
-    dataGauges = 0;
-    pluginLoader = new QPluginLoader(this);
+    m_emsInfo = 0;
+    m_dataTables = 0;
+    m_dataFlags = 0;
+    m_dataGauges = 0;
+    m_pluginLoader = new QPluginLoader(this);
     if (QFile::exists("plugins/libfreeemsplugin.so")) {
         m_pluginFileName = "plugins/libfreeemsplugin.so";
     } else if (QFile::exists("/usr/share/emstudio/plugins/libfreeemsplugin.so")) {
@@ -210,46 +211,46 @@ MainWindow::MainWindow(QWidget* parent)
 
     m_logFileName = QDateTime::currentDateTime().toString("yyyy.MM.dd-hh.mm.ss");
 
-    emsInfo = new EmsInfoView();
-    connect(emsInfo, SIGNAL(displayLocationId(int, bool, FormatType)), this, SLOT(emsInfoDisplayLocationId(int, bool, FormatType)));
+    m_emsInfo = new EmsInfoView();
+    connect(m_emsInfo, SIGNAL(displayLocationId(int, bool, FormatType)), this, SLOT(emsInfoDisplayLocationId(int, bool, FormatType)));
 
-    emsMdiWindow = ui.mdiArea->addSubWindow(emsInfo);
-    emsMdiWindow->setGeometry(emsInfo->geometry());
-    emsMdiWindow->hide();
-    emsMdiWindow->setWindowTitle(emsInfo->windowTitle());
+    m_emsMdiWindow = ui.mdiArea->addSubWindow(m_emsInfo);
+    m_emsMdiWindow->setGeometry(m_emsInfo->geometry());
+    m_emsMdiWindow->hide();
+    m_emsMdiWindow->setWindowTitle(m_emsInfo->windowTitle());
 
-    firmwareDebugView = new FirmwareDebugView();
+    m_firmwareDebugView = new FirmwareDebugView();
 
-    firmwareDebugMdiWindow = ui.mdiArea->addSubWindow(firmwareDebugView);
-    firmwareDebugMdiWindow->setGeometry(firmwareDebugView->geometry());
-    firmwareDebugMdiWindow->hide();
-    firmwareDebugMdiWindow->setWindowTitle(firmwareDebugView->windowTitle());
+    m_firmwareDebugMdiWindow = ui.mdiArea->addSubWindow(m_firmwareDebugView);
+    m_firmwareDebugMdiWindow->setGeometry(m_firmwareDebugView->geometry());
+    m_firmwareDebugMdiWindow->hide();
+    m_firmwareDebugMdiWindow->setWindowTitle(m_firmwareDebugView->windowTitle());
 
-    parameterView = new ParameterView();
-    connect(parameterView, SIGNAL(showTable(QString)), this, SLOT(showTable(QString)));
-    parameterMdiWindow = ui.mdiArea->addSubWindow(parameterView);
-    parameterMdiWindow->setGeometry(parameterView->geometry());
-    parameterMdiWindow->hide();
-    parameterMdiWindow->setWindowTitle(parameterView->windowTitle());
+    m_parameterView = new ParameterView();
+    connect(m_parameterView, SIGNAL(showTable(QString)), this, SLOT(showTable(QString)));
+    m_parameterMdiWindow = ui.mdiArea->addSubWindow(m_parameterView);
+    m_parameterMdiWindow->setGeometry(m_parameterView->geometry());
+    m_parameterMdiWindow->hide();
+    m_parameterMdiWindow->setWindowTitle(m_parameterView->windowTitle());
 
-    aboutView = new AboutView();
-    aboutView->setHash(define2string(GIT_HASH));
-    aboutView->setCommit(define2string(GIT_COMMIT));
-    //	aboutView->setDate(define2string(GIT_DATE));
-    aboutMdiWindow = ui.mdiArea->addSubWindow(aboutView);
-    aboutMdiWindow->setGeometry(aboutView->geometry());
-    aboutMdiWindow->hide();
-    aboutMdiWindow->setWindowTitle(aboutView->windowTitle());
+    m_aboutView = new AboutView();
+    m_aboutView->setHash(define2string(GIT_HASH));
+    m_aboutView->setCommit(define2string(GIT_COMMIT));
+    m_aboutView->setDate(define2string(GIT_DATE));
+    m_aboutMdiWindow = ui.mdiArea->addSubWindow(m_aboutView);
+    m_aboutMdiWindow->setGeometry(m_aboutView->geometry());
+    m_aboutMdiWindow->hide();
+    m_aboutMdiWindow->setWindowTitle(m_aboutView->windowTitle());
 
     //newDataGauges = new CustomGaugeView();
     //newDataGauges->setFile("src/oniongauges.qml");
     //newDataGauges->show();
-    dataGauges = new GaugeView();
+    m_dataGauges = new GaugeView();
     //connect(dataGauges,SIGNAL(destroyed()),this,SLOT(dataGaugesDestroyed()));
-    gaugesMdiWindow = ui.mdiArea->addSubWindow(dataGauges);
-    gaugesMdiWindow->setGeometry(dataGauges->geometry());
-    gaugesMdiWindow->hide();
-    gaugesMdiWindow->setWindowTitle(dataGauges->windowTitle());
+    m_gaugesMdiWindow = ui.mdiArea->addSubWindow(m_dataGauges);
+    m_gaugesMdiWindow->setGeometry(m_dataGauges->geometry());
+    m_gaugesMdiWindow->hide();
+    m_gaugesMdiWindow->setWindowTitle(m_dataGauges->windowTitle());
 
     loadDashboards("src/");
     loadDashboards(".");
@@ -257,44 +258,44 @@ MainWindow::MainWindow(QWidget* parent)
 
     if (QFile::exists(m_defaultsDir + "/" + "dashboards/gauges.qml")) {
         //qml file is in the program files directory, or in /usr/share
-        dataGauges->setFile(m_defaultsDir + "/" + "dashboards/gauges.qml");
+        m_dataGauges->setFile(m_defaultsDir + "/" + "dashboards/gauges.qml");
     } else if (QFile::exists("src/gauges.qml")) {
         //We're operating out of the src directory
-        dataGauges->setFile("src/gauges.qml");
+        m_dataGauges->setFile("src/gauges.qml");
     } else if (QFile::exists("gauges.qml")) {
         //Running with no install, but not src?? Still handle it.
-        dataGauges->setFile("gauges.qml");
+        m_dataGauges->setFile("gauges.qml");
     }
 
-    firmwareMetaData = new FirmwareMetaData();
-    firmwareMetaMdiWindow = ui.mdiArea->addSubWindow(firmwareMetaData);
-    firmwareMetaMdiWindow->setGeometry(firmwareMetaData->geometry());
-    firmwareMetaMdiWindow->hide();
-    firmwareMetaMdiWindow->setWindowTitle(firmwareMetaData->windowTitle());
+    m_firmwareMetaData = new FirmwareMetaData();
+    m_firmwareMetaMdiWindow = ui.mdiArea->addSubWindow(m_firmwareMetaData);
+    m_firmwareMetaMdiWindow->setGeometry(m_firmwareMetaData->geometry());
+    m_firmwareMetaMdiWindow->hide();
+    m_firmwareMetaMdiWindow->setWindowTitle(m_firmwareMetaData->windowTitle());
 
-    dataTables = new TableView();
-    tablesMdiWindow = ui.mdiArea->addSubWindow(dataTables);
-    tablesMdiWindow->setGeometry(dataTables->geometry());
-    tablesMdiWindow->hide();
-    tablesMdiWindow->setWindowTitle(dataTables->windowTitle());
+    m_dataTables = new TableView();
+    m_tablesMdiWindow = ui.mdiArea->addSubWindow(m_dataTables);
+    m_tablesMdiWindow->setGeometry(m_dataTables->geometry());
+    m_tablesMdiWindow->hide();
+    m_tablesMdiWindow->setWindowTitle(m_dataTables->windowTitle());
 
-    statusView = new EmsStatus(this);
-    this->addDockWidget(Qt::RightDockWidgetArea, statusView);
-    connect(statusView, SIGNAL(hardResetRequest()), this, SLOT(emsStatusHardResetRequested()));
-    connect(statusView, SIGNAL(softResetRequest()), this, SLOT(emsStatusSoftResetRequested()));
+    m_statusView = new EmsStatus(this);
+    this->addDockWidget(Qt::RightDockWidgetArea, m_statusView);
+    connect(m_statusView, SIGNAL(hardResetRequest()), this, SLOT(emsStatusHardResetRequested()));
+    connect(m_statusView, SIGNAL(softResetRequest()), this, SLOT(emsStatusSoftResetRequested()));
 
-    dataFlags = new FlagView();
-    dataFlags->passDecoder(dataPacketDecoder);
-    flagsMdiWindow = ui.mdiArea->addSubWindow(dataFlags);
-    flagsMdiWindow->setGeometry(dataFlags->geometry());
-    flagsMdiWindow->hide();
-    flagsMdiWindow->setWindowTitle(dataFlags->windowTitle());
+    m_dataFlags = new FlagView();
+    m_dataFlags->passDecoder(m_dataPacketDecoder);
+    m_flagsMdiWindow = ui.mdiArea->addSubWindow(m_dataFlags);
+    m_flagsMdiWindow->setGeometry(m_dataFlags->geometry());
+    m_flagsMdiWindow->hide();
+    m_flagsMdiWindow->setWindowTitle(m_dataFlags->windowTitle());
 
-    packetStatus = new PacketStatusView();
-    packetStatusMdiWindow = ui.mdiArea->addSubWindow(packetStatus);
-    packetStatusMdiWindow->setGeometry(packetStatus->geometry());
-    packetStatusMdiWindow->hide();
-    packetStatusMdiWindow->setWindowTitle(packetStatus->windowTitle());
+    m_packetStatus = new PacketStatusView();
+    m_packetStatusMdiWindow = ui.mdiArea->addSubWindow(m_packetStatus);
+    m_packetStatusMdiWindow->setGeometry(m_packetStatus->geometry());
+    m_packetStatusMdiWindow->hide();
+    m_packetStatusMdiWindow->setWindowTitle(m_packetStatus->windowTitle());
 
     //Load settings
     QLOG_INFO() << "Local settings file is:" << m_settingsFile;
@@ -316,23 +317,23 @@ MainWindow::MainWindow(QWidget* parent)
     m_debugLogs = settings.value("debuglogs", false).toBool();
     settings.endGroup();
 
-    pidcount = 0;
+    m_pidcount = 0;
 
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), this, SLOT(timerTick()));
-    timer->start(1000);
+    m_timer = new QTimer(this);
+    connect(m_timer, SIGNAL(timeout()), this, SLOT(timerTick()));
+    m_timer->start(1000);
 
-    guiUpdateTimer = new QTimer(this);
-    connect(guiUpdateTimer, SIGNAL(timeout()), this, SLOT(guiUpdateTimerTick()));
-    guiUpdateTimer->start(250);
+    m_guiUpdateTimer = new QTimer(this);
+    connect(m_guiUpdateTimer, SIGNAL(timeout()), this, SLOT(guiUpdateTimerTick()));
+    m_guiUpdateTimer->start(250);
 
     statusBar()->addWidget(ui.ppsLabel);
     statusBar()->addWidget(ui.statusLabel);
     ui.statusLabel->setAccessibleName("Status Text");
     ui.statusLabel->setAccessibleDescription("Status Text Label");
 
-    logfile = new QFile("myoutput.log");
-    logfile->open(QIODevice::ReadWrite | QIODevice::Truncate);
+    m_logfile = new QFile("myoutput.log");
+    m_logfile->open(QIODevice::ReadWrite | QIODevice::Truncate);
 
     //ui.menuWizards
     connect(ui.mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(subMdiWindowActivated(QMdiSubWindow*)));
@@ -352,27 +353,27 @@ MainWindow::MainWindow(QWidget* parent)
 }
 void MainWindow::menu_windows_interrogateProgressViewClicked()
 {
-    interrogateProgressMdiWindow->show();
-    QApplication::postEvent(interrogateProgressMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(interrogateProgressMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_interrogateProgressMdiWindow->show();
+    QApplication::postEvent(m_interrogateProgressMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_interrogateProgressMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 void MainWindow::menu_windows_ParameterViewClicked()
 {
-    parameterMdiWindow->show();
-    QApplication::postEvent(parameterMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(parameterMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_parameterMdiWindow->show();
+    QApplication::postEvent(m_parameterMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_parameterMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 void MainWindow::menu_windows_firmwareMetadataClicked()
 {
-    firmwareMetaMdiWindow->show();
-    QApplication::postEvent(firmwareMetaMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(firmwareMetaMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_firmwareMetaMdiWindow->show();
+    QApplication::postEvent(m_firmwareMetaMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_firmwareMetaMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 void MainWindow::menu_windows_firmwareDebugClicked()
 {
-    firmwareDebugMdiWindow->show();
-    QApplication::postEvent(firmwareDebugMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(firmwareDebugMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_firmwareDebugMdiWindow->show();
+    QApplication::postEvent(m_firmwareDebugMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_firmwareDebugMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 
 void MainWindow::menu_file_saveOfflineDataClicked()
@@ -389,64 +390,64 @@ void MainWindow::menu_file_saveOfflineDataClicked()
     QVariantMap datatable2d;
     QVariantMap datatable3d;
     QVariantMap dataraw;
-    if (!emsComms) {
+    if (!m_emsComms) {
         return;
     }
     for (int i = 0; i < m_locationIdList.size(); i++) {
 
-        if (emsComms->get2DTableData(m_locationIdList[i])) {
+        if (m_emsComms->get2DTableData(m_locationIdList[i])) {
             QVariantMap current;
             QVariantList axis;
             QVariantList data;
-            for (int j = 0; j < emsComms->get2DTableData(m_locationIdList[i])->axis().size(); j++) {
-                axis.append(emsComms->get2DTableData(m_locationIdList[i])->axis()[j]);
+            for (int j = 0; j < m_emsComms->get2DTableData(m_locationIdList[i])->axis().size(); j++) {
+                axis.append(m_emsComms->get2DTableData(m_locationIdList[i])->axis()[j]);
             }
-            for (int j = 0; j < emsComms->get2DTableData(m_locationIdList[i])->values().size(); j++) {
-                data.append(emsComms->get2DTableData(m_locationIdList[i])->values()[j]);
+            for (int j = 0; j < m_emsComms->get2DTableData(m_locationIdList[i])->values().size(); j++) {
+                data.append(m_emsComms->get2DTableData(m_locationIdList[i])->values()[j]);
             }
             QLOG_DEBUG() << "2D Table Saved";
             QLOG_DEBUG() << "Axis Size:" << axis.size();
             QLOG_DEBUG() << "Data Size:" << data.size();
             current["axis"] = axis;
             current["data"] = data;
-            current["title"] = emsComms->getMetaParser()->get2DMetaData(m_locationIdList[i]).tableTitle;
-            current["xtitle"] = emsComms->getMetaParser()->get2DMetaData(m_locationIdList[i]).xAxisTitle;
-            current["ytitle"] = emsComms->getMetaParser()->get2DMetaData(m_locationIdList[i]).yAxisTitle;
-            current["ram"] = emsComms->get2DTableData(m_locationIdList[i])->isRam();
+            current["title"] = m_emsComms->getMetaParser()->get2DMetaData(m_locationIdList[i]).tableTitle;
+            current["xtitle"] = m_emsComms->getMetaParser()->get2DMetaData(m_locationIdList[i]).xAxisTitle;
+            current["ytitle"] = m_emsComms->getMetaParser()->get2DMetaData(m_locationIdList[i]).yAxisTitle;
+            current["ram"] = m_emsComms->get2DTableData(m_locationIdList[i])->isRam();
             datatable2d[QString::number(m_locationIdList[i], 16).toUpper()] = current;
         }
-        if (emsComms->get3DTableData(m_locationIdList[i])) {
+        if (m_emsComms->get3DTableData(m_locationIdList[i])) {
             QVariantMap current;
             QVariantList xlist;
             QVariantList ylist;
             QVariantList zlist;
-            for (int j = 0; j < emsComms->get3DTableData(m_locationIdList[i])->xAxis().size(); j++) {
-                xlist.append(emsComms->get3DTableData(m_locationIdList[i])->xAxis()[j]);
+            for (int j = 0; j < m_emsComms->get3DTableData(m_locationIdList[i])->xAxis().size(); j++) {
+                xlist.append(m_emsComms->get3DTableData(m_locationIdList[i])->xAxis()[j]);
             }
-            for (int j = 0; j < emsComms->get3DTableData(m_locationIdList[i])->yAxis().size(); j++) {
-                ylist.append(emsComms->get3DTableData(m_locationIdList[i])->yAxis()[j]);
+            for (int j = 0; j < m_emsComms->get3DTableData(m_locationIdList[i])->yAxis().size(); j++) {
+                ylist.append(m_emsComms->get3DTableData(m_locationIdList[i])->yAxis()[j]);
             }
-            for (int j = 0; j < emsComms->get3DTableData(m_locationIdList[i])->values().size(); j++) {
+            for (int j = 0; j < m_emsComms->get3DTableData(m_locationIdList[i])->values().size(); j++) {
                 QVariantList zrow;
-                for (int k = 0; k < emsComms->get3DTableData(m_locationIdList[i])->values()[j].size(); k++) {
-                    zrow.append(emsComms->get3DTableData(m_locationIdList[i])->values()[j][k]);
+                for (int k = 0; k < m_emsComms->get3DTableData(m_locationIdList[i])->values()[j].size(); k++) {
+                    zrow.append(m_emsComms->get3DTableData(m_locationIdList[i])->values()[j][k]);
                 }
                 zlist.append((QVariant)zrow);
             }
             current["x"] = xlist;
             current["y"] = ylist;
             current["z"] = zlist;
-            current["title"] = emsComms->getMetaParser()->get3DMetaData(m_locationIdList[i]).tableTitle;
-            current["xtitle"] = emsComms->getMetaParser()->get3DMetaData(m_locationIdList[i]).xAxisTitle;
-            current["ytitle"] = emsComms->getMetaParser()->get3DMetaData(m_locationIdList[i]).yAxisTitle;
-            current["ztitle"] = emsComms->getMetaParser()->get3DMetaData(m_locationIdList[i]).zAxisTitle;
-            current["ram"] = emsComms->get3DTableData(m_locationIdList[i])->isRam();
+            current["title"] = m_emsComms->getMetaParser()->get3DMetaData(m_locationIdList[i]).tableTitle;
+            current["xtitle"] = m_emsComms->getMetaParser()->get3DMetaData(m_locationIdList[i]).xAxisTitle;
+            current["ytitle"] = m_emsComms->getMetaParser()->get3DMetaData(m_locationIdList[i]).yAxisTitle;
+            current["ztitle"] = m_emsComms->getMetaParser()->get3DMetaData(m_locationIdList[i]).zAxisTitle;
+            current["ram"] = m_emsComms->get3DTableData(m_locationIdList[i])->isRam();
             datatable3d[QString::number(m_locationIdList[i], 16).toUpper()] = current;
         }
-        if (emsComms->getRawData(m_locationIdList[i])) {
+        if (m_emsComms->getRawData(m_locationIdList[i])) {
             QVariantList raw;
-            for (int j = 0; j < emsComms->getRawData(m_locationIdList[i])->data().size(); j++) {
-                raw.append((unsigned char)emsComms->getRawData(m_locationIdList[i])->data()[j]);
+            for (int j = 0; j < m_emsComms->getRawData(m_locationIdList[i])->data().size(); j++) {
+                raw.append((unsigned char)m_emsComms->getRawData(m_locationIdList[i])->data()[j]);
             }
             dataraw[QString::number(m_locationIdList[i], 16).toUpper()] = raw;
         }
@@ -634,7 +635,7 @@ void MainWindow::emsCommsSilence(qint64 lasttime)
     QLOG_WARN() << "EMS HAS GONE SILENT";
     ui.statusLabel->setStyleSheet("background-color: rgb(255, 0, 0);");
     ui.statusLabel->setText("EMS SILENT");
-    emsSilenceTimer->start(250);
+    m_emsSilenceTimer->start(250);
     QMessageBox::information(this, "Warning", "ECU has gone silent. If this is unintentional, it may be a sign that something is wrong...");
     m_emsSilentLastTime = lasttime;
 }
@@ -655,7 +656,7 @@ void MainWindow::emsCommsSilenceBroken()
 {
     //This is called when ems had previously been talking, gone silent, then started talking again.
     ui.statusLabel->setText("<font bgcolor=\"#00FF00\">Status Normal</font>");
-    emsSilenceTimer->stop();
+    m_emsSilenceTimer->stop();
     QLOG_WARN() << "EMS HAS GONE NOISEY" << QDateTime::currentMSecsSinceEpoch() - m_emsSilentLastTime << "milliseconds of silence";
     ui.statusLabel->setStyleSheet("");
 }
@@ -674,94 +675,94 @@ void MainWindow::emsCommsDisconnected()
 void MainWindow::setPlugin(QString plugin)
 {
     m_pluginFileName = plugin;
-    if (emsComms) {
-        emsComms->stop();
+    if (m_emsComms) {
+        m_emsComms->stop();
         //emsComms->terminate();
         //emsComms->wait(250); //Join it, fixes a race condition where the thread deletes before it's finished.
-        emsComms->deleteLater();
+        m_emsComms->deleteLater();
     }
-    pluginLoader->unload();
-    pluginLoader->deleteLater();
-    pluginLoader = 0;
-    pluginLoader = new QPluginLoader(this);
-    pluginLoader->setFileName(m_pluginFileName);
-    QLOG_INFO() << pluginLoader->metaData();
+    m_pluginLoader->unload();
+    m_pluginLoader->deleteLater();
+    m_pluginLoader = 0;
+    m_pluginLoader = new QPluginLoader(this);
+    m_pluginLoader->setFileName(m_pluginFileName);
+    QLOG_INFO() << m_pluginLoader->metaData();
     /*for (QJsonObject::const_iterator i = pluginLoader->metaData().constBegin();i!=pluginLoader->metaData().constEnd();i++)
     {
         qDebug() << i.key() << i.value();
     }*/
 
     QLOG_INFO() << "Attempting to load plugin:" << m_pluginFileName;
-    if (!pluginLoader->load()) {
+    if (!m_pluginLoader->load()) {
 
-        QLOG_ERROR() << "Unable to load plugin. error:" << pluginLoader->errorString();
+        QLOG_ERROR() << "Unable to load plugin. error:" << m_pluginLoader->errorString();
         exit(-1);
     }
-    emsComms = qobject_cast<EmsComms*>(pluginLoader->instance());
-    if (!emsComms) {
+    m_emsComms = qobject_cast<EmsComms*>(m_pluginLoader->instance());
+    if (!m_emsComms) {
         QLOG_ERROR() << "Unable to load plugin!!!";
-        QLOG_ERROR() << pluginLoader->errorString();
+        QLOG_ERROR() << m_pluginLoader->errorString();
         exit(-1);
     }
-    emsComms->passLogger(&QsLogging::Logger::instance());
+    m_emsComms->passLogger(&QsLogging::Logger::instance());
 
     QStringList searchpaths;
     searchpaths.append(m_settingsDir + "/" + "definitions");
     searchpaths.append(m_defaultsDir + "/definitions");
     searchpaths.append("."); //Local
     searchpaths.append("../../.."); //OSX local
-    m_memoryMetaData = emsComms->getMetaParser();
+    m_memoryMetaData = m_emsComms->getMetaParser();
     //m_memoryMetaData->loadMetaDataFromFile(searchpaths); //Changed to trigger a load from a file found internally.
     //emsData->setMetaData(m_memoryMetaData);
-    parameterView->passConfigBlockList(m_memoryMetaData->configMetaData());
-    parameterView->passMenuList(m_memoryMetaData->menuMetaData());
+    m_parameterView->passConfigBlockList(m_memoryMetaData->configMetaData());
+    m_parameterView->passMenuList(m_memoryMetaData->menuMetaData());
     QLOG_INFO() << m_memoryMetaData->errorMap().keys().size() << "Error Keys Loaded";
     QLOG_INFO() << m_memoryMetaData->table3DMetaData().size() << "3D Tables Loaded";
     QLOG_INFO() << m_memoryMetaData->table2DMetaData().size() << "2D Tables Loaded";
-    dataPacketDecoder = emsComms->getDecoder();
+    m_dataPacketDecoder = m_emsComms->getDecoder();
     //connect(dataPacketDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SLOT(dataLogDecoded(QVariantMap)));
-    connect(emsComms, SIGNAL(dataLogPayloadDecoded(QVariantMap)), this, SLOT(dataLogDecoded(QVariantMap)));
-    dataTables->passDecoder(dataPacketDecoder);
+    connect(m_emsComms, SIGNAL(dataLogPayloadDecoded(QVariantMap)), this, SLOT(dataLogDecoded(QVariantMap)));
+    m_dataTables->passDecoder(m_dataPacketDecoder);
     m_logFileName = QDateTime::currentDateTime().toString("yyyy.MM.dd-hh.mm.ss");
-    emsComms->setLogFileName(m_logFileName);
-    emsComms->setLogDirectory(m_logDirectory);
-    connect(emsComms, SIGNAL(resetDetected(int)), this, SLOT(ecuResetDetected(int)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(dataLogPayloadDecoded(QVariantMap)), this, SLOT(dataLogDecoded(QVariantMap)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(interrogationProgress(int, int)), this, SLOT(interrogationProgress(int, int)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(interrogationComplete()), this, SLOT(interrogationComplete()), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(interrogateTaskStart(QString, int)), this, SLOT(interrogateTaskStart(QString, int)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(interrogateTaskSucceed(int)), this, SLOT(interrogateTaskSucceed(int)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(interrogateTaskFail(int)), this, SLOT(interrogateTaskFail(int)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(connected()), this, SLOT(emsCommsConnected()), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(emsSilenceStarted(qint64)), this, SLOT(emsCommsSilence(qint64)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(emsSilenceBroken()), this, SLOT(emsCommsSilenceBroken()), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(error(QString)), this, SLOT(error(QString)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(error(SerialPortStatus, QString)), this, SLOT(error(SerialPortStatus, QString)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(disconnected()), this, SLOT(emsCommsDisconnected()), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(dataLogPayloadReceived(QByteArray, QByteArray)), this, SLOT(logPayloadReceived(QByteArray, QByteArray)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(locationIdList(QList<unsigned short>)), this, SLOT(locationIdList(QList<unsigned short>)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(unknownPacket(QByteArray, QByteArray)), this, SLOT(unknownPacket(QByteArray, QByteArray)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(commandSuccessful(int)), this, SLOT(commandSuccessful(int)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(commandTimedOut(int)), this, SLOT(commandTimedOut(int)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(commandFailed(int, unsigned short)), this, SLOT(commandFailed(int, unsigned short)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(locationIdInfo(unsigned short, MemoryLocationInfo)), this, SLOT(locationIdInfo(unsigned short, MemoryLocationInfo)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(packetSent(unsigned short, QByteArray, QByteArray)), packetStatus, SLOT(passPacketSent(unsigned short, QByteArray, QByteArray)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(packetAcked(unsigned short, QByteArray, QByteArray)), packetStatus, SLOT(passPacketAck(unsigned short, QByteArray, QByteArray)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(packetNaked(unsigned short, QByteArray, QByteArray, unsigned short)), packetStatus, SLOT(passPacketNak(unsigned short, QByteArray, QByteArray, unsigned short)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(decoderFailure(QByteArray)), packetStatus, SLOT(passDecoderFailure(QByteArray)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(interrogationData(QMap<QString, QString>)), this, SLOT(interrogationData(QMap<QString, QString>)), Qt::QueuedConnection);
-    connect(emsComms, SIGNAL(memoryDirty()), statusView, SLOT(setEmsMemoryDirty()));
-    connect(emsComms, SIGNAL(memoryClean()), statusView, SLOT(setEmsMemoryClean()));
-    connect(emsComms, SIGNAL(datalogDescriptor(QString)), this, SLOT(datalogDescriptor(QString)));
-    connect(emsComms, SIGNAL(ramLocationDirty(unsigned short)), this, SLOT(ramLocationDirty(unsigned short)));
-    connect(emsComms, SIGNAL(flashLocationDirty(unsigned short)), this, SLOT(flashLocationDirty(unsigned short)));
-    connect(emsComms, SIGNAL(firmwareDebugReceived(QString)), firmwareDebugView, SLOT(firmwareMessage(QString)));
-    connect(emsComms, SIGNAL(deviceFlashLocationNotSynced(unsigned short)), this, SLOT(deviceRamLocationOutOfSync(unsigned short)));
-    emsComms->setBaud(m_comBaud);
-    emsComms->setPort(m_comPort);
-    emsComms->setLogsEnabled(m_saveLogs);
-    emsComms->setInterByteSendDelay(m_comInterByte);
-    emsComms->setlogsDebugEnabled(m_debugLogs);
+    m_emsComms->setLogFileName(m_logFileName);
+    m_emsComms->setLogDirectory(m_logDirectory);
+    connect(m_emsComms, SIGNAL(resetDetected(int)), this, SLOT(ecuResetDetected(int)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(dataLogPayloadDecoded(QVariantMap)), this, SLOT(dataLogDecoded(QVariantMap)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(interrogationProgress(int, int)), this, SLOT(interrogationProgress(int, int)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(interrogationComplete()), this, SLOT(interrogationComplete()), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(interrogateTaskStart(QString, int)), this, SLOT(interrogateTaskStart(QString, int)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(interrogateTaskSucceed(int)), this, SLOT(interrogateTaskSucceed(int)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(interrogateTaskFail(int)), this, SLOT(interrogateTaskFail(int)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(connected()), this, SLOT(emsCommsConnected()), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(emsSilenceStarted(qint64)), this, SLOT(emsCommsSilence(qint64)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(emsSilenceBroken()), this, SLOT(emsCommsSilenceBroken()), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(error(QString)), this, SLOT(error(QString)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(error(SerialPortStatus, QString)), this, SLOT(error(SerialPortStatus, QString)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(disconnected()), this, SLOT(emsCommsDisconnected()), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(dataLogPayloadReceived(QByteArray, QByteArray)), this, SLOT(logPayloadReceived(QByteArray, QByteArray)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(locationIdList(QList<unsigned short>)), this, SLOT(locationIdList(QList<unsigned short>)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(unknownPacket(QByteArray, QByteArray)), this, SLOT(unknownPacket(QByteArray, QByteArray)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(commandSuccessful(int)), this, SLOT(commandSuccessful(int)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(commandTimedOut(int)), this, SLOT(commandTimedOut(int)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(commandFailed(int, unsigned short)), this, SLOT(commandFailed(int, unsigned short)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(locationIdInfo(unsigned short, MemoryLocationInfo)), this, SLOT(locationIdInfo(unsigned short, MemoryLocationInfo)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(packetSent(unsigned short, QByteArray, QByteArray)), m_packetStatus, SLOT(passPacketSent(unsigned short, QByteArray, QByteArray)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(packetAcked(unsigned short, QByteArray, QByteArray)), m_packetStatus, SLOT(passPacketAck(unsigned short, QByteArray, QByteArray)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(packetNaked(unsigned short, QByteArray, QByteArray, unsigned short)), m_packetStatus, SLOT(passPacketNak(unsigned short, QByteArray, QByteArray, unsigned short)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(decoderFailure(QByteArray)), m_packetStatus, SLOT(passDecoderFailure(QByteArray)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(interrogationData(QMap<QString, QString>)), this, SLOT(interrogationData(QMap<QString, QString>)), Qt::QueuedConnection);
+    connect(m_emsComms, SIGNAL(memoryDirty()), m_statusView, SLOT(setEmsMemoryDirty()));
+    connect(m_emsComms, SIGNAL(memoryClean()), m_statusView, SLOT(setEmsMemoryClean()));
+    connect(m_emsComms, SIGNAL(datalogDescriptor(QString)), this, SLOT(datalogDescriptor(QString)));
+    connect(m_emsComms, SIGNAL(ramLocationDirty(unsigned short)), this, SLOT(ramLocationDirty(unsigned short)));
+    connect(m_emsComms, SIGNAL(flashLocationDirty(unsigned short)), this, SLOT(flashLocationDirty(unsigned short)));
+    connect(m_emsComms, SIGNAL(firmwareDebugReceived(QString)), m_firmwareDebugView, SLOT(firmwareMessage(QString)));
+    connect(m_emsComms, SIGNAL(deviceFlashLocationNotSynced(unsigned short)), this, SLOT(deviceRamLocationOutOfSync(unsigned short)));
+    m_emsComms->setBaud(m_comBaud);
+    m_emsComms->setPort(m_comPort);
+    m_emsComms->setLogsEnabled(m_saveLogs);
+    m_emsComms->setInterByteSendDelay(m_comInterByte);
+    m_emsComms->setlogsDebugEnabled(m_debugLogs);
     //emsComms->start();
 }
 
@@ -772,23 +773,23 @@ void MainWindow::locationIdList(QList<unsigned short> idlist)
 
 void MainWindow::menu_enableDatalogsClicked()
 {
-    if (emsComms) {
-        emsComms->enableDatalogStream();
+    if (m_emsComms) {
+        m_emsComms->enableDatalogStream();
     }
 }
 
 void MainWindow::menu_disableDatalogsClicked()
 {
-    if (emsComms) {
-        emsComms->disableDatalogStream();
+    if (m_emsComms) {
+        m_emsComms->disableDatalogStream();
     }
 }
 
 void MainWindow::setDevice(QString dev)
 {
     m_comPort = dev;
-    if (emsComms) {
-        emsComms->setPort(dev);
+    if (m_emsComms) {
+        m_emsComms->setPort(dev);
     }
 }
 
@@ -799,21 +800,21 @@ void MainWindow::connectToEms()
 
 void MainWindow::menu_aboutClicked()
 {
-    aboutMdiWindow->show();
-    QApplication::postEvent(aboutMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(aboutMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_aboutMdiWindow->show();
+    QApplication::postEvent(m_aboutMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_aboutMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 
 void MainWindow::menu_windows_PacketStatusClicked()
 {
-    packetStatusMdiWindow->show();
-    QApplication::postEvent(packetStatusMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(packetStatusMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_packetStatusMdiWindow->show();
+    QApplication::postEvent(m_packetStatusMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_packetStatusMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 void MainWindow::showTable(QString table)
 {
-    Table2DData* data2d = emsComms->get2DTableData(table);
-    Table3DData* data3d = emsComms->get3DTableData(table);
+    Table2DData* data2d = m_emsComms->get2DTableData(table);
+    Table3DData* data3d = m_emsComms->get3DTableData(table);
     if (data2d) {
         TableView2D* view = new TableView2D();
         connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
@@ -862,7 +863,7 @@ void MainWindow::showTable(QString table)
 void MainWindow::createView(unsigned short locid, FormatType type)
 {
     if (type == TABLE_3D) {
-        Table3DData* data = emsComms->get3DTableData(locid);
+        Table3DData* data = m_emsComms->get3DTableData(locid);
         TableView3D* view = new TableView3D();
         connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
         connect(view, SIGNAL(show3DTable(unsigned short, Table3DData*)), this, SLOT(tableview3d_show3DTable(unsigned short, Table3DData*)));
@@ -886,7 +887,7 @@ void MainWindow::createView(unsigned short locid, FormatType type)
         QApplication::postEvent(win, new QEvent(QEvent::Show));
         QApplication::postEvent(win, new QEvent(QEvent::WindowActivate));
     } else if (type == TABLE_2D_STRUCTURED || type == TABLE_2D_STRUCTURED || type == TABLE_2D_STRUCTURED) {
-        Table2DData* data = emsComms->get2DTableData(locid);
+        Table2DData* data = m_emsComms->get2DTableData(locid);
         TableView2D* view = new TableView2D();
         connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
         QString title;
@@ -908,7 +909,7 @@ void MainWindow::createView(unsigned short locid, FormatType type)
         QApplication::postEvent(win, new QEvent(QEvent::WindowActivate));
     } else {
         //Unhandled data type. Show it as a hex view.
-        RawData* data = emsComms->getRawData(locid);
+        RawData* data = m_emsComms->getRawData(locid);
         RawDataView* view = new RawDataView(!data->isFlashOnly(), true);
         connect(view, SIGNAL(destroyed(QObject*)), this, SLOT(rawDataViewDestroyed(QObject*)));
         view->setData(locid, data);
@@ -999,26 +1000,26 @@ void MainWindow::menu_settingsClicked()
 
 void MainWindow::menu_connectClicked()
 {
-    if (interrogateProgressMdiWindow) {
-        delete interrogateProgressMdiWindow;
-        progressView = 0;
-        interrogateProgressMdiWindow = 0;
+    if (m_interrogateProgressMdiWindow) {
+        delete m_interrogateProgressMdiWindow;
+        m_progressView = 0;
+        m_interrogateProgressMdiWindow = 0;
     }
 
     if (!m_offlineMode) {
         //emsData->clearAllMemory();
     }
-    emsSilenceTimer->stop();
-    emsInfo->clear();
+    m_emsSilenceTimer->stop();
+    m_emsInfo->clear();
     ui.actionConnect->setEnabled(false);
     ui.actionDisconnect->setEnabled(true);
     m_interrogationInProgress = true;
 
     //m_tempMemoryList.clear();
-    interrogationSequenceList.clear();
+    m_interrogationSequenceList.clear();
     m_locIdMsgList.clear();
     m_locIdInfoMsgList.clear();
-    emsMdiWindow->hide();
+    m_emsMdiWindow->hide();
     QList<QWidget*> toDeleteList;
     for (QMap<unsigned short, QWidget*>::const_iterator i = m_rawDataView.constBegin(); i != m_rawDataView.constEnd(); i++) {
         toDeleteList.append(i.value());
@@ -1028,24 +1029,24 @@ void MainWindow::menu_connectClicked()
         delete toDeleteList[i];
     }
     m_rawDataView.clear();
-    if (!emsComms) {
+    if (!m_emsComms) {
         QLOG_ERROR() << "No EMSCOMMS!!!";
     }
-    QLOG_INFO() << "Starting emsComms:" << emsComms;
+    QLOG_INFO() << "Starting emsComms:" << m_emsComms;
     //emsComms->start();
-    emsComms->connectSerial(m_comPort, m_comBaud);
+    m_emsComms->connectSerial(m_comPort, m_comBaud);
 }
 
 void MainWindow::menu_disconnectClicked()
 {
-    emsComms->disconnectSerial();
-    emsSilenceTimer->start();
+    m_emsComms->disconnectSerial();
+    m_emsSilenceTimer->start();
 }
 
 void MainWindow::timerTick()
 {
-    ui.ppsLabel->setText("PPS: " + QString::number(pidcount));
-    pidcount = 0;
+    ui.ppsLabel->setText("PPS: " + QString::number(m_pidcount));
+    m_pidcount = 0;
 }
 void MainWindow::settingsSaveClicked()
 {
@@ -1074,10 +1075,10 @@ void MainWindow::settingsSaveClicked()
     ui.mdiArea->removeSubWindow(subwin);
     comSettingsWidget->close();
     comSettingsWidget->deleteLater();
-    if (emsComms) {
-        emsComms->setInterByteSendDelay(m_comInterByte);
-        emsComms->setlogsDebugEnabled(m_debugLogs);
-        emsComms->setLogDirectory(m_logDirectory);
+    if (m_emsComms) {
+        m_emsComms->setInterByteSendDelay(m_comInterByte);
+        m_emsComms->setlogsDebugEnabled(m_debugLogs);
+        m_emsComms->setLogDirectory(m_logDirectory);
     }
 }
 void MainWindow::locationIdInfo(unsigned short locationid, MemoryLocationInfo info)
@@ -1122,7 +1123,7 @@ void MainWindow::locationIdInfo(unsigned short locationid, MemoryLocationInfo in
         //title = m_memoryMetaData->getLookupMetaData(locationid).title;
     }*/
     //emsInfo->locationIdInfo(locationid,title,rawFlags,flags,parent,rampage,flashpage,ramaddress,flashaddress,size);
-    emsInfo->locationIdInfo(locationid, title, info);
+    m_emsInfo->locationIdInfo(locationid, title, info);
     //emsData->passLocationInfo(locationid,info);
 
     //We don't care about ram only locations, since they're not available in offline mode anyway.
@@ -1143,34 +1144,34 @@ void MainWindow::settingsCancelClicked()
 }
 void MainWindow::menu_windows_EmsStatusClicked()
 {
-    statusView->show();
+    m_statusView->show();
 }
 
 void MainWindow::menu_windows_GaugesClicked()
 {
-    gaugesMdiWindow->show();
-    QApplication::postEvent(gaugesMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(gaugesMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_gaugesMdiWindow->show();
+    QApplication::postEvent(m_gaugesMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_gaugesMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 
 void MainWindow::menu_windows_EmsInfoClicked()
 {
-    emsMdiWindow->show();
-    QApplication::postEvent(emsMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(emsMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_emsMdiWindow->show();
+    QApplication::postEvent(m_emsMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_emsMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 
 void MainWindow::menu_windows_TablesClicked()
 {
-    tablesMdiWindow->show();
-    QApplication::postEvent(tablesMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(tablesMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_tablesMdiWindow->show();
+    QApplication::postEvent(m_tablesMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_tablesMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 void MainWindow::menu_windows_FlagsClicked()
 {
-    flagsMdiWindow->show();
-    QApplication::postEvent(flagsMdiWindow, new QEvent(QEvent::Show));
-    QApplication::postEvent(flagsMdiWindow, new QEvent(QEvent::WindowActivate));
+    m_flagsMdiWindow->show();
+    QApplication::postEvent(m_flagsMdiWindow, new QEvent(QEvent::Show));
+    QApplication::postEvent(m_flagsMdiWindow, new QEvent(QEvent::WindowActivate));
 }
 
 void MainWindow::unknownPacket(QByteArray header, QByteArray payload)
@@ -1192,13 +1193,13 @@ void MainWindow::loadLogButtonClicked()
             QString filename = file.selectedFiles()[0];
             ui.statusLabel->setText("Status: File loaded and not playing");
             //logLoader->loadFile(filename);
-            emsComms->loadLog(filename);
+            m_emsComms->loadLog(filename);
         }
     }
 }
 void MainWindow::interByteDelayChanged(int num)
 {
-    emsComms->setInterByteSendDelay(num);
+    m_emsComms->setInterByteSendDelay(num);
 }
 
 void MainWindow::logFinished()
@@ -1209,12 +1210,12 @@ void MainWindow::logFinished()
 void MainWindow::playLogButtonClicked()
 {
     //logLoader->start();
-    emsComms->playLog();
+    m_emsComms->playLog();
     ui.statusLabel->setText("Status: File loaded and playing");
 }
 void MainWindow::interrogationData(QMap<QString, QString> datamap)
 {
-    firmwareMetaData->setInterrogationData(datamap);
+    m_firmwareMetaData->setInterrogationData(datamap);
     //emsInfo->setInterrogationData(datamap);
 }
 
@@ -1222,18 +1223,18 @@ void MainWindow::interfaceVersion(QString version)
 {
     //ui.interfaceVersionLineEdit->setText(version);
     m_interfaceVersion = version;
-    if (emsInfo) {
+    if (m_emsInfo) {
     }
-    emsinfo.interfaceVersion = version;
+    m_emsinfo.interfaceVersion = version;
 }
 void MainWindow::firmwareVersion(QString version)
 {
     //ui.firmwareVersionLineEdit->setText(version);
     m_firmwareVersion = version;
     this->setWindowTitle(QString("EMStudio ") + QString(define2string(GIT_COMMIT)) + " Firmware: " + version);
-    if (emsInfo) {
+    if (m_emsInfo) {
     }
-    emsinfo.firmwareVersion = version;
+    m_emsinfo.firmwareVersion = version;
 }
 void MainWindow::error(SerialPortStatus error, QString msg)
 {
@@ -1270,22 +1271,22 @@ void MainWindow::interrogateProgressViewCancelClicked()
 }
 void MainWindow::emsCompilerVersion(QString version)
 {
-    emsinfo.compilerVersion = version;
+    m_emsinfo.compilerVersion = version;
 }
 
 void MainWindow::emsFirmwareBuildDate(QString date)
 {
-    emsinfo.firmwareBuildDate = date;
+    m_emsinfo.firmwareBuildDate = date;
 }
 
 void MainWindow::emsDecoderName(QString name)
 {
-    emsinfo.decoderName = name;
+    m_emsinfo.decoderName = name;
 }
 
 void MainWindow::emsOperatingSystem(QString os)
 {
-    emsinfo.operatingSystem = os;
+    m_emsinfo.operatingSystem = os;
 }
 void MainWindow::loadDashboards(QString dir)
 {
@@ -1317,12 +1318,12 @@ void MainWindow::loadWizards(QString dir)
     foreach (QString file, wizards.entryList(QDir::Files | QDir::NoDotAndDotDot)) {
         if (file.endsWith(".qml")) {
             WizardView* view = new WizardView();
-            connect(emsComms, SIGNAL(configRecieved(ConfigBlock, QVariant)), view, SLOT(configRecieved(ConfigBlock, QVariant)), Qt::QueuedConnection);
+            connect(m_emsComms, SIGNAL(configRecieved(ConfigBlock, QVariant)), view, SLOT(configRecieved(ConfigBlock, QVariant)), Qt::QueuedConnection);
             m_wizardList.append(view);
-            for (int i = 0; i < emsComms->getConfigList().size(); i++) {
-                view->addConfig(emsComms->getConfigList()[i], emsComms->getConfigData(emsComms->getConfigList()[i]));
+            for (int i = 0; i < m_emsComms->getConfigList().size(); i++) {
+                view->addConfig(m_emsComms->getConfigList()[i], m_emsComms->getConfigData(m_emsComms->getConfigList()[i]));
             }
-            view->setFile(emsComms, wizards.absoluteFilePath(file));
+            view->setFile(m_emsComms, wizards.absoluteFilePath(file));
             view->passConfig(m_memoryMetaData->configMetaData());
             //view->setGeometry(0,0,800,600);
             QAction* action = new QAction(this);
@@ -1390,24 +1391,24 @@ void MainWindow::emsCommsConnected()
     if (m_memoryInfoMap.size() == 0) {
         m_offlineMode = false;
     }
-    if (progressView) {
-        progressView->reset();
+    if (m_progressView) {
+        m_progressView->reset();
         ui.actionInterrogation_Progress->setEnabled(true);
     } else {
         ui.actionInterrogation_Progress->setEnabled(true);
-        progressView = new InterrogateProgressView();
-        connect(progressView, SIGNAL(destroyed(QObject*)), this, SLOT(interrogateProgressViewDestroyed(QObject*)));
-        interrogateProgressMdiWindow = ui.mdiArea->addSubWindow(progressView);
-        interrogateProgressMdiWindow->setWindowTitle(progressView->windowTitle());
-        interrogateProgressMdiWindow->setGeometry(progressView->geometry());
-        connect(progressView, SIGNAL(cancelClicked()), this, SLOT(interrogateProgressViewCancelClicked()));
-        progressView->setMaximum(0);
+        m_progressView = new InterrogateProgressView();
+        connect(m_progressView, SIGNAL(destroyed(QObject*)), this, SLOT(interrogateProgressViewDestroyed(QObject*)));
+        m_interrogateProgressMdiWindow = ui.mdiArea->addSubWindow(m_progressView);
+        m_interrogateProgressMdiWindow->setWindowTitle(m_progressView->windowTitle());
+        m_interrogateProgressMdiWindow->setGeometry(m_progressView->geometry());
+        connect(m_progressView, SIGNAL(cancelClicked()), this, SLOT(interrogateProgressViewCancelClicked()));
+        m_progressView->setMaximum(0);
     }
-    interrogationSequenceList.clear();
-    progressView->show();
-    interrogateProgressMdiWindow->show();
-    progressView->addOutput("Connected to EMS");
-    emsComms->startInterrogation();
+    m_interrogationSequenceList.clear();
+    m_progressView->show();
+    m_interrogateProgressMdiWindow->show();
+    m_progressView->addOutput("Connected to EMS");
+    m_emsComms->startInterrogation();
 }
 void MainWindow::interrogationProgress(int current, int total)
 {
@@ -1418,28 +1419,28 @@ void MainWindow::interrogationProgress(int current, int total)
 void MainWindow::interrogationComplete()
 {
     m_interrogationInProgress = false;
-    if (progressView) {
+    if (m_progressView) {
         //progressView->hide();
-        QMdiSubWindow* win = qobject_cast<QMdiSubWindow*>(progressView->parent());
+        QMdiSubWindow* win = qobject_cast<QMdiSubWindow*>(m_progressView->parent());
         if (win && m_interrogationFailureCount == 0) {
             win->hide();
         }
-        progressView->done();
+        m_progressView->done();
     }
     QLOG_INFO() << "Interrogation complete";
     if (m_interrogationFailureCount > 0) {
         if (QMessageBox::question(0, "Error", "One of the commands has failed during interrogation. This could be a sign of a more serious problem, Do you wish to continue?", QMessageBox::Yes, QMessageBox::No) != QMessageBox::Yes) {
-            emsComms->disconnectSerial();
+            m_emsComms->disconnectSerial();
             return;
         } else {
-            emsMdiWindow->show();
+            m_emsMdiWindow->show();
         }
     } else {
-        emsMdiWindow->show();
+        m_emsMdiWindow->show();
     }
     bool oneShown = false; //Check to see if at least one window is visisble.
     QSettings windowsettings(m_settingsFile, QSettings::IniFormat);
-    QString compat = emsComms->getPluginCompat();
+    QString compat = m_emsComms->getPluginCompat();
     QString savecompat = windowsettings.value("plugincompat", "").toString();
     if (compat == savecompat && false) {
         windowsettings.sync();
@@ -1458,59 +1459,59 @@ void MainWindow::interrogationComplete()
                 QWidget* parent = (QWidget*)m_rawDataView[locid]->parent();
                 parent->restoreGeometry(windowsettings.value("location").toByteArray());
             } else if (type == "tablesMdiWindow") {
-                tablesMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
-                qDebug() << "Geom:" << tablesMdiWindow->geometry();
+                m_tablesMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
+                qDebug() << "Geom:" << m_tablesMdiWindow->geometry();
                 bool hidden = windowsettings.value("hidden", true).toBool();
                 if (!hidden) {
                     oneShown = true;
                 }
-                tablesMdiWindow->setHidden(hidden);
+                m_tablesMdiWindow->setHidden(hidden);
 
             } else if (type == "firmwareMetaMdiWindow") {
-                firmwareMetaMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
+                m_firmwareMetaMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
                 bool hidden = windowsettings.value("hidden", true).toBool();
                 if (!hidden) {
                     oneShown = true;
                 }
-                firmwareMetaMdiWindow->setHidden(hidden);
+                m_firmwareMetaMdiWindow->setHidden(hidden);
             } else if (type == "interrogateProgressMdiWindow") {
                 // interrogateProgressMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
                 // interrogateProgressMdiWindow->setHidden(windowsettings.value("hidden",true).toBool());
             } else if (type == "emsMdiWindow") {
-                emsMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
+                m_emsMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
                 bool hidden = windowsettings.value("hidden", true).toBool();
                 if (!hidden) {
                     oneShown = true;
                 }
-                emsMdiWindow->setHidden(hidden);
+                m_emsMdiWindow->setHidden(hidden);
             } else if (type == "flagsMdiWindow") {
-                flagsMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
+                m_flagsMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
                 bool hidden = windowsettings.value("hidden", true).toBool();
                 if (!hidden) {
                     oneShown = true;
                 }
-                flagsMdiWindow->setHidden(hidden);
+                m_flagsMdiWindow->setHidden(hidden);
             } else if (type == "gaugesMdiWindow") {
-                gaugesMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
+                m_gaugesMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
                 bool hidden = windowsettings.value("hidden", true).toBool();
                 if (!hidden) {
                     oneShown = true;
                 }
-                gaugesMdiWindow->setHidden(hidden);
+                m_gaugesMdiWindow->setHidden(hidden);
             } else if (type == "packetStatusMdiWindow") {
-                packetStatusMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
+                m_packetStatusMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
                 bool hidden = windowsettings.value("hidden", true).toBool();
                 if (!hidden) {
                     oneShown = true;
                 }
-                packetStatusMdiWindow->setHidden(hidden);
+                m_packetStatusMdiWindow->setHidden(hidden);
             } else if (type == "aboutMdiWindow") {
-                aboutMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
+                m_aboutMdiWindow->restoreGeometry(windowsettings.value("location").toByteArray());
                 bool hidden = windowsettings.value("hidden", true).toBool();
                 if (!hidden) {
                     oneShown = true;
                 }
-                aboutMdiWindow->setHidden(hidden);
+                m_aboutMdiWindow->setHidden(hidden);
             } else if (type == "emsStatusMdiWindow") {
 
             } else {
@@ -1521,7 +1522,7 @@ void MainWindow::interrogationComplete()
     }
     if (!oneShown) {
         //No windows are currently shown. Show the emsMdiWindow
-        emsMdiWindow->setHidden(false);
+        m_emsMdiWindow->setHidden(false);
     }
     /*	QMdiSubWindow *tablesMdiWindow;
     QMdiSubWindow *firmwareMetaMdiWindow;
@@ -1544,32 +1545,32 @@ void MainWindow::interrogationComplete()
 
     }
     windowsettings.endArray();*/
-    parameterView->setActiveComms(emsComms);
+    m_parameterView->setActiveComms(m_emsComms);
 }
 void MainWindow::interrogateTaskStart(QString task, int sequence)
 {
     if (task.contains("Location ID")) {
-        progressView->addTask(task, sequence, 1);
+        m_progressView->addTask(task, sequence, 1);
     } else if (task.contains("Ram Location") || task.contains("Flash Location")) {
-        progressView->addTask(task, sequence, 2);
+        m_progressView->addTask(task, sequence, 2);
     } else if (task.contains("Ecu Info")) {
-        progressView->addTask(task, sequence, 0);
+        m_progressView->addTask(task, sequence, 0);
     }
 }
 
 void MainWindow::interrogateTaskSucceed(int sequence)
 {
-    progressView->taskSucceed(sequence);
+    m_progressView->taskSucceed(sequence);
 }
 
 void MainWindow::interrogateTaskFail(int sequence)
 {
-    progressView->taskFail(sequence);
+    m_progressView->taskFail(sequence);
 }
 
 void MainWindow::checkSyncRequest()
 {
-    emsComms->getLocationIdList(0, 0);
+    m_emsComms->getLocationIdList(0, 0);
 }
 void MainWindow::tableview3d_show3DTable(unsigned short locationid, Table3DData* data)
 {
@@ -1608,14 +1609,14 @@ void MainWindow::tableMap3DDestroyed(QObject* object)
 void MainWindow::emsStatusHardResetRequested()
 {
     if (QMessageBox::information(0, "Warning", "Hard resetting the ECU will erase all changes currently in RAM, but not saved to FLASH, and restart the ECU. Are you sure you want to do this?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
-        QLOG_INFO() << "Attempting hard reset:" << emsComms->hardReset();
+        QLOG_INFO() << "Attempting hard reset:" << m_emsComms->hardReset();
     }
 }
 
 void MainWindow::emsStatusSoftResetRequested()
 {
     if (QMessageBox::information(0, "Warning", "Soft resetting the ECU will erase all changes currently in RAM, but not saved to FLASH, and restart the ECU. Are you sure you want to do this?", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
-        QLOG_INFO() << "Attempting soft reset:" << emsComms->softReset();
+        QLOG_INFO() << "Attempting soft reset:" << m_emsComms->softReset();
     }
 }
 
@@ -1636,7 +1637,7 @@ void MainWindow::commandTimedOut(int sequencenumber)
     } else {
     }
     if (m_interrogationInProgress) {
-        progressView->taskFail(sequencenumber);
+        m_progressView->taskFail(sequencenumber);
         //If interrogation is in progress, we need to stop, since something has gone
         //horribly wrong.
         //interrogateProgressViewCancelClicked();
@@ -1653,7 +1654,7 @@ void MainWindow::commandSuccessful(int sequencenumber)
 }
 void MainWindow::checkMessageCounters(int sequencenumber)
 {
-    QLOG_INFO() << "Checking message counters:" << sequencenumber << m_locIdInfoMsgList.size() << m_locIdMsgList.size() << interrogationSequenceList.size();
+    QLOG_INFO() << "Checking message counters:" << sequencenumber << m_locIdInfoMsgList.size() << m_locIdMsgList.size() << m_interrogationSequenceList.size();
     if (m_locIdInfoMsgList.contains(sequencenumber)) {
         m_locIdInfoMsgList.removeOne(sequencenumber);
         if (m_locIdInfoMsgList.size() == 0) {
@@ -1697,21 +1698,21 @@ void MainWindow::checkMessageCounters(int sequencenumber)
     } else {
         QLOG_INFO() << "Not in locidmsglist";
     }
-    if (interrogationSequenceList.contains(sequencenumber)) {
+    if (m_interrogationSequenceList.contains(sequencenumber)) {
         QLOG_INFO() << "GOOD!";
-        if (progressView) {
-            progressView->setProgress(progressView->progress() + 1);
+        if (m_progressView) {
+            m_progressView->setProgress(m_progressView->progress() + 1);
         }
-        interrogationSequenceList.removeOne(sequencenumber);
-        if (interrogationSequenceList.size() == 0) {
+        m_interrogationSequenceList.removeOne(sequencenumber);
+        if (m_interrogationSequenceList.size() == 0) {
             m_interrogationInProgress = false;
-            if (progressView) {
+            if (m_progressView) {
                 //progressView->hide();
-                QMdiSubWindow* win = qobject_cast<QMdiSubWindow*>(progressView->parent());
+                QMdiSubWindow* win = qobject_cast<QMdiSubWindow*>(m_progressView->parent());
                 if (win) {
                     win->hide();
                 }
-                progressView->done();
+                m_progressView->done();
             }
             //this->setEnabled(true);
             QLOG_INFO() << "Interrogation complete";
@@ -1719,7 +1720,7 @@ void MainWindow::checkMessageCounters(int sequencenumber)
             //			emsData->setInterrogation(false);
 
             //emsInfo->show();
-            emsMdiWindow->show();
+            m_emsMdiWindow->show();
             //Write everything to the settings.
             QString json = "";
             json += "{";
@@ -1742,7 +1743,7 @@ void MainWindow::checkMessageCounters(int sequencenumber)
                 settingsFile->close();
             }*/
         } else {
-            QLOG_INFO() << interrogationSequenceList.size() << "messages left to go. First one:" << interrogationSequenceList[0];
+            QLOG_INFO() << m_interrogationSequenceList.size() << "messages left to go. First one:" << m_interrogationSequenceList[0];
         }
     } else {
         QLOG_INFO() << "Not in interrogation list";
@@ -1751,12 +1752,12 @@ void MainWindow::checkMessageCounters(int sequencenumber)
 
 void MainWindow::retrieveFlashLocationId(unsigned short locationid)
 {
-    emsComms->retrieveBlockFromFlash(locationid, 0, 0);
+    m_emsComms->retrieveBlockFromFlash(locationid, 0, 0);
 }
 
 void MainWindow::retrieveRamLocationId(unsigned short locationid)
 {
-    emsComms->retrieveBlockFromRam(locationid, 0, 0);
+    m_emsComms->retrieveBlockFromRam(locationid, 0, 0);
 }
 
 void MainWindow::checkRamFlashSync()
@@ -1785,7 +1786,7 @@ void MainWindow::stopLogButtonClicked()
 }
 void MainWindow::connectButtonClicked()
 {
-    emsComms->connectSerial(m_comPort, m_comBaud);
+    m_emsComms->connectSerial(m_comPort, m_comBaud);
 }
 
 void MainWindow::logProgress(qlonglong current, qlonglong total)
@@ -1802,7 +1803,7 @@ void MainWindow::ecuResetDetected(int missedpackets)
     if (!m_interrogationInProgress && !m_EcuResetPopup) {
         m_EcuResetPopup = true;
         if (QMessageBox::question(this, "Error", "ECU Reset detected with " + QString::number(missedpackets) + " missed packets! Would you like to reflash data? If you do not, then EMStudio will continue with an INVALID idea of ECU memory, and you will lose any changes made.", QMessageBox::Yes, QMessageBox::No) == QMessageBox::Yes) {
-            emsComms->writeAllRamToRam();
+            m_emsComms->writeAllRamToRam();
         } else {
             QMessageBox::information(this, "Warning", "EMStudio will now continue with a corrupt version of ECU memory. The death of your engine is on your head now.");
         }
@@ -1814,17 +1815,17 @@ void MainWindow::dataLogDecoded(QVariantMap data)
 {
 
     //m_valueMap = data;
-    if (dataTables) {
-        dataTables->passData(data);
+    if (m_dataTables) {
+        m_dataTables->passData(data);
     }
-    if (dataGauges) {
-        dataGauges->passData(data);
+    if (m_dataGauges) {
+        m_dataGauges->passData(data);
     }
-    if (dataFlags) {
-        dataFlags->passData(data);
+    if (m_dataFlags) {
+        m_dataFlags->passData(data);
     }
-    if (statusView) {
-        statusView->passData(data);
+    if (m_statusView) {
+        m_statusView->passData(data);
     }
     for (QMap<unsigned short, QWidget*>::const_iterator i = m_rawDataView.constBegin(); i != m_rawDataView.constEnd(); i++) {
         DataView* dview = dynamic_cast<DataView*>(i.value());
@@ -1841,7 +1842,7 @@ void MainWindow::logPayloadReceived(QByteArray header, QByteArray payload)
     //All we're doing here is counting the incoming packets.
     Q_UNUSED(header)
     Q_UNUSED(payload)
-    pidcount++;
+    m_pidcount++;
 }
 void MainWindow::windowHidden(QMdiSubWindow* window)
 {
@@ -1898,9 +1899,9 @@ MainWindow::~MainWindow()
     }
     m_wizardList.clear();
 
-    emsComms->stop();
+    m_emsComms->stop();
     //emsComms->wait(1000);
-    delete emsComms;
+    delete m_emsComms;
 }
 void MainWindow::emsMemoryDirty()
 {
@@ -1915,51 +1916,51 @@ void MainWindow::datalogDescriptor(QString data)
 }
 void MainWindow::ramLocationDirty(unsigned short locationid)
 {
-    if (!ramDiffWindow) {
-        ramDiffWindow = new RamDiffWindow();
-        connect(ramDiffWindow, SIGNAL(acceptLocalChanges()), this, SLOT(dirtyRamAcceptLocalChanges()));
-        connect(ramDiffWindow, SIGNAL(rejectLocalChanges()), this, SLOT(dirtyRamRejectLocalChanges()));
-        ramDiffWindow->show();
+    if (!m_ramDiffWindow) {
+        m_ramDiffWindow = new RamDiffWindow();
+        connect(m_ramDiffWindow, SIGNAL(acceptLocalChanges()), this, SLOT(dirtyRamAcceptLocalChanges()));
+        connect(m_ramDiffWindow, SIGNAL(rejectLocalChanges()), this, SLOT(dirtyRamRejectLocalChanges()));
+        m_ramDiffWindow->show();
     }
-    ramDiffWindow->setDirtyLocation(locationid);
+    m_ramDiffWindow->setDirtyLocation(locationid);
     //QMessageBox::information(0,"Error","Ram location dirty 0x" + QString::number(locationid,16));
 }
 void MainWindow::deviceRamLocationOutOfSync(unsigned short locationid)
 {
-    if (!ramDiffWindow) {
-        ramDiffWindow = new RamDiffWindow();
-        ramDiffWindow->setAcceptText("Write All Changes To Flash");
-        ramDiffWindow->setRejectText("Ignore");
-        connect(ramDiffWindow, SIGNAL(acceptLocalChanges()), this, SLOT(deviceRamAcceptChanges()));
-        connect(ramDiffWindow, SIGNAL(rejectLocalChanges()), this, SLOT(deviceRamIgnoreChanges()));
-        ramDiffWindow->show();
+    if (!m_ramDiffWindow) {
+        m_ramDiffWindow = new RamDiffWindow();
+        m_ramDiffWindow->setAcceptText("Write All Changes To Flash");
+        m_ramDiffWindow->setRejectText("Ignore");
+        connect(m_ramDiffWindow, SIGNAL(acceptLocalChanges()), this, SLOT(deviceRamAcceptChanges()));
+        connect(m_ramDiffWindow, SIGNAL(rejectLocalChanges()), this, SLOT(deviceRamIgnoreChanges()));
+        m_ramDiffWindow->show();
     }
-    ramDiffWindow->setDirtyLocation(locationid);
+    m_ramDiffWindow->setDirtyLocation(locationid);
     //QMessageBox::information(0,"Error","Ram location dirty 0x" + QString::number(locationid,16));
 }
 void MainWindow::deviceRamAcceptChanges()
 {
-    if (ramDiffWindow) {
-        ramDiffWindow->close();
+    if (m_ramDiffWindow) {
+        m_ramDiffWindow->close();
     }
     QMessageBox::information(0, "Error", "Write All Changes is not enabled. Please manually write all locations");
-    statusView->setEmsMemoryDirty();
+    m_statusView->setEmsMemoryDirty();
 }
 void MainWindow::deviceRamIgnoreChanges()
 {
-    if (ramDiffWindow) {
-        ramDiffWindow->close();
+    if (m_ramDiffWindow) {
+        m_ramDiffWindow->close();
     }
-    statusView->setEmsMemoryDirty();
+    m_statusView->setEmsMemoryDirty();
 }
 
 void MainWindow::dirtyRamAcceptLocalChanges()
 {
-    emsComms->acceptLocalChanges();
+    m_emsComms->acceptLocalChanges();
 }
 void MainWindow::dirtyRamRejectLocalChanges()
 {
-    emsComms->rejectLocalChanges();
+    m_emsComms->rejectLocalChanges();
 }
 
 void MainWindow::flashLocationDirty(unsigned short locationid)
@@ -1998,10 +1999,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     //tablesMdiWindow
     windowsettings.setArrayIndex(val++);
     windowsettings.setValue("type", "tablesMdiWindow");
-    if (tablesMdiWindow) {
+    if (m_tablesMdiWindow) {
         windowsettings.setValue("enabled", true);
-        windowsettings.setValue("location", tablesMdiWindow->saveGeometry());
-        windowsettings.setValue("hidden", tablesMdiWindow->isHidden());
+        windowsettings.setValue("location", m_tablesMdiWindow->saveGeometry());
+        windowsettings.setValue("hidden", m_tablesMdiWindow->isHidden());
     } else {
         windowsettings.setValue("enabled", false);
     }
@@ -2009,10 +2010,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     //firmwareMetaMdiWindow
     windowsettings.setArrayIndex(val++);
     windowsettings.setValue("type", "firmwareMetaMdiWindow");
-    if (firmwareMetaMdiWindow) {
+    if (m_firmwareMetaMdiWindow) {
         windowsettings.setValue("enabled", true);
-        windowsettings.setValue("location", firmwareMetaMdiWindow->saveGeometry());
-        windowsettings.setValue("hidden", firmwareMetaMdiWindow->isHidden());
+        windowsettings.setValue("location", m_firmwareMetaMdiWindow->saveGeometry());
+        windowsettings.setValue("hidden", m_firmwareMetaMdiWindow->isHidden());
     } else {
         windowsettings.setValue("enabled", false);
     }
@@ -2020,10 +2021,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     //interrogateProgressMdiWindow
     windowsettings.setArrayIndex(val++);
     windowsettings.setValue("type", "interrogateProgressMdiWindow");
-    if (interrogateProgressMdiWindow) {
+    if (m_interrogateProgressMdiWindow) {
         windowsettings.setValue("enabled", true);
-        windowsettings.setValue("location", interrogateProgressMdiWindow->saveGeometry());
-        windowsettings.setValue("hidden", interrogateProgressMdiWindow->isHidden());
+        windowsettings.setValue("location", m_interrogateProgressMdiWindow->saveGeometry());
+        windowsettings.setValue("hidden", m_interrogateProgressMdiWindow->isHidden());
     } else {
         windowsettings.setValue("enabled", false);
     }
@@ -2031,10 +2032,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     //emsMdiWindow
     windowsettings.setArrayIndex(val++);
     windowsettings.setValue("type", "emsMdiWindow");
-    if (emsMdiWindow) {
+    if (m_emsMdiWindow) {
         windowsettings.setValue("enabled", true);
-        windowsettings.setValue("location", emsMdiWindow->saveGeometry());
-        windowsettings.setValue("hidden", emsMdiWindow->isHidden());
+        windowsettings.setValue("location", m_emsMdiWindow->saveGeometry());
+        windowsettings.setValue("hidden", m_emsMdiWindow->isHidden());
     } else {
         windowsettings.setValue("enabled", false);
     }
@@ -2042,10 +2043,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     //flagsMdiWindow
     windowsettings.setArrayIndex(val++);
     windowsettings.setValue("type", "flagsMdiWindow");
-    if (flagsMdiWindow) {
+    if (m_flagsMdiWindow) {
         windowsettings.setValue("enabled", true);
-        windowsettings.setValue("location", flagsMdiWindow->saveGeometry());
-        windowsettings.setValue("hidden", flagsMdiWindow->isHidden());
+        windowsettings.setValue("location", m_flagsMdiWindow->saveGeometry());
+        windowsettings.setValue("hidden", m_flagsMdiWindow->isHidden());
     } else {
         windowsettings.setValue("enabled", false);
     }
@@ -2053,10 +2054,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     //gaugesMdiWindow
     windowsettings.setArrayIndex(val++);
     windowsettings.setValue("type", "gaugesMdiWindow");
-    if (gaugesMdiWindow) {
+    if (m_gaugesMdiWindow) {
         windowsettings.setValue("enabled", true);
-        windowsettings.setValue("location", gaugesMdiWindow->saveGeometry());
-        windowsettings.setValue("hidden", gaugesMdiWindow->isHidden());
+        windowsettings.setValue("location", m_gaugesMdiWindow->saveGeometry());
+        windowsettings.setValue("hidden", m_gaugesMdiWindow->isHidden());
     } else {
         windowsettings.setValue("enabled", false);
     }
@@ -2064,10 +2065,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     //packetStatusMdiWindow
     windowsettings.setArrayIndex(val++);
     windowsettings.setValue("type", "packetStatusMdiWindow");
-    if (packetStatusMdiWindow) {
+    if (m_packetStatusMdiWindow) {
         windowsettings.setValue("enabled", true);
-        windowsettings.setValue("location", packetStatusMdiWindow->saveGeometry());
-        windowsettings.setValue("hidden", packetStatusMdiWindow->isHidden());
+        windowsettings.setValue("location", m_packetStatusMdiWindow->saveGeometry());
+        windowsettings.setValue("hidden", m_packetStatusMdiWindow->isHidden());
     } else {
         windowsettings.setValue("enabled", false);
     }
@@ -2075,10 +2076,10 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     //aboutMdiWindow
     windowsettings.setArrayIndex(val++);
     windowsettings.setValue("type", "aboutMdiWindow");
-    if (aboutMdiWindow) {
+    if (m_aboutMdiWindow) {
         windowsettings.setValue("enabled", true);
-        windowsettings.setValue("location", aboutMdiWindow->saveGeometry());
-        windowsettings.setValue("hidden", aboutMdiWindow->isHidden());
+        windowsettings.setValue("location", m_aboutMdiWindow->saveGeometry());
+        windowsettings.setValue("hidden", m_aboutMdiWindow->isHidden());
     } else {
         windowsettings.setValue("enabled", false);
     }
@@ -2095,8 +2096,8 @@ void MainWindow::closeEvent(QCloseEvent* evt)
     windowsettings.setValue("isMaximized", this->isMaximized());
     windowsettings.endGroup();
     windowsettings.sync();
-    if (emsComms) {
-        QString compat = emsComms->getPluginCompat();
+    if (m_emsComms) {
+        QString compat = m_emsComms->getPluginCompat();
         windowsettings.setValue("plugincompat", compat);
         windowsettings.sync();
     }

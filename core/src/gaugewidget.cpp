@@ -29,7 +29,7 @@
 #include <QMetaType>
 #include <QQmlContext>
 GaugeWidget::GaugeWidget(QWidget* parent)
-    : QQuickView((QWindow*)parent)
+    : QQuickView((QWindow*)parent->window())
 {
     qmlRegisterType<GaugeItem>("GaugeImage", 0, 1, "GaugeImage");
     qmlRegisterType<RoundGaugeItem>("AviatorGauges", 0, 1, "RoundGauge");

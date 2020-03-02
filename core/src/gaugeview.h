@@ -22,36 +22,37 @@
 #ifndef GAUGEVIEW_H
 #define GAUGEVIEW_H
 
-#include <QWidget>
+#include "datapacketdecoder.h"
+#include "gaugewidget.h"
+#include "ui_datagauges.h"
 #include <QCloseEvent>
 #include <QMdiSubWindow>
-#include "ui_datagauges.h"
-#include "gaugewidget.h"
-#include "datapacketdecoder.h"
-class GaugeView : public QWidget
-{
-	Q_OBJECT
+#include <QWidget>
+class GaugeView : public QWidget {
+    Q_OBJECT
 
 public:
-	explicit GaugeView(QWidget *parent = 0);
-	~GaugeView();
-	void passData(QVariantMap data);
-	void passDecoder(DataPacketDecoder *decoder);
-	QString setFile(QString file);
+    explicit GaugeView(QWidget* parent = 0);
+    ~GaugeView();
+    void passData(QVariantMap data);
+    void passDecoder(DataPacketDecoder* decoder);
+    QString setFile(QString file);
+
 private:
-	QList<QString> propertiesInUse;
-	QString file;
-	QTimer *guiUpdateTimer;
-	DataPacketDecoder *dataPacketDecoder;
-	QVariantMap m_valueMap;
-	Ui::DataGauges ui;
-	GaugeWidget *widget;
+    QList<QString> propertiesInUse;
+    QString file;
+    QTimer* guiUpdateTimer;
+    DataPacketDecoder* dataPacketDecoder;
+    QVariantMap m_valueMap;
+    Ui::DataGauges ui;
+    GaugeWidget* widget;
+
 protected:
-	void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent* event);
 private slots:
-	void guiUpdateTimerTick();
+    void guiUpdateTimerTick();
 signals:
-	void windowHiding(QMdiSubWindow *parent);
+    void windowHiding(QMdiSubWindow* parent);
 };
 
 #endif // GAUGEVIEW_H

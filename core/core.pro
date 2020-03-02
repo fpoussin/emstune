@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT += core gui opengl printsupport widgets quick qml
+QT = core gui opengl printsupport widgets quick qml
 
 TARGET = emstudio
 TEMPLATE = app
@@ -54,10 +54,11 @@ win32 {
   LIBS += -lGL -lGLU -lglut
         DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
-        DEFINES += GIT_DATE=\""$$system(date)"\"
+        DEFINES += GIT_DATE=\""$$system(date -u +'%Y/%m/%d-%H:%M:%S')"\"
 }
 
-SOURCES += src/main.cpp\
+SOURCES += \
+  src/main.cpp\
   src/mainwindow.cpp \
   src/logloader.cpp \
   src/gaugewidget.cpp \
@@ -101,10 +102,11 @@ SOURCES += src/main.cpp\
   src/qcustomplot.cpp \
   src/tableviewnew3d.cpp \
   src/pluginmanager.cpp \
-    src/firmwaredebugview.cpp
+  src/firmwaredebugview.cpp
 
 
-HEADERS  += src/mainwindow.h \
+HEADERS  += \
+  src/mainwindow.h \
   src/logloader.h \
   src/gaugewidget.h \
   src/gaugeitem.h \
@@ -154,9 +156,10 @@ HEADERS  += src/mainwindow.h \
   src/tableviewnew3d.h \
   src/qcustomplot.h \
   src/pluginmanager.h \
-    src/firmwaredebugview.h
+  src/firmwaredebugview.h
 
-FORMS    += src/mainwindow.ui \
+FORMS += \
+  src/mainwindow.ui \
   src/comsettings.ui \
   src/emsinfo.ui \
   src/datagauges.ui \
@@ -179,8 +182,10 @@ FORMS    += src/mainwindow.ui \
   src/parameterwidget.ui \
   src/ramdiffwindow.ui \
   src/pluginmanager.ui \
-    src/firmwaredebugview.ui
+  src/firmwaredebugview.ui
+
 SUBDIRS += plugins
+
 OTHER_FILES += \
   README.md \
   wizards/BenchTest.qml \

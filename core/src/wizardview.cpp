@@ -1,7 +1,9 @@
 #include "wizardview.h"
 #include <QDebug>
+#include <QWidget>
+
 WizardView::WizardView(QWidget* parent)
-    : QQuickView((QWindow*)parent)
+    : QQuickView((QWindow*)parent->window())
 {
 }
 void WizardView::addConfigRequest(QString name)
