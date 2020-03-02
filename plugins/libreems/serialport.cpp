@@ -25,117 +25,86 @@
 #include <cassert>
 #include "QsLog.h"
 
-SerialPort::SerialPort(QObject *parent) : QThread(parent)
+SerialPort::SerialPort(QObject *parent)
+    : QThread(parent)
 {
-	m_serialLockMutex = new QMutex();
-	m_interByteSendDelay=0;
-	m_inpacket = false;
-	m_inescape = false;
-	m_packetErrorCount=0;
+    m_serialLockMutex = new QMutex();
+    m_interByteSendDelay = 0;
+    m_inpacket = false;
+    m_inescape = false;
+    m_packetErrorCount = 0;
 
-//	connect(m_protocolDecoder,SIGNAL(newPacket(QByteArray)),this,SIGNAL(packetReceived(QByteArray)));
+    //	connect(m_protocolDecoder,SIGNAL(newPacket(QByteArray)),this,SIGNAL(packetReceived(QByteArray)));
 }
 void SerialPort::setPort(QString portname)
 {
-	m_portName = portname;
+    m_portName = portname;
 }
 void SerialPort::setBaud(int baudrate)
 {
-	m_baud = baudrate;
+    m_baud = baudrate;
 }
 void SerialPort::run()
 {
-	try
-	{
-		serialPort = new serial::Serial();
-		serialPort->setPort(m_portName.toStdString());
-		serialPort->open();
-		if (!serialPort->isOpen())
-		{
-			qDebug() << "Error opening port:";
-			emit unableToConnect("Error opening port");
-			return;
-		}
-		serialPort->setBaudrate(115200);
-		serialPort->setParity(serial::parity_none);
-		serialPort->setStopbits(serial::stopbits_one);
-		serialPort->setBytesize(serial::eightbits);
-		serialPort->setFlowcontrol(serial::flowcontrol_none);
-		serialPort->setTimeout(1,1,0,100,0); //1ms read timeout, 100ms write timeout.
+    m_serialPort = new QSerialPort(m_portName, this);
+    m_serialPort->open(QIODevice::ReadWrite);
 
-		emit connected();
-	}
-	catch (serial::IOException ex)
-	{
-		emit unableToConnect(ex.what());
-		return;
-	}
-	catch (std::exception ex)
-	{
-		emit unableToConnect(ex.what());
-		return;
-	}
-	uint8_t buffer[1024];
-	bool isopen = true;
-	while(isopen)
-	{
-		try
-		{
-			m_serialLockMutex->lock();
-			isopen = serialPort->isOpen();
-			if (serialPort->available())
-			{
-				int size = serialPort->read(buffer,1024);
-				emit bytesReady(QByteArray((const char*)buffer,size));
-				m_serialLockMutex->unlock();
-			}
-			else
-			{
-				m_serialLockMutex->unlock();
-				msleep(10);
-			}
+    if (!m_serialPort->isOpen()) {
+        qDebug() << "Error opening port:";
+        emit unableToConnect("Error opening port");
+        return;
+    }
 
-		}
-		catch (serial::IOException ex)
-		{
-			//Error here
-			serialPort->close();
-			delete serialPort;
-			emit error(ex.what());
-			emit disconnected();
-			return;
-		}
+    m_serialPort->setBaudRate(115200);
+    m_serialPort->setParity(QSerialPort::NoParity);
+    m_serialPort->setStopBits(QSerialPort::OneStop);
+    m_serialPort->setDataBits(QSerialPort::Data8);
+    m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
 
-	}
+    emit connected();
+
+    bool isopen = true;
+    while (isopen) {
+        m_serialLockMutex->lock();
+        isopen = m_serialPort->isOpen();
+        m_serialPort->waitForReadyRead(10);
+        if (m_serialPort->readBufferSize() > 0) {
+            QByteArray buffer = m_serialPort->readAll();
+            int size = buffer.size();
+            emit bytesReady(QByteArray((const char *)buffer, size));
+            m_serialLockMutex->unlock();
+        } else {
+            m_serialLockMutex->unlock();
+        }
+    }
 }
 
 void SerialPort::connectToPort(QString portname)
 {
-	m_portName = portname;
-	start();
+    m_portName = portname;
+    start();
 }
 
 void SerialPort::setInterByteSendDelay(int milliseconds)
 {
-	m_interByteSendDelay = milliseconds;
+    m_interByteSendDelay = milliseconds;
 }
 
 int SerialPort::writeBytes(QByteArray packet)
 {
-	QLOG_TRACE() << "Writing bytes:" << packet.size();
-	serialPort->write((const uint8_t*)packet.data(),packet.length());
-	QLOG_TRACE() << "Wrote bytes";
-	return packet.size();
-
+    QLOG_TRACE() << "Writing bytes:" << packet.size();
+    m_serialPort->write(packet);
+    m_serialPort->waitForBytesWritten(100);
+    QLOG_TRACE() << "Wrote bytes";
+    return packet.size();
 }
 
 void SerialPort::closePort()
 {
-	m_serialLockMutex->lock();
-	QLOG_DEBUG() << "SerialPort::closePort thread:" << QThread::currentThread();
-	//m_serialPort->close();
-	serialPort->close();
-	//delete m_serialPort;
-	m_privBuffer.clear();
-	m_serialLockMutex->unlock();
+    m_serialLockMutex->lock();
+    QLOG_DEBUG() << "SerialPort::closePort thread:" << QThread::currentThread();
+    m_serialPort->close();
+    delete m_serialPort;
+    m_privBuffer.clear();
+    m_serialLockMutex->unlock();
 }

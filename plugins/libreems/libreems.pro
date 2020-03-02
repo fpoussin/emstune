@@ -7,7 +7,7 @@ TEMPLATE = lib
 QT = serialport core
 
 DEPENDPATH += .
-INCLUDEPATH += . ../../core/src
+INCLUDEPATH += . $$PWD/../../core/src
 CONFIG += plugin rtti exceptions
 OBJECTS_DIR = obj
 MOC_DIR = obj
@@ -15,10 +15,7 @@ UI_DIR = obj
 INCLUDEPATH += $$PWD/../../lib/core
 DEPENDPATH += $$PWD/../../lib/core
 
-
-
 include (../../core/QsLog/QsLog.pri)
-include (serial/serial.pri)
 win32 { #Windows based mingw build
   TARGET = ../../../core/plugins/libreemsplugin
   win32:QMAKE_LFLAGS += -shared

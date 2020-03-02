@@ -154,7 +154,6 @@ HEADERS  += \
   src/ramdiffwindow.h \
   src/qcustomplot.h \
   src/tableviewnew3d.h \
-  src/qcustomplot.h \
   src/pluginmanager.h \
   src/firmwaredebugview.h
 

@@ -30,7 +30,6 @@
 #include "serialportstatus.h"
 #include "memorylocationinfo.h"
 #include "protocoldecoder.h"
-#include "serial/serial/serial.h"
 #ifdef Q_OS_WIN
 //#include <windows.h>
 #else
@@ -46,9 +45,9 @@
 
 class SerialPort : public QThread
 {
-	Q_OBJECT
+    Q_OBJECT
 public:
-    SerialPort(QObject *parent=0);
+    SerialPort(QObject *parent = 0);
     void setPort(QString portname);
     void setBaud(int baudrate);
     void closePort();
@@ -59,13 +58,15 @@ public:
     ProtocolDecoder *m_protocolDecoder;
 public slots:
     void connectToPort(QString portname);
+
 private:
     void run();
-    serial::Serial *serialPort;
-    //QSerialPort *m_serialPort;
+    void openLogs();
+
+    QSerialPort *m_serialPort;
+    QSerialPortInfo *m_serialPortInfo;
     QByteArray m_privBuffer;
     QMutex *m_serialLockMutex;
-    void openLogs();
     unsigned int m_packetErrorCount;
     bool m_logsEnabled;
     QString m_logDirectory;
@@ -77,7 +78,6 @@ private:
     QString m_logFileName;
     QString m_portName;
     int m_baud;
-    //HANDLE m_portHandle;
 signals:
     void packetReceived(QByteArray packet);
     void parseBuffer(QByteArray buffer);
