@@ -336,6 +336,8 @@ Table2DData *FreeEmsComms::getNew2DTableData()
 
 FreeEmsComms::~FreeEmsComms()
 {
+    stop();
+    disconnectSerial();
 }
 
 void FreeEmsComms::disconnectSerial()
@@ -1499,7 +1501,7 @@ void FreeEmsComms::dataLogRead(QByteArray buffer)
 
 void FreeEmsComms::parseEverything(QByteArray buffer)
 {
-    if (!buffer.startsWith(QByteArray().append(0x01).append(0x01).append(0x91))) {
+    if (!buffer.startsWith("\x01\x01\x91")) {
         QLOG_DEBUG() << "Incoming packet";
         //QLOG_DEBUG() << "parseEverything:" << buffer.toHex();
     }

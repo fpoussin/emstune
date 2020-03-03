@@ -1,9 +1,7 @@
+
 DEPENDPATH += $$PWD
 INCLUDEPATH += $$PWD
-CONFIG += c++11
 
-# Input
-SOURCES +=
 HEADERS += \
     $$PWD/configdata.h \
     $$PWD/datapacketdecoder.h \
