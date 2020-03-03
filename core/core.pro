@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT = core gui opengl printsupport widgets quick qml
+QT = core gui opengl printsupport widgets quickwidgets quick qml
 
 TARGET = emstudio
 TEMPLATE = app

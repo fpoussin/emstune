@@ -31,9 +31,9 @@
 #include <QQmlEngine>
 
 GaugeWidget::GaugeWidget(QWidget *parent)
-    : QQuickView(parent->windowHandle())
+    : QQuickWidget(parent)
 {
-    setTitle("Gauges");
+    setWindowTitle("Gauges");
     qmlRegisterType<GaugeItem>("Emstune.Gauges", 0, 1, "GaugeItem");
     qmlRegisterType<RoundGaugeItem>("Emstune.Gauges", 0, 1, "RoundGauge");
     qmlRegisterType<BarGaugeItem>("Emstune.Gauges", 0, 1, "BarGauge");

@@ -22,10 +22,10 @@
 #ifndef GAUGEWIDGET_H
 #define GAUGEWIDGET_H
 #include <QQmlPropertyMap>
-#include <QQuickView>
+#include <QQuickWidget>
 
 #include "gaugeitem.h"
-class GaugeWidget : public QQuickView
+class GaugeWidget : public QQuickWidget
 {
 public:
     GaugeWidget(QWidget *parent);

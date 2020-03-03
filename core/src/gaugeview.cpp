@@ -26,7 +26,6 @@ GaugeView::GaugeView(QWidget *parent)
     : QWidget(parent), m_widget(new GaugeWidget(this))
 {
     ui.setupUi(this);
-    m_widget->show();
 
     m_guiUpdateTimer = new QTimer(this);
     connect(m_guiUpdateTimer, SIGNAL(timeout()), this, SLOT(guiUpdateTimerTick()));

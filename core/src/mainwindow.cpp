@@ -1176,6 +1176,7 @@ void MainWindow::menu_windows_EmsStatusClicked()
 void MainWindow::menu_windows_GaugesClicked()
 {
     m_gaugesMdiWindow->show();
+    m_dataGauges->show();
     QApplication::postEvent(m_gaugesMdiWindow, new QEvent(QEvent::Show));
     QApplication::postEvent(m_gaugesMdiWindow, new QEvent(QEvent::WindowActivate));
 }
