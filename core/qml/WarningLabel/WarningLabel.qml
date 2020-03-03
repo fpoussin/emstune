@@ -1,5 +1,4 @@
 import QtQuick 2.9
-import QtQml 2.9
 
 Rectangle {
     id: warninglabel

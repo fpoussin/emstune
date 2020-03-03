@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/qml">
+        <file>gauges.qml</file>
+        <file>oniongauges.qml</file>
+        <file>WarningLabel/WarningLabel.qml</file>
+        <file>wizards/ActualDecoderOffset.qml</file>
+        <file>wizards/BenchTest.qml</file>
+        <file>wizards/DecoderOffset.qml</file>
+        <file>wizards/EngineConfig.qml</file>
+        <file>wizards/wizard.qml</file>
+        <file>WarningLabel/qmldir</file>
+    </qresource>
+</RCC>

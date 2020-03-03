@@ -1,6 +1,6 @@
 import QtQuick 2.9
-import GaugeImage 0.1
-import "WarningLabel"
+import Emstune.Gauges 0.1
+import WarningLabel 1.0
 
 Rectangle {
     x:0
@@ -10,7 +10,7 @@ Rectangle {
     color: "black"
     property string plugincompat: "FREEEMS"
 
-    GaugeImage {
+    GaugeItem {
         x:0
         y:0
         width:300
@@ -25,7 +25,7 @@ Rectangle {
         //Behavior on m_value {  PropertyAnimation { properties: "m_value"; duration: (propertyMap["RPM_DURATION"] ? propertyMap["RPM_DURATION"] : 50) } }
         m_value: (propertyMap["RPM"] ? propertyMap["RPM"] : 0)
     }
-    GaugeImage {
+    GaugeItem {
         x:300
         y:0
         width:300
@@ -40,7 +40,7 @@ Rectangle {
         //Behavior on m_value {  PropertyAnimation { properties: "m_value"; duration: (propertyMap["Advance_DURATION"] ? propertyMap["Advance_DURATION"] : 50) } }
         m_value: (propertyMap["Advance"] ? propertyMap["Advance"] : 0)
     }
-    GaugeImage {
+    GaugeItem {
         x:0
         y:300
         width:300
@@ -55,7 +55,7 @@ Rectangle {
         //Behavior on m_value {  PropertyAnimation { properties: "m_value"; duration: (propertyMap["EffectivePW_DURATION"] ? propertyMap["EffectivePW_DURATION"] : 50) } }
         m_value: (propertyMap["EffectivePW"] ? propertyMap["EffectivePW"] : 0)
     }
-    GaugeImage {
+    GaugeItem {
         x:300
         y:300
         width:300
@@ -70,7 +70,7 @@ Rectangle {
         //Behavior on m_value {  PropertyAnimation { properties: "m_value"; duration: (propertyMap["CHT_DURATION"] ? propertyMap["CHT_DURATION"] : 50) } }
         m_value: (propertyMap["CHT"] ? propertyMap["CHT"] : 0)
     }
-    GaugeImage {
+    GaugeItem {
         x:600
         y:0
         width:300
@@ -85,7 +85,7 @@ Rectangle {
         //Behavior on m_value {  PropertyAnimation { properties: "m_value"; duration: (propertyMap["EGO_DURATION"] ? propertyMap["EGO_DURATION"] : 50) } }
         m_value: (propertyMap["EGO"] ? propertyMap["EGO"] : 0)
     }
-    GaugeImage {
+    GaugeItem {
         x:600
         y:300
         width:300

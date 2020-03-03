@@ -5,6 +5,8 @@
 WizardView::WizardView(QWidget *parent)
     : QQuickView(parent->windowHandle())
 {
+    auto engine = (QQmlEngine *)this->engine();
+    engine->addImportPath(":/wizards");
 }
 void WizardView::addConfigRequest(QString name)
 {

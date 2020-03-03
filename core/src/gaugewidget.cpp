@@ -28,28 +28,34 @@
 #include <QGraphicsItem>
 #include <QMetaType>
 #include <QQmlContext>
+#include <QQmlEngine>
+
 GaugeWidget::GaugeWidget(QWidget *parent)
     : QQuickView(parent->windowHandle())
 {
-    qmlRegisterType<GaugeItem>("GaugeImage", 0, 1, "GaugeImage");
-    qmlRegisterType<RoundGaugeItem>("AviatorGauges", 0, 1, "RoundGauge");
-    qmlRegisterType<BarGaugeItem>("AviatorGauges", 0, 1, "BarGauge");
-    this->rootContext()->setContextProperty("propertyMap", &propertyMap);
-    /*if (QFile::exists("gauges.qml"))
-    {
-        setSource(QUrl("gauges.qml"));
+    setTitle("Gauges");
+    qmlRegisterType<GaugeItem>("Emstune.Gauges", 0, 1, "GaugeItem");
+    qmlRegisterType<RoundGaugeItem>("Emstune.Gauges", 0, 1, "RoundGauge");
+    qmlRegisterType<BarGaugeItem>("Emstune.Gauges", 0, 1, "BarGauge");
+    rootContext()->setContextProperty("propertyMap", &propertyMap);
+
+    auto engine = (QQmlEngine *)this->engine();
+    engine->addImportPath(":/qml");
+
+    const QStringList gauges({ "gauges.qml", "/etc/emstudio/gauges.qml", ":/qml/gauges.qml" });
+    QString path;
+    for (int i = 0; i < gauges.size(); i++) {
+        if (QFile::exists(gauges.at(i))) {
+            path = gauges.at(i);
+            break;
+        }
     }
-    else if (QFile::exists("src/gauges.qml"))
-    {
-        setSource(QUrl("src/gauges.qml"));
+    if (!path.isEmpty()) {
+        setFile(path);
+    } else {
+        QLOG_WARN() << "GaugeWidget file not found";
+        close();
     }
-    else if (QFile::exists("/etc/emstudio/gauges.qml"))
-    {
-        setSource(QUrl("/etc/emstudio/gauges.qml"));
-    }
-    else
-    {
-    }*/
 }
 
 QString GaugeWidget::setFile(QString file)
@@ -65,9 +71,9 @@ QString GaugeWidget::setFile(QString file)
         }
         if (rootObject()->property("plugincompat").isValid()) {
             QString plugincompat = rootObject()->property("plugincompat").toString();
-            QLOG_DEBUG() << "Plugin compatability:" << plugincompat;
+            QLOG_DEBUG() << "Plugin compatibility:" << plugincompat;
             return plugincompat;
         }
     }
-    return "";
+    return QString();
 }

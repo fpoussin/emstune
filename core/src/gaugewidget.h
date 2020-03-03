@@ -28,7 +28,7 @@
 class GaugeWidget : public QQuickView
 {
 public:
-    GaugeWidget(QWidget *parent = 0);
+    GaugeWidget(QWidget *parent);
     QQmlPropertyMap propertyMap;
     QString setFile(QString file);
     const QList<QString> getPropertiesInUse() { return propertylist; }

@@ -39,7 +39,7 @@ win32 {
   DEFINES += INSTALL_PREFIX=$$PREFIX
   target.path = $$PREFIX/bin
   dashboard.path = $$PREFIX/share/emstudio/dashboards
-  dashboard.files += src/gauges.qml
+  dashboard.files += src/qml/gauges.qml
   warninglabel.path = $$PREFIX/share/emstudio/dashboards/WarningLabel
   warninglabel.files += src/WarningLabel/WarningLabel.qml
   wizards.path = $$PREFIX/share/emstudio/wizards
@@ -54,6 +54,12 @@ win32 {
         DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
         DEFINES += GIT_DATE=\""$$system(date -u +'%Y/%m/%d-%H:%M:%S')"\"
 }
+
+# Additional import path used to resolve QML modules in Qt Creator's code model
+QML_IMPORT_PATH = qml
+
+# Additional import path used to resolve QML modules just for Qt Quick Designer
+QML_DESIGNER_IMPORT_PATH = qml
 
 SOURCES += \
   src/main.cpp\
@@ -179,9 +185,13 @@ SUBDIRS += plugins
 
 OTHER_FILES += \
   README.md \
-  wizards/BenchTest.qml \
-  wizards/DecoderOffset.qml \
-  wizards/wizard.qml \
-  wizards/EngineConfig.qml \
-  wizards/ActualDecoderOffset.qml \
-  src/WarningLabel/WarningLabel.qml
+  qml/wizards/BenchTest.qml \
+  qml/wizards/DecoderOffset.qml \
+  qml/wizards/wizard.qml \
+  qml/wizards/EngineConfig.qml \
+  qml/wizards/ActualDecoderOffset.qml \
+  qml/WarningLabel/WarningLabel.qml \
+  qml/gauges.qml
+
+RESOURCES += \
+  qml/qml.qrc

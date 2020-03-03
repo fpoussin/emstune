@@ -174,9 +174,8 @@ MainWindow::MainWindow(QWidget *parent)
     setWindowTitle(QString("EMStudio ") + QString(define2string(GIT_COMMIT)));
     menuBar()->setNativeMenuBar(false);
 
-    //return;
     m_currentRamLocationId = 0;
-    //populateDataFields();
+    //    populateDataFields();
     m_waitingForRamWriteConfirmation = false;
     m_waitingForFlashWriteConfirmation = false;
 
@@ -256,11 +255,8 @@ MainWindow::MainWindow(QWidget *parent)
     m_aboutMdiWindow->hide();
     m_aboutMdiWindow->setWindowTitle(m_aboutView->windowTitle());
 
-    //    m_newDataGauges = new CustomGaugeView();
-    //    m_newDataGauges->setFile("src/oniongauges.qml");
-    //    m_newDataGauges->show();
     m_dataGauges = new GaugeView();
-    //connect(dataGauges,SIGNAL(destroyed()),this,SLOT(dataGaugesDestroyed()));
+    //    connect(m_dataGauges, SIGNAL(destroyed()), this, SLOT(dataGaugesDestroyed()));
     m_gaugesMdiWindow = ui.mdiArea->addSubWindow(m_dataGauges);
     m_gaugesMdiWindow->setGeometry(m_dataGauges->geometry());
     m_gaugesMdiWindow->hide();

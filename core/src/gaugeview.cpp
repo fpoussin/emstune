@@ -23,11 +23,9 @@
 #include <QMdiSubWindow>
 
 GaugeView::GaugeView(QWidget *parent)
-    : QWidget(parent)
+    : QWidget(parent), m_widget(new GaugeWidget(this))
 {
     ui.setupUi(this);
-    m_widget = new GaugeWidget(this);
-    m_widget->setGeometry(0, 0, 1200, 700);
     m_widget->show();
 
     m_guiUpdateTimer = new QTimer(this);
