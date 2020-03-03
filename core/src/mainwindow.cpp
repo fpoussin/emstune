@@ -68,7 +68,7 @@ MainWindow::MainWindow(QWidget *parent)
     m_emsSilenceTimer = new QTimer(this);
 
     connect(m_emsSilenceTimer, SIGNAL(timeout()), this, SLOT(emsCommsSilenceTimerTick()));
-    m_emsSilenceTimer->start();
+    m_emsSilenceTimer->start(50);
 
     //	emsData = new EmsData();
     //	connect(emsData,SIGNAL(updateRequired(unsigned short)),this,SLOT(updateDataWindows(unsigned short)));

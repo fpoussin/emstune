@@ -38,16 +38,19 @@ GaugeView::GaugeView(QWidget *parent)
 GaugeView::~GaugeView()
 {
 }
+
 void GaugeView::closeEvent(QCloseEvent *event)
 {
     event->ignore();
     ((QMdiSubWindow *)this->parent())->hide();
     emit windowHiding((QMdiSubWindow *)this->parent());
 }
+
 void GaugeView::passData(QVariantMap data)
 {
     m_valueMap = data;
 }
+
 QString GaugeView::setFile(QString file)
 {
     QString result = m_widget->setFile(file);
