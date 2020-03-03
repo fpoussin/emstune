@@ -63,8 +63,8 @@ int main(int argc, char *argv[])
     logger.addDestination(debugDestination);
     logger.addDestination(fileDestination);
 
-    QString port = "";
-    QString plugin = "";
+    QString port;
+    QString plugin;
     bool autoconnect = true;
 
     QCommandLineOption devOption(QStringList() << "d"
@@ -83,27 +83,33 @@ int main(int argc, char *argv[])
 
     parser.process(a);
     autoconnect = parser.isSet(autoconnectOption);
+
     if (parser.isSet(devOption)) {
         port = parser.value(devOption);
     }
+
     if (parser.isSet(pluginOption)) {
         plugin = parser.value(pluginOption);
     }
 
     MainWindow *w = new MainWindow();
-    if (port != "") {
+    if (!port.isEmpty()) {
         w->setDevice(port);
     }
-    if (plugin == "") {
+
+    if (!plugin.isEmpty()) {
         //A specific plugin is specified, override the plugin manager's choice.
+        w->setPlugin(plugin);
     }
-    w->setPlugin(plugin);
+
     if (autoconnect) {
         w->connectToEms();
     }
+
     w->show();
     PluginManager *manager = new PluginManager();
     manager->show();
     w->connect(manager, SIGNAL(fileSelected(QString)), w, SLOT(setPlugin(QString)));
+
     return a.exec();
 }

@@ -3,7 +3,7 @@
 #include <QWidget>
 
 WizardView::WizardView(QWidget *parent)
-    : QQuickView((QWindow *)parent->window())
+    : QQuickView(parent->windowHandle())
 {
 }
 void WizardView::addConfigRequest(QString name)

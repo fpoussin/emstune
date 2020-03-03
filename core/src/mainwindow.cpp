@@ -35,30 +35,38 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QProcessEnvironment>
+
 #define define2string_p(x) #x
 #define define2string(x) define2string_p(x)
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
+    qRegisterMetaType<MemoryLocationInfo>("MemoryLocationInfo");
+    qRegisterMetaType<DataType>("DataType");
+    qRegisterMetaType<SerialPortStatus>("SerialPortStatus");
+
+    QLOG_INFO() << "EMStudio commit:" << define2string(GIT_COMMIT);
+    QLOG_INFO() << "Full hash:" << define2string(GIT_HASH);
+    QLOG_INFO() << "Build date:" << define2string(GIT_DATE);
+
+    const QProcessEnvironment env(QProcessEnvironment::systemEnvironment());
+
     m_interrogationInProgress = false;
     m_offlineMode = false;
     m_checkEmsDataInUse = false;
     m_currentEcuClock = -1;
     m_EcuResetPopup = false;
     m_interrogateProgressMdiWindow = 0;
-    qRegisterMetaType<MemoryLocationInfo>("MemoryLocationInfo");
-    qRegisterMetaType<DataType>("DataType");
-    qRegisterMetaType<SerialPortStatus>("SerialPortStatus");
-    QLOG_INFO() << "EMStudio commit:" << define2string(GIT_COMMIT);
-    QLOG_INFO() << "Full hash:" << define2string(GIT_HASH);
-    QLOG_INFO() << "Build date:" << define2string(GIT_DATE);
+
     m_progressView = 0;
     m_emsComms = 0;
     m_ramDiffWindow = 0;
     m_interrogationInProgress = false;
     m_debugLogs = false;
     m_emsSilenceTimer = new QTimer(this);
+
     connect(m_emsSilenceTimer, SIGNAL(timeout()), this, SLOT(emsCommsSilenceTimerTick()));
     m_emsSilenceTimer->start();
 
@@ -70,17 +78,13 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_settingsFile = "settings.ini";
     //TODO: Figure out proper directory names
+
 #ifdef Q_OS_WIN
-    QString appDataDir = getenv("%AppData%");
-    if (appDataDir == "") {
-        appDataDir = getenv("AppData");
-        if (appDataDir == "") {
-            appDataDir = getenv("%UserProfile%");
-            if (appDataDir == "") {
-                appDataDir = getenv("UserProfile");
-            }
-        }
+    QString appDataDir(env.value("AppData"));
+    if (appDataDir.isEmpty()) {
+        appDataDir = env.value("USERPROFILE");
     }
+
     appDataDir = appDataDir.replace("\\", "/");
     if (!QDir(appDataDir).exists("EMStudio")) {
         QDir(appDataDir).mkpath("EMStudio");
@@ -89,16 +93,14 @@ MainWindow::MainWindow(QWidget *parent)
 
     m_settingsDir = appDataDir + "/" + "EMStudio";
     //%HOMEPATH%//m_localHomeDir
-    m_localHomeDir = QString(getenv("%USERPROFILE%")).replace("\\", "/");
-    if (m_localHomeDir == "") {
-        m_localHomeDir = QString(getenv("USERPROFILE")).replace("\\", "/");
-    }
+    m_localHomeDir = env.value("USERPROFILE").replace("\\", "/");
     m_localHomeDir += "/EMStudio";
     //m_settingsFile = appDataDir + "/" + "EMStudio/EMStudio-config.ini";
 //#elif Q_OS_MAC //<- Does not exist. Need OSX checking capabilities somewhere...
 //Linux and Mac function identically here for now...
 #else //if Q_OS_LINUX
-    QString appDataDir = getenv("HOME");
+    QString appDataDir(env.value("HOME"));
+
     if (!QDir(appDataDir).exists(".EMStudio")) {
         QDir(appDataDir).mkpath(".EMStudio");
     }
@@ -114,29 +116,34 @@ MainWindow::MainWindow(QWidget *parent)
     //Settings file should ALWAYS be the one in the settings dir. No reason to have it anywhere else.
     m_settingsFile = m_settingsDir + "/EMStudio-config.ini";
 
-    QString decoderfilestr = "";
-    if (QFile::exists(m_settingsDir + "/" + "definitions/decodersettings.json")) {
-        decoderfilestr = m_settingsDir + "/" + "definitions/decodersettings.json";
-    } else if (QFile::exists(m_defaultsDir + "/definitions/decodersettings.json")) {
-        decoderfilestr = m_defaultsDir + "/definitions/decodersettings.json";
-    } else if (QFile::exists("decodersettings.json")) {
-        //decoderfilestr = "decodersettings.json";
-    } else {
-        //QMessageBox::information(0,"Error","Error: No libreems.config.json file found!");
+    QString decoderfilestr;
+    QStringList decoder_file_locations(
+            { m_settingsDir + "/definitions/decodersettings.json",
+              m_defaultsDir + "/definitions/decodersettings.json",
+              "decodersettings.json" });
+    for (int i = 0; i < decoder_file_locations.size(); i++) {
+        if (QFile::exists(decoder_file_locations.at(i))) {
+            decoderfilestr = decoder_file_locations.at(i);
+            break;
+        }
     }
+
     if (QFile::exists(decoderfilestr)) {
+
+        QLOG_INFO() << "Loading decoder file from:" << decoderfilestr;
+
         QFile decoderfile(decoderfilestr);
         decoderfile.open(QIODevice::ReadOnly);
-        QByteArray decoderfilebytes = decoderfile.readAll();
+        QByteArray decoderfilebytes(decoderfile.readAll());
         decoderfile.close();
 
-        QJsonDocument document = QJsonDocument::fromJson(decoderfilebytes);
-        QJsonObject decodertopmap = document.object();
-        QJsonObject decoderlocationmap = decodertopmap.value("locations").toObject();
-        QString str = decoderlocationmap.value("locationid").toString();
+        QJsonDocument document(QJsonDocument::fromJson(decoderfilebytes));
+        QJsonObject decodertopmap(document.object());
+        QJsonObject decoderlocationmap(decodertopmap.value("locations").toObject());
+        QString str(decoderlocationmap.value("locationid").toString());
         bool ok = false;
-        unsigned short locid = str.toInt(&ok, 16);
-        QJsonArray decodervalueslist = decoderlocationmap.value("values").toArray();
+        unsigned short locid = str.toUInt(&ok, 16);
+        QJsonArray decodervalueslist(decoderlocationmap.value("values").toArray());
         QList<ConfigBlock> blocklist;
         for (int i = 0; i < decodervalueslist.size(); i++) {
             QJsonObject tmpmap = decodervalueslist.at(i).toObject();
@@ -161,20 +168,24 @@ MainWindow::MainWindow(QWidget *parent)
         m_configBlockMap[locid] = blocklist;
     }
 
+    ui.setupUi(this);
+    ui.actionDisconnect->setEnabled(false);
+    ui.actionInterrogation_Progress->setEnabled(false);
+    setWindowTitle(QString("EMStudio ") + QString(define2string(GIT_COMMIT)));
+    menuBar()->setNativeMenuBar(false);
+
     //return;
     m_currentRamLocationId = 0;
     //populateDataFields();
     m_waitingForRamWriteConfirmation = false;
     m_waitingForFlashWriteConfirmation = false;
-    ui.setupUi(this);
-    this->menuBar()->setNativeMenuBar(false);
+
+    m_emsinfo.emstudioCommit = define2string(GIT_COMMIT);
+    m_emsinfo.emstudioHash = define2string(GIT_HASH);
+
     connect(ui.actionSave_Offline_Data, SIGNAL(triggered()), this, SLOT(menu_file_saveOfflineDataClicked()));
     connect(ui.actionEMS_Status, SIGNAL(triggered()), this, SLOT(menu_windows_EmsStatusClicked()));
     connect(ui.actionLoad_Offline_Data, SIGNAL(triggered()), this, SLOT(menu_file_loadOfflineDataClicked()));
-    this->setWindowTitle(QString("EMStudio ") + QString(define2string(GIT_COMMIT)));
-    m_emsinfo.emstudioCommit = define2string(GIT_COMMIT);
-    m_emsinfo.emstudioHash = define2string(GIT_HASH);
-    ui.actionDisconnect->setEnabled(false);
     connect(ui.actionSettings, SIGNAL(triggered()), this, SLOT(menu_settingsClicked()));
     connect(ui.actionConnect, SIGNAL(triggered()), this, SLOT(menu_connectClicked()));
     connect(ui.actionDisconnect, SIGNAL(triggered()), this, SLOT(menu_disconnectClicked()));
@@ -191,21 +202,24 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui.actionParameter_View, SIGNAL(triggered()), this, SLOT(menu_windows_ParameterViewClicked()));
     connect(ui.actionFirmware_Metadata, SIGNAL(triggered()), this, SLOT(menu_windows_firmwareMetadataClicked()));
     connect(ui.actionFirmware_Debug, SIGNAL(triggered()), this, SLOT(menu_windows_firmwareDebugClicked()));
-    ui.actionInterrogation_Progress->setEnabled(false);
 
     m_emsInfo = 0;
     m_dataTables = 0;
     m_dataFlags = 0;
     m_dataGauges = 0;
     m_pluginLoader = new QPluginLoader(this);
-    if (QFile::exists("plugins/libfreeemsplugin.so")) {
-        m_pluginFileName = "plugins/libfreeemsplugin.so";
-    } else if (QFile::exists("/usr/share/emstudio/plugins/libfreeemsplugin.so")) {
-        m_pluginFileName = "/usr/share/emstudio/plugins/libfreeemsplugin.so";
-    } else if (QFile::exists("plugins/freeemsplugin.lib")) {
-        m_pluginFileName = "plugins/freeemsplugin.lib";
+    QStringList plugin_locations(
+            { "plugins/libfreeemsplugin.so",
+              "/usr/share/emstudio/plugins/libfreeemsplugin.so",
+              "plugins/freeemsplugin.lib" });
+    for (int i = 0; i < plugin_locations.size(); i++) {
+        if (QFile::exists(plugin_locations.at(i))) {
+            m_pluginFileName = plugin_locations.at(i);
+            QLOG_INFO() << "Loading plugin from:" << m_pluginFileName;
+            break;
+        }
     }
-    QLOG_INFO() << "Loading plugin from:" << m_pluginFileName;
+
     //m_pluginFileName = "plugins/libmsplugin.so";
     //m_pluginFileName = "plugins/libo5eplugin.so";
 
@@ -242,9 +256,9 @@ MainWindow::MainWindow(QWidget *parent)
     m_aboutMdiWindow->hide();
     m_aboutMdiWindow->setWindowTitle(m_aboutView->windowTitle());
 
-    //newDataGauges = new CustomGaugeView();
-    //newDataGauges->setFile("src/oniongauges.qml");
-    //newDataGauges->show();
+    //    m_newDataGauges = new CustomGaugeView();
+    //    m_newDataGauges->setFile("src/oniongauges.qml");
+    //    m_newDataGauges->show();
     m_dataGauges = new GaugeView();
     //connect(dataGauges,SIGNAL(destroyed()),this,SLOT(dataGaugesDestroyed()));
     m_gaugesMdiWindow = ui.mdiArea->addSubWindow(m_dataGauges);
@@ -351,6 +365,22 @@ MainWindow::MainWindow(QWidget *parent)
 
     ui.statusLabel->setText("<font bgcolor=\"#FF0000\">DISCONNECTED</font>");
 }
+
+MainWindow::~MainWindow()
+{
+
+    //Remove all WizardView windows
+    for (int i = 0; i < m_wizardList.size(); i++) {
+        m_wizardList[i]->close();
+        delete m_wizardList[i];
+    }
+    m_wizardList.clear();
+
+    m_emsComms->stop();
+    //emsComms->wait(1000);
+    delete m_emsComms;
+}
+
 void MainWindow::menu_windows_interrogateProgressViewClicked()
 {
     m_interrogateProgressMdiWindow->show();
@@ -1889,20 +1919,6 @@ void MainWindow::subMdiWindowActivated(QMdiSubWindow *window)
     }
 }
 
-MainWindow::~MainWindow()
-{
-
-    //Remove all WizardView windows
-    for (int i = 0; i < m_wizardList.size(); i++) {
-        m_wizardList[i]->close();
-        delete m_wizardList[i];
-    }
-    m_wizardList.clear();
-
-    m_emsComms->stop();
-    //emsComms->wait(1000);
-    delete m_emsComms;
-}
 void MainWindow::emsMemoryDirty()
 {
 }
