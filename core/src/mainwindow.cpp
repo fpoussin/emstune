@@ -1176,7 +1176,6 @@ void MainWindow::menu_windows_EmsStatusClicked()
 void MainWindow::menu_windows_GaugesClicked()
 {
     m_gaugesMdiWindow->show();
-    m_dataGauges->show();
     QApplication::postEvent(m_gaugesMdiWindow, new QEvent(QEvent::Show));
     QApplication::postEvent(m_gaugesMdiWindow, new QEvent(QEvent::WindowActivate));
 }
@@ -1984,20 +1983,6 @@ void MainWindow::closeEvent(QCloseEvent *evt)
 {
     Q_UNUSED(evt);
     //Save the window state.
-    /*	QMap<unsigned short,QWidget*> m_rawDataView;
-    QMap<unsigned short,ConfigView*> m_configDataView;
-    QMdiSubWindow *tablesMdiWindow;
-    QMdiSubWindow *firmwareMetaMdiWindow;
-    QMdiSubWindow *interrogateProgressMdiWindow;
-    QMdiSubWindow *emsMdiWindow;
-    QMdiSubWindow *flagsMdiWindow;
-    QMdiSubWindow *gaugesMdiWindow;
-    QMdiSubWindow *packetStatusMdiWindow;
-    QMdiSubWindow *aboutMdiWindow;
-    QMdiSubWindow *emsStatusMdiWindow;
-
-    ParameterView *parameterView;
-    QMdiSubWindow *parameterMdiWindow;*/
     QSettings windowsettings(m_settingsFile, QSettings::IniFormat);
     windowsettings.beginWriteArray("rawwindows");
     int val = 0;

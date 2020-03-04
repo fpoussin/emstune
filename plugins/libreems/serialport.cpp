@@ -64,7 +64,7 @@ void SerialPort::run()
     emit connected();
 
     bool isopen = true;
-    while (isopen) {
+    while (isopen && !this->isInterruptionRequested()) {
         m_serialLockMutex->lock();
         isopen = m_serialPort->isOpen();
         m_serialPort->waitForReadyRead(10);
